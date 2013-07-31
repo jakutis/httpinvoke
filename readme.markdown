@@ -1,6 +1,6 @@
 # httpinvoke
 
-[HTTP](http://www.rfc-editor.org/rfc/rfc2616.txt) client for [JavaScript](http://www.ecma-international.org/publications/standards/Ecma-262.htm).
+HTTP client for JavaScript.
 
 * Sends requests and receives responses.
 * Lets you monitor upload and download progress, if supported by platform.
