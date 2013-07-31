@@ -47,7 +47,17 @@
     var noop = function() {};
     var readyStates = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
     return function(uri, method, options) {
-        options = options || {};
+        if(typeof method === 'undefined') {
+            method = 'GET';
+            options = {};
+        } else if(typeof options === 'undefined') {
+            if(typeof method === 'string') {
+                options = {};
+            } else {
+                options = method;
+                method = 'GET';
+            }
+        }
         var uploadProgressCb = options.uploading || noop;
         var downloadProgressCb = options.downloading || noop;
         var statusCb = options.gotStatus || noop;
