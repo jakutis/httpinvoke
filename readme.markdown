@@ -1,7 +1,7 @@
 # httpinvoke
 
-* A [JavaScript](http://www.ecma-international.org/publications/standards/Ecma-262.htm) library.
-* An [HTTP](http://www.rfc-editor.org/rfc/rfc2616.txt) client.
+[HTTP](http://www.rfc-editor.org/rfc/rfc2616.txt) client for [JavaScript](http://www.ecma-international.org/publications/standards/Ecma-262.htm).
+
 * Sends requests and receives responses.
 * Lets you monitor upload and download progress, if supported by platform.
 * Works on [web browser](http://en.wikipedia.org/wiki/Internet_Explorer_5) and [Node.js](http://nodejs.org) platforms.
