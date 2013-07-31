@@ -77,7 +77,6 @@ Type is number.
 
 TODO.
 Exactly the same as uploading option.
-Optional, defaults to a no-op function.
 
 ### gotStatus option
 
