@@ -58,8 +58,7 @@
             statusCb = null;
             cb = null;
         };
-        var data = options.data || null;
-        var input, inputLength, inputHeaders = options.headers || [];
+        var input = options.input || null, inputLength = input === null ? 0 : input.length, inputHeaders = options.headers || [];
         var output, outputLength, outputHeaders = {};
         var xhr = createXHR();
 
@@ -152,16 +151,7 @@
         inputHeaders.forEach(function(header) {
             xhr.setRequestHeader(header.name, header.value);
         });
-        if(data === null) {
-            input = null;
-            inputLength = 0;
-        } else if(typeof data === 'string') {
-            input = data;
-            inputLength = data.length;
-            xhr.setRequestHeader('Content-Length', inputLength);
-        } else {
-            throw new Error('Data type not supported: ' + (typeof data));
-        }
+        xhr.setRequestHeader('Content-Length', inputLength);
         xhr.send(input);
         uploadProgressCb(0, 0, inputLength);
         return function() {
