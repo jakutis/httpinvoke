@@ -24,7 +24,7 @@ Load using your package manager, or use directly in web browser by adding `<scri
             if(err) {
                 return console.log('Failure', err);
             }
-            console.log('Success!', result);
+            console.log('Success', result);
         }
     });
 
