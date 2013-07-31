@@ -2,8 +2,8 @@
 
 * A [JavaScript](http://www.ecma-international.org/publications/standards/Ecma-262.htm) library.
 * An [HTTP](http://www.rfc-editor.org/rfc/rfc2616.txt) client.
-* Sends requests and receive responses.
-* Lets you monitor the upload and download progress, if supported by platform.
+* Sends requests and receives responses.
+* Lets you monitor upload and download progress, if supported by platform.
 * Works on [web browser](http://en.wikipedia.org/wiki/Internet_Explorer_5) and [Node.js](http://nodejs.org) platforms.
 * Detects the presence of [CommonJS](http://www.commonjs.org/) and [AMD](https://www.google.com/search?q=advanced+module+definition) script loaders.
 * Available on [npm](https://npmjs.org/package/httpinvoke) and [GitHub](https://github.com/jakutis/httpinvoke).
