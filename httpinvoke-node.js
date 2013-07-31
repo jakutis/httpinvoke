@@ -2,7 +2,7 @@ var http = require('http');
 var url = require('url');
 
 var noop = function() {};
-module.exports = function(url, method, options) {
+module.exports = function(uri, method, options) {
     if(typeof method === 'undefined') {
         method = 'GET';
         options = {};
@@ -28,11 +28,11 @@ module.exports = function(url, method, options) {
     var input = options.input || null, inputLength = input === null ? 0 : input.length, inputHeaders = options.headers || [];
     var output, outputLength, outputHeaders = {};
 
-    url = url.parse(url);
+    uri = url.parse(uri);
     var req = http.request({
-        hostname: url.hostname,
-        port: Number(url.port),
-        path: url.path,
+        hostname: uri.hostname,
+        port: Number(uri.port),
+        path: uri.path,
         method: method
     }, function(res) {
         if(cb) {
