@@ -1,0 +1,18 @@
+{
+    "name": "httpinvoke",
+    "repo": "jakutis/httpinvoke",
+    "description": "HTTP client for JavaScript",
+    "version": "0.0.3",
+    "keywords": ["http", "ajax", "request", "xhr", "connection", "https", "get", "head", "post", "put", "delete", "download", "upload", "browser", "ender", "browserify", "xmlhttprequest", "web"],
+    "dependencies": {
+    },
+    "development": {
+    },
+    "main": "httpinvoke-browser.js",
+    "scripts": ["httpinvoke-browser.js"],
+    "templates": [],
+    "styles": [],
+    "images": [],
+    "fonts": [],
+    "license": "MIT"
+}
