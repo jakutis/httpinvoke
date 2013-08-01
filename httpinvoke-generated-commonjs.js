@@ -134,17 +134,11 @@ module.exports = function(uri, method, options) {
         var output, outputLength, outputHeaders = {};
         var xhr = createXHR();
 
-        xhr.upload.onloadstart = function(progressEvent) {
-        };
-        xhr.upload.onloadend = function(progressEvent) {
-        };
         xhr.upload.ontimeout = function(progressEvent) {
             if(cb) {
                 cb(progressEvent);
                 deleteCallbacks();
             }
-        };
-        xhr.upload.onload = function(progressEvent) {
         };
         xhr.upload.onerror = function(progressEvent) {
             if(cb) {
@@ -152,16 +146,10 @@ module.exports = function(uri, method, options) {
                 deleteCallbacks();
             }
         };
-        xhr.upload.onabort = function(progressEvent) {
-        };
         xhr.upload.onprogress = function(progressEvent) {
             if(progressEvent.lengthComputable) {
                 uploadProgressCb(0, progressEvent.loaded, inputLength);
             }
-        };
-        xhr.onloadstart = function(progressEvent) {
-        };
-        xhr.onloadend = function(progressEvent) {
         };
 
         xhr.ontimeout = function(progressEvent) {
@@ -170,15 +158,11 @@ module.exports = function(uri, method, options) {
                 deleteCallbacks();
             }
         };
-        xhr.onload = function(progressEvent) {
-        };
         xhr.onerror = function(progressEvent) {
             if(cb) {
                 cb(progressEvent);
                 deleteCallbacks();
             }
-        };
-        xhr.onabort = function(progressEvent) {
         };
         xhr.onprogress = function(progressEvent) {
             if(progressEvent.lengthComputable) {
