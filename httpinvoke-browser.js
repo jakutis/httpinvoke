@@ -116,9 +116,7 @@
                     return line.length !== 0;
                 }).map(parseHeader).forEach(function(header) {
                     if(typeof outputHeaders[header.name] === 'undefined') {
-                        outputHeaders[header.name] = header.value;
-                    } else if(typeof outputHeaders[header.name] === 'string') {
-                        outputHeaders[header.name] = [outputHeaders[header.name], header.value];
+                        outputHeaders[header.name] = [header.value];
                     } else {
                         outputHeaders[header.name].push(header.value);
                     }
