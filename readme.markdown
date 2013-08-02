@@ -51,6 +51,12 @@ A collection of various options.
 Type is object.
 Optional, defaults to an object with no properties.
 
+### headers option
+
+HTTP request headers.
+Type is object.
+Keys are header names, values are arrays.
+
 ### uploading option
 
 TODO.
@@ -92,8 +98,10 @@ Type is number.
 
 #### headers argument
 
-HTTP response headers.
-TODO
+HTTP sponse headers.
+Type is object.
+Keys are header names, values are arrays.
+Header names are converted to lower case.
 
 ### finished option
 
