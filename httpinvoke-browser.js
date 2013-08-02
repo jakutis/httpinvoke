@@ -140,8 +140,10 @@
             }
         };
         xhr.open(method, uri, true);
-        inputHeaders.forEach(function(header) {
-            xhr.setRequestHeader(header.name, header.value);
+        Object.keys(inputHeaders).forEach(function(headerName) {
+            inputHeaders[headerName].forEach(function(headerValue) {
+                xhr.setRequestHeader(headerName, headerValue);
+            });
         });
         xhr.setRequestHeader('Content-Length', inputLength);
         xhr.send(input);
