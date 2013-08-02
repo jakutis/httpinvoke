@@ -32,6 +32,8 @@ Load using your package manager, or use directly in web browser by adding `<scri
 
 httpinvoke is just one function.
 The arguments are: uri, method, options.
+The return value is a function, which, when called, aborts the process.
+Aborting results in 'finished' callback being called with 'err'.
 
 ## uri argument
 
