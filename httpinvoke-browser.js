@@ -44,6 +44,25 @@
         };
     };
 
+    // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
+    var forbiddenInputHeaders = ['Accept-Charset', 'Accept-Encoding', 'Access-Control-Request-Headers', 'Access-Control-Request-Method', 'Connection', 'Content-Length', 'Cookie', 'Cookie2', 'Date', 'DNT', 'Expect', 'Host', 'Keep-Alive', 'Origin', 'Referer', 'TE', 'Trailer', 'Transfer-Encoding', 'Upgrade', 'User-Agent', 'Via'].map(function(header) {
+        return header.toLowerCase();
+    });
+    var validateInputHeaders = function(headers) {
+        Object.keys(headers).forEach(function(header) {
+            var headerl = header.toLowerCase();
+            if(forbiddenInputHeaders.indexOf(headerl) >= 0) {
+                throw new Error('Input header ' + header + ' is forbidden to be set programmatically');
+            }
+            if(headerl.substr(0, 'proxy-'.length) === 'proxy-') {
+                throw new Error('Input header ' + header + ' (to be precise, all Proxy-*) is forbidden to be set programmatically');
+            }
+            if(headerl.substr(0, 'sec-'.length) === 'sec-') {
+                throw new Error('Input header ' + header + ' (to be precise, all Sec-*) is forbidden to be set programmatically');
+            }
+        });
+    };
+
     var noop = function() {};
     var readyStates = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
     return function(uri, method, options) {
@@ -69,6 +88,13 @@
             cb = null;
         };
         var input = options.input || null, inputLength = input === null ? 0 : input.length, inputHeaders = options.headers || [];
+        try {
+            validateInputHeaders(inputHeaders);
+        } catch(err) {
+            cb(err);
+            deleteCallbacks();
+            return;
+        }
         var output, outputLength, outputHeaders = {};
         var xhr = createXHR();
 
