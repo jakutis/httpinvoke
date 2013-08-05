@@ -133,8 +133,8 @@
                 downloadProgressCb(0, progressEvent.loaded, outputLength);
             }
         };
-        xhr.onreadystatechange = function(event) {
-            var readyState = readyStates[event.readyState];
+        xhr.onreadystatechange = function() {
+            var readyState = readyStates[xhr.readyState];
             if(readyState === 'HEADERS_RECEIVED') {
                 xhr.getAllResponseHeaders().split(/\r?\n/).map(function(line) {
                     return line.trim();
