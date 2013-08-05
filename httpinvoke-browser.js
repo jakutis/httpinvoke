@@ -111,7 +111,7 @@
             }
         };
         xhr.upload.onprogress = function(progressEvent) {
-            if(progressEvent.lengthComputable) {
+            if(uploadProgressCb && progressEvent.lengthComputable) {
                 uploadProgressCb(0, progressEvent.loaded, inputLength);
             }
         };
@@ -129,11 +129,14 @@
             }
         };
         xhr.onprogress = function(progressEvent) {
-            if(progressEvent.lengthComputable) {
+            if(downloadProgressCb && progressEvent.lengthComputable) {
                 downloadProgressCb(0, progressEvent.loaded, outputLength);
             }
         };
         xhr.onreadystatechange = function() {
+            if(!cb) {
+                return;
+            }
             var readyState = readyStates[xhr.readyState];
             if(readyState === 'HEADERS_RECEIVED') {
                 xhr.getAllResponseHeaders().split(/\r?\n/).map(function(line) {
