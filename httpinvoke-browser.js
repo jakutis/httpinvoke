@@ -176,12 +176,12 @@
         uploadProgressCb(0, 0, inputLength);
         return function() {
             if(cb) {
+                cb(new Error('aborted'));
+                deleteCallbacks();
                 try {
                     xhr.abort();
                 } catch(err){
                 }
-                cb(new Error('aborted'));
-                deleteCallbacks();
             }
         };
     };
