@@ -100,13 +100,13 @@
 
         xhr.upload.ontimeout = function(progressEvent) {
             if(cb) {
-                cb(progressEvent);
+                cb(new Error('upload timeout'));
                 deleteCallbacks();
             }
         };
         xhr.upload.onerror = function(progressEvent) {
             if(cb) {
-                cb(progressEvent);
+                cb(new Error('upload error'));
                 deleteCallbacks();
             }
         };
@@ -118,13 +118,13 @@
 
         xhr.ontimeout = function(progressEvent) {
             if(cb) {
-                cb(progressEvent);
+                cb(new Error('download timeout'));
                 deleteCallbacks();
             }
         };
         xhr.onerror = function(progressEvent) {
             if(cb) {
-                cb(progressEvent);
+                cb(new Error('download error'));
                 deleteCallbacks();
             }
         };
@@ -179,7 +179,7 @@
         uploadProgressCb(0, 0, inputLength);
         return function() {
             if(cb) {
-                cb(new Error('aborted'));
+                cb(new Error('abort'));
                 deleteCallbacks();
                 try {
                     xhr.abort();
