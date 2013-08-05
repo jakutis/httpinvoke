@@ -150,9 +150,9 @@
                 outputLength = Number(outputHeaders['content-length']);
                 uploadProgressCb(0, inputLength, inputLength);
                 uploadProgressCb = null;
-                downloadProgressCb(0, 0, outputLength);
                 statusCb(xhr.status, outputHeaders);
                 statusCb = null;
+                downloadProgressCb(0, 0, outputLength);
             } else if(readyState === 'DONE') {
                 downloadProgressCb(0, outputLength, outputLength);
                 downloadProgressCb = null;
