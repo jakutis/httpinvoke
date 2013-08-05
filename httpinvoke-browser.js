@@ -171,7 +171,7 @@
                 xhr.setRequestHeader(headerName, headerValue);
             });
         });
-        xhr.setRequestHeader('Content-Length', inputLength);
+        // Content-Length header is set automatically
         xhr.send(input);
         uploadProgressCb(0, 0, inputLength);
         return function() {
