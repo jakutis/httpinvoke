@@ -1,4 +1,4 @@
-var httpinvoke = require('../httpinvoke-generated-commonjs.js');
+var httpinvoke = require('../httpinvoke-generated-commonjs');
 describe('simple usage', function() {
     it('not result in an error', function() {
         var done = false;
