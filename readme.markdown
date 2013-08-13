@@ -129,6 +129,13 @@ TODO.
 Type is string.
 Optional, defaults to null.
 
+# Development
+
+To test for NodeJS functionality run `make test`.
+
+To test for web browser functionality run `testling -u` and copy the URL link that is displayed in console and open it in any web browser.
+You must have installed [testling](https://npmjs.org/package/testling) by running `npm install -g testling`.
+
 # License
 
     The MIT License (MIT)
