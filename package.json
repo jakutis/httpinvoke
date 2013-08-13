@@ -1,6 +1,6 @@
 {
     "name": "httpinvoke",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "description": "HTTP client for JavaScript",
     "keywords": ["http", "ajax", "request", "xhr", "connection", "https", "get", "head", "post", "put", "delete", "download", "upload", "browser", "ender", "browserify", "xmlhttprequest", "web"],
     "main": "./httpinvoke-generated-commonjs.js",

@@ -1,6 +1,6 @@
 {
   "name": "httpinvoke",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "main": "httpinvoke-browser.js",
   "ignore": [
     "node_modules",
