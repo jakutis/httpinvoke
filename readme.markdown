@@ -19,12 +19,25 @@ Load using your package manager, or use directly in web browser by adding `<scri
 
 ## Example
 
-    httpinvoke('http://updates.html5rocks.com', {
-        finished: function(err, result) {
+    httpinvoke('http://updates.html5rocks.com', 'POST', {
+        input: JSON.stringify({foo:'bar'});
+        headers: {
+            'Content-Type': ['application/json']
+        },
+        uploading: function(min, current, max) {
+            console.log('Uploading', arguments);
+        },
+        gotStatus: function(status, headers) {
+            console.log('Got status', status, headers);
+        },
+        downloading: function(min, current, max) {
+            console.log('Downloading', arguments);
+        },
+        finished: function(err, output) {
             if(err) {
                 return console.log('Failure', err);
             }
-            console.log('Success', result);
+            console.log('Success', output);
         }
     });
 
