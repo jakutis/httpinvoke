@@ -157,6 +157,11 @@
                 statusCb = null;
                 downloadProgressCb(0, 0, outputLength);
             } else if(readyState === 'DONE') {
+                if(xhr.status === 0) {
+                    cb(new Error('"some type" of network error'));
+                    deleteCallbacks();
+                    return;
+                }
                 downloadProgressCb(0, outputLength, outputLength);
                 downloadProgressCb = null;
                 output = (typeof xhr.responseType === 'undefined' || xhr.responseType === '') ? 'text' : xhr.responseType;
