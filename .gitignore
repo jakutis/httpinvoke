@@ -1,2 +1,3 @@
 /node_modules
 /httpinvoke-generated-commonjs.js
+/httpinvoke-generated-browserify-tests.js
