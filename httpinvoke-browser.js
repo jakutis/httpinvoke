@@ -49,18 +49,20 @@
         return header.toLowerCase();
     });
     var validateInputHeaders = function(headers) {
-        Object.keys(headers).forEach(function(header) {
-            var headerl = header.toLowerCase();
-            if(forbiddenInputHeaders.indexOf(headerl) >= 0) {
-                throw new Error('Input header ' + header + ' is forbidden to be set programmatically');
+        for(var header in headers) {
+            if(headers.hasOwnProperty(header)) {
+                var headerl = header.toLowerCase();
+                if(forbiddenInputHeaders.indexOf(headerl) >= 0) {
+                    throw new Error('Input header ' + header + ' is forbidden to be set programmatically');
+                }
+                if(headerl.substr(0, 'proxy-'.length) === 'proxy-') {
+                    throw new Error('Input header ' + header + ' (to be precise, all Proxy-*) is forbidden to be set programmatically');
+                }
+                if(headerl.substr(0, 'sec-'.length) === 'sec-') {
+                    throw new Error('Input header ' + header + ' (to be precise, all Sec-*) is forbidden to be set programmatically');
+                }
             }
-            if(headerl.substr(0, 'proxy-'.length) === 'proxy-') {
-                throw new Error('Input header ' + header + ' (to be precise, all Proxy-*) is forbidden to be set programmatically');
-            }
-            if(headerl.substr(0, 'sec-'.length) === 'sec-') {
-                throw new Error('Input header ' + header + ' (to be precise, all Sec-*) is forbidden to be set programmatically');
-            }
-        });
+        }
     };
 
     var noop = function() {};
@@ -174,11 +176,13 @@
             }
         };
         xhr.open(method, uri, true);
-        Object.keys(inputHeaders).forEach(function(headerName) {
-            inputHeaders[headerName].forEach(function(headerValue) {
-                xhr.setRequestHeader(headerName, headerValue);
-            });
-        });
+        for(var inputHeaderName in inputHeaders) {
+            if(inputHeaders.hasOwnProperty(inputHeaderName)) {
+                inputHeaders[inputHeaderName].forEach(function(headerValue) {
+                    xhr.setRequestHeader(inputHeaderName, headerValue);
+                });
+            }
+        }
         // Content-Length header is set automatically
         xhr.send(input);
         uploadProgressCb(0, 0, inputLength);
