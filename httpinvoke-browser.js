@@ -7,47 +7,45 @@
         root.httpinvoke = factory();
   }
 }(this, function () {
+    var trim = function(string) {
+        return string.replace(/^\s+|\s+$/g,'');
+    };
     var createXHR = function() {
-        var candidates = ['Microsoft.XMLHTTP', 'Msxml2.XMLHTTP.6.0', 'Msxml2.XMLHTTP.3.0', 'Msxml2.XMLHTTP'].map(function(type) {
-            return function() {
-                return new ActiveXObject(type);
-            };
-        });
-        candidates.unshift(function() {
-            return new XMLHttpRequest();
-        });
-
-        var xhr;
-        if(candidates.some(function(create) {
-            try {
-                xhr = create();
-                createXHR = create;
-                return true;
-            } catch(e) {
-                return false;
-            }
-        })) {
-            return xhr;
-        } else {
+        try {
             createXHR = function() {
-                throw new Error('Cannot construct XMLHttpRequest');
+                return new XMLHttpRequest();
             };
             return createXHR();
+        } catch(err) {
         }
+        var candidates = ['Microsoft.XMLHTTP', 'Msxml2.XMLHTTP.6.0', 'Msxml2.XMLHTTP.3.0', 'Msxml2.XMLHTTP'];
+        var i = candidates.length - 1;
+        while(i >= 0) {
+            try {
+                createXHR = function() {
+                    return new ActiveXObject(candidates[i]);
+                };
+                return createXHR();
+            } catch(err) {
+            }
+            i -= 1;
+        }
+        createXHR = function() {
+            throw new Error('Cannot construct XMLHttpRequest');
+        };
+        return createXHR();
     };
 
     var parseHeader = function(header) {
         var colon = header.indexOf(':');
         return {
             name: header.slice(0, colon).toLowerCase(),
-            value: header.slice(colon + 1).trim()
+            value: trim(header.slice(colon + 1))
         };
     };
 
     // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
-    var forbiddenInputHeaders = ['Accept-Charset', 'Accept-Encoding', 'Access-Control-Request-Headers', 'Access-Control-Request-Method', 'Connection', 'Content-Length', 'Cookie', 'Cookie2', 'Date', 'DNT', 'Expect', 'Host', 'Keep-Alive', 'Origin', 'Referer', 'TE', 'Trailer', 'Transfer-Encoding', 'Upgrade', 'User-Agent', 'Via'].map(function(header) {
-        return header.toLowerCase();
-    });
+    var forbiddenInputHeaders = ['accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
     var validateInputHeaders = function(headers) {
         for(var header in headers) {
             if(headers.hasOwnProperty(header)) {
@@ -62,6 +60,23 @@
                     throw new Error('Input header ' + header + ' (to be precise, all Sec-*) is forbidden to be set programmatically');
                 }
             }
+        }
+    };
+    var fillOutputHeaders = function(xhr, outputHeaders) {
+        var headers = xhr.getAllResponseHeaders().split(/\r?\n/);
+        var i = headers.length - 1;
+        var header;
+        while(i >= 0) {
+            header = trim(headers[i]);
+            if(header.length > 0) {
+                header = parseHeader(header);
+                if(typeof outputHeaders[header.name] === 'undefined') {
+                    outputHeaders[header.name] = [header.value];
+                } else {
+                    outputHeaders[header.name].push(header.value);
+                }
+            }
+            i -= 1;
         }
     };
 
@@ -99,6 +114,7 @@
         }
         var output, outputLength, outputHeaders = {};
         var xhr = createXHR();
+        var i;
 
         if(typeof xhr.upload !== 'undefined') {
             xhr.upload.ontimeout = function(progressEvent) {
@@ -143,17 +159,7 @@
             }
             var readyState = readyStates[xhr.readyState];
             if(readyState === 'HEADERS_RECEIVED') {
-                xhr.getAllResponseHeaders().split(/\r?\n/).map(function(line) {
-                    return line.trim();
-                }).filter(function(line) {
-                    return line.length !== 0;
-                }).map(parseHeader).forEach(function(header) {
-                    if(typeof outputHeaders[header.name] === 'undefined') {
-                        outputHeaders[header.name] = [header.value];
-                    } else {
-                        outputHeaders[header.name].push(header.value);
-                    }
-                });
+                fillOutputHeaders(xhr, outputHeaders);
                 outputLength = Number(outputHeaders['content-length']);
                 uploadProgressCb(0, inputLength, inputLength);
                 uploadProgressCb = null;
@@ -180,9 +186,11 @@
         xhr.open(method, uri, true);
         for(var inputHeaderName in inputHeaders) {
             if(inputHeaders.hasOwnProperty(inputHeaderName)) {
-                inputHeaders[inputHeaderName].forEach(function(headerValue) {
-                    xhr.setRequestHeader(inputHeaderName, headerValue);
-                });
+                i = inputHeaders[inputHeaderName].length;
+                while(i >= 0) {
+                    xhr.setRequestHeader(inputHeaderName, inputHeaders[inputHeaderName][i]);
+                    i -= 1;
+                }
             }
         }
         // Content-Length header is set automatically
