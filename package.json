@@ -27,7 +27,10 @@
   "dependencies": {},
   "devDependencies": {
     "jasmine-standalone": "1.3.x",
-    "jasmine-node": "1.11.x"
+    "jasmine-reporters": "0.2.x",
+    "jasmine-node": "1.11.x",
+    "browserify": "2.26.x",
+    "serve": "1.3.x"
   },
   "testling": {
     "files": [
