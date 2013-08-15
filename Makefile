@@ -14,9 +14,13 @@ test-node:
 
 httpinvoke-generated-browserify-tests.js: test/preindex.js httpinvoke-generated-commonjs.js test/allSpecsRequired.js test/*Spec.js test/postindex.js
 	cat test/preindex.js > httpinvoke-generated-browserify-tests.js
+	echo ';' >> httpinvoke-generated-browserify-tests.js
 	cat ./node_modules/jasmine-reporters/ext/jasmine.js >> httpinvoke-generated-browserify-tests.js
+	echo ';' >> httpinvoke-generated-browserify-tests.js
 	cat ./node_modules/jasmine-reporters/ext/jasmine-html.js >> httpinvoke-generated-browserify-tests.js
+	echo ';' >> httpinvoke-generated-browserify-tests.js
 	./node_modules/.bin/browserify test/allSpecsRequired.js >> httpinvoke-generated-browserify-tests.js
+	echo ';' >> httpinvoke-generated-browserify-tests.js
 	cat test/postindex.js >> httpinvoke-generated-browserify-tests.js
 
 test-browser: httpinvoke-generated-browserify-tests.js
