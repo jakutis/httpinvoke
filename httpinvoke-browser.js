@@ -144,23 +144,29 @@
             };
         }
 
-        xhr.ontimeout = function(progressEvent) {
-            if(cb) {
-                cb(new Error('download timeout'));
-                deleteCallbacks();
-            }
-        };
-        xhr.onerror = function(progressEvent) {
-            if(cb) {
-                cb(new Error('download error'));
-                deleteCallbacks();
-            }
-        };
-        xhr.onprogress = function(progressEvent) {
-            if(downloadProgressCb && progressEvent.lengthComputable) {
-                downloadProgressCb(0, progressEvent.loaded, outputLength);
-            }
-        };
+        if(typeof xhr.ontimeout !== 'undefined') {
+            xhr.ontimeout = function(progressEvent) {
+                if(cb) {
+                    cb(new Error('download timeout'));
+                    deleteCallbacks();
+                }
+            };
+        }
+        if(typeof xhr.onerror !== 'undefined') {
+            xhr.onerror = function(progressEvent) {
+                if(cb) {
+                    cb(new Error('download error'));
+                    deleteCallbacks();
+                }
+            };
+        }
+        if(typeof xhr.onprogress !== 'undefined') {
+            xhr.onprogress = function(progressEvent) {
+                if(downloadProgressCb && progressEvent.lengthComputable) {
+                    downloadProgressCb(0, progressEvent.loaded, outputLength);
+                }
+            };
+        }
         xhr.onreadystatechange = function() {
             if(!cb) {
                 return;
