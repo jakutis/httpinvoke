@@ -1,0 +1,4 @@
+window.console = {
+    log: function() {
+    }
+};
