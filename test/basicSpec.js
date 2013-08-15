@@ -4,7 +4,7 @@ describe('simple usage', function() {
         var done = false;
         var err;
         runs(function() {
-            httpinvoke('http://updates.html5rocks.com', {
+            httpinvoke(location.href, {
                 finished: function(_err, result) {
                     err = _err;
                     done = true;
