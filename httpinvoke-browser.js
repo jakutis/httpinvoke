@@ -10,6 +10,14 @@
     var trim = function(string) {
         return string.replace(/^\s+|\s+$/g,'');
     };
+    var indexOf = function(array, item) {
+        for(var i = 0; i < array.length; i += 1) {
+            if(array[i] === item) {
+                return i;
+            }
+        }
+        return -1;
+    };
     var createXHR = function() {
         try {
             createXHR = function() {
@@ -50,7 +58,7 @@
         for(var header in headers) {
             if(headers.hasOwnProperty(header)) {
                 var headerl = header.toLowerCase();
-                if(forbiddenInputHeaders.indexOf(headerl) >= 0) {
+                if(indexOf(forbiddenInputHeaders, headerl) >= 0) {
                     throw new Error('Input header ' + header + ' is forbidden to be set programmatically');
                 }
                 if(headerl.substr(0, 'proxy-'.length) === 'proxy-') {
