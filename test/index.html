@@ -2,11 +2,17 @@
 <html>
     <head>
         <link rel="stylesheet" type="text/css" href="../node_modules/jasmine-reporters/ext/jasmine.css">
+    </head>
+    <body>
+        <script>
+            window.console = {
+                log: function() {
+                }
+            };
+        </script>
         <script src="../node_modules/jasmine-reporters/ext/jasmine.js"></script>
         <script src="../node_modules/jasmine-reporters/ext/jasmine-html.js"></script>
         <script src="../httpinvoke-generated-browserify-tests.js"></script>
-    </head>
-    <body>
         <script>
 (function() {
     var jasmineEnv = jasmine.getEnv();
