@@ -43,6 +43,8 @@ Load using your package manager, or use directly in web browser by adding `<scri
 
 # API reference
 
+    httpinvoke(url, [method, [options]])
+
 httpinvoke is just one function.
 The arguments are: uri, method, options.
 The return value is a function, which, when called, aborts the process.
