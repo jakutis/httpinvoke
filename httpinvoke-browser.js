@@ -163,25 +163,39 @@
                 }
             };
         }
+        var onHeadersReceived = function() {
+            if(statusCb === null) {
+                return;
+            }
+            try {
+                if(xhr.status === 'undefined') {
+                    return;
+                }
+            } catch(_) {
+                return;
+            }
+            fillOutputHeaders(xhr, outputHeaders);
+            outputLength = Number(outputHeaders['content-length']);
+            uploadProgressCb(0, inputLength, inputLength);
+            uploadProgressCb = null;
+            statusCb(xhr.status, outputHeaders);
+            statusCb = null;
+            downloadProgressCb(0, 0, outputLength);
+        };
         xhr.onreadystatechange = function() {
             if(!cb) {
                 return;
             }
             var readyState = readyStates[xhr.readyState];
             if(readyState === 'HEADERS_RECEIVED') {
-                fillOutputHeaders(xhr, outputHeaders);
-                outputLength = Number(outputHeaders['content-length']);
-                uploadProgressCb(0, inputLength, inputLength);
-                uploadProgressCb = null;
-                statusCb(xhr.status, outputHeaders);
-                statusCb = null;
-                downloadProgressCb(0, 0, outputLength);
+                onHeadersReceived();
             } else if(readyState === 'DONE') {
                 if(xhr.status === 0) {
                     cb(new Error('"some type" of network error'));
                     deleteCallbacks();
                     return;
                 }
+                onHeadersReceived();
                 downloadProgressCb(0, outputLength, outputLength);
                 downloadProgressCb = null;
                 output = (typeof xhr.responseType === 'undefined' || xhr.responseType === '') ? 'text' : xhr.responseType;
