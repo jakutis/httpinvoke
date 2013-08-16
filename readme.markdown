@@ -22,7 +22,7 @@ Load using your package manager, or use directly in web browser by adding `<scri
     httpinvoke('http://updates.html5rocks.com', 'POST', {
         input: JSON.stringify({foo:'bar'});
         headers: {
-            'Content-Type': ['application/json']
+            'Content-Type': 'application/json'
         },
         uploading: function(min, current, max) {
             console.log('Uploading', arguments);
@@ -70,7 +70,7 @@ Optional, defaults to an object with no properties.
 
 HTTP request headers.
 Type is object.
-Keys are header names, values are arrays.
+Keys are header names, values are strings.
 
 ### uploading option
 
@@ -115,7 +115,7 @@ Type is number.
 
 HTTP sponse headers.
 Type is object.
-Keys are header names, values are arrays.
+Keys are header names, values are strings.
 Header names are converted to lower case.
 
 ### finished option

@@ -78,11 +78,7 @@
             header = trim(headers[i]);
             if(header.length > 0) {
                 header = parseHeader(header);
-                if(typeof outputHeaders[header.name] === 'undefined') {
-                    outputHeaders[header.name] = [header.value];
-                } else {
-                    outputHeaders[header.name].push(header.value);
-                }
+                outputHeaders[header.name] = header.value;
             }
             i -= 1;
         }
@@ -112,7 +108,7 @@
             statusCb = null;
             cb = null;
         };
-        var input = options.input || null, inputLength = input === null ? 0 : input.length, inputHeaders = options.headers || [];
+        var input = options.input || null, inputLength = input === null ? 0 : input.length, inputHeaders = options.headers || {};
         try {
             validateInputHeaders(inputHeaders);
         } catch(err) {
@@ -200,11 +196,7 @@
         xhr.open(method, uri, true);
         for(var inputHeaderName in inputHeaders) {
             if(inputHeaders.hasOwnProperty(inputHeaderName)) {
-                i = inputHeaders[inputHeaderName].length;
-                while(i >= 0) {
-                    xhr.setRequestHeader(inputHeaderName, inputHeaders[inputHeaderName][i]);
-                    i -= 1;
-                }
+                xhr.setRequestHeader(inputHeaderName, inputHeaders[inputHeaderName]);
             }
         }
         // Content-Length header is set automatically
