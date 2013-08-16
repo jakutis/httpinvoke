@@ -216,9 +216,6 @@
         // Content-Length header is set automatically
         xhr.send(input);
         uploadProgressCb(0, 0, inputLength);
-        if(typeof xhr.upload === 'undefined') {
-            uploadProgressCb(0, inputLength, inputLength);
-        }
         return function() {
             if(cb) {
                 cb(new Error('abort'));
