@@ -35,6 +35,10 @@ module.exports = function(uri, method, options) {
         path: uri.path,
         method: method
     }, function(res) {
+        if(statusCb) {
+            statusCb(res.statusCode, res.headers);
+            statusCb = null;
+        }
         if(cb) {
             var output = '';
             res.setEncoding('utf8');
