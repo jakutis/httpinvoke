@@ -2,7 +2,7 @@
   "name": "httpinvoke",
   "repo": "jakutis/httpinvoke",
   "description": "HTTP client for JavaScript",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "keywords": [
     "http",
     "ajax",
