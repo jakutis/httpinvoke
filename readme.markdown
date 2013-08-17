@@ -8,8 +8,12 @@ HTTP client for JavaScript.
 * Detects the presence of [CommonJS](http://www.commonjs.org/) and [AMD](https://www.google.com/search?q=advanced+module+definition) script loaders.
 * Available on [npm](https://npmjs.org/package/httpinvoke) and [GitHub](https://github.com/jakutis/httpinvoke).
 * Supports [npm](https://npmjs.org/), [Bower](http://bower.io/) and [Component](http://component.io/) package managers.
-
-[![browser support](http://ci.testling.com/jakutis/httpinvoke.png)](http://ci.testling.com/jakutis/httpinvoke)
+* Tested on:
+  * Opera 9.50 and later
+  * Mozilla Firefox 3.0 and later
+  * Microsoft Internet Explorer 7.0 and later
+  * Android 2.3.7
+  * Google Chrome 28
 
 # Usage
 

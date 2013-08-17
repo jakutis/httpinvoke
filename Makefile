@@ -10,8 +10,7 @@ httpinvoke-generated-commonjs.js: httpinvoke-node.js httpinvoke-browser.js
 	echo '}' >> httpinvoke-generated-commonjs.js
 
 test-node:
-	./node_modules/.bin/jasmine-node --verbose test/specs
+	./node_modules/.bin/mocha
 
 test-browser:
-	echo "***** Open http://localhost:3000/test/browser/ *****"
-	./node_modules/.bin/serve --no-logs .
+	./node_modules/.bin/karma start
