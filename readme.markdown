@@ -9,11 +9,15 @@ HTTP client for JavaScript.
 * Available on [npm](https://npmjs.org/package/httpinvoke) and [GitHub](https://github.com/jakutis/httpinvoke).
 * Supports [npm](https://npmjs.org/), [Bower](http://bower.io/) and [Component](http://component.io/) package managers.
 * Tested on:
-  * Opera 9.50 and later
-  * Mozilla Firefox 3.0 and later
-  * Microsoft Internet Explorer 7.0 and later
-  * Android 2.3.7
-  * Google Chrome 28
+  * Opera 9.50.0 (Windows XP) and later
+  * Firefox 3.0.0 (Windows XP) and later
+  * IE 7.0.0 (Windows XP) and later
+  * Mobile Safari 6.0.0 (iOS 6.1.3)
+  * Android 2.3.7 (Android 2.3.7)
+  * Chrome 1.0.154 (Windows XP)
+  * Safari 4.0.3 (Windows XP)
+  * Safari 5.0.4 (Windows XP)
+  * Safari 5.1.7 (Windows XP)
 
 # Usage
 
