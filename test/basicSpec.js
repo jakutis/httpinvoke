@@ -8,11 +8,13 @@ describe('Simplest GET invocation', function() {
             finished: done
         });
     });
-    it('receives Content-Type header', function(done) {
-        httpinvoke(url, {
-            gotStatus: function(_, headers) {
-                done(typeof headers['content-type'] === 'string' ? null : new Error('Content-Type is not received'));
-            }
-        });
+    it('returns abort function', function(done) {
+        var abort = httpinvoke(url);
+        try {
+            abort();
+            done();
+        } catch(err) {
+            done(err);
+        }
     });
 });
