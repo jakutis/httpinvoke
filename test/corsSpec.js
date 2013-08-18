@@ -1,7 +1,7 @@
 var url = typeof window === 'undefined' ? 'http://example.org' : location.href;
 var httpinvoke = require('../httpinvoke-node');
 
-describe('Cross-Origin Resource Sharing feature flag', function() {
+describe('"cors" feature flag', function() {
     this.timeout(10000);
     it('exists', function(done) {
         if(typeof httpinvoke.cors !== 'boolean') {
