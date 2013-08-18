@@ -6,6 +6,7 @@ describe('"uploading" option', function() {
     it('is called at least twice', function(done) {
         var count = 0;
         var abort = httpinvoke(url, {
+            input: 'foobar',
             uploading: function() {
                 count += 1;
                 if(count === 2) {
@@ -26,6 +27,7 @@ describe('"uploading" option', function() {
             done = null;
         };
         httpinvoke(url, {
+            input: 'foobar',
             uploading: function(current, total) {
                 if(done === null) {
                     return;
@@ -60,6 +62,7 @@ describe('"uploading" option', function() {
     it('has the last "current" be equal to total', function(done) {
         var current, total;
         httpinvoke(url, {
+            input: 'foobar',
             uploading: function(_current, _total) {
                 current = _current;
                 total = _total;
@@ -75,6 +78,7 @@ describe('"uploading" option', function() {
     });
     it('has the first "current" be equal to 0', function(done) {
         var abort = httpinvoke(url, {
+            input: 'foobar',
             uploading: function(current) {
                 if(done === null) {
                     return;
@@ -91,6 +95,7 @@ describe('"uploading" option', function() {
     });
     it('has "current" not greater than "total"', function(done) {
         httpinvoke(url, {
+            input: 'foobar',
             uploading: function(current, total) {
                 if(current > total) {
                     done(new Error('"current" was greater than "total"'));
@@ -108,6 +113,7 @@ describe('"uploading" option', function() {
     it('has "total" always be the same', function(done) {
         var total = null;
         httpinvoke(url, {
+            input: 'foobar',
             uploading: function(current, _total) {
                 if(done === null) {
                     return;
@@ -150,6 +156,7 @@ describe('"uploading" option', function() {
     it('has "current" be non-decreasing', function(done) {
         var current = null;
         httpinvoke(url, {
+            input: 'foobar',
             uploading: function(_current) {
                 if(done === null) {
                     return;
