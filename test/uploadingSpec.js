@@ -129,6 +129,24 @@ describe('"uploading" option', function() {
             }
         });
     });
+    it('has "total" be equal to input length', function(done) {
+        var input = 'foobar';
+        var abort = httpinvoke(url, {
+            input: input,
+            uploading: function(_, total) {
+                if(done === null) {
+                    return;
+                }
+                if(input.length !== total) {
+                    done(new Error('"total"=' + total + ' was not equal to input length = ' + input.length));
+                } else {
+                    done();
+                }
+                done = null;
+                abort();
+            }
+        });
+    });
     it('has "current" be non-decreasing', function(done) {
         var current = null;
         httpinvoke(url, {
