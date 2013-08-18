@@ -69,7 +69,7 @@ module.exports = function(config) {
     singleRun: false,
 
     proxies: {
-        '/dummyserver': dummyserverCfg.url
+        '/dummyserver/': dummyserverCfg.url
     }
 
   });
