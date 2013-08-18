@@ -1,11 +1,11 @@
-var url = typeof window === 'undefined' ? 'http://example.org' : location.href;
+var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('"uploading" option', function() {
     this.timeout(10000);
     it('is called at least twice', function(done) {
         var count = 0;
-        var abort = httpinvoke(url, {
+        var abort = httpinvoke(cfg.url, {
             input: 'foobar',
             uploading: function() {
                 count += 1;
@@ -26,7 +26,7 @@ describe('"uploading" option', function() {
             done(new Error(msg));
             done = null;
         };
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             input: 'foobar',
             uploading: function(current, total) {
                 if(done === null) {
@@ -61,7 +61,7 @@ describe('"uploading" option', function() {
     });
     it('has the last "current" be equal to total', function(done) {
         var current, total;
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             input: 'foobar',
             uploading: function(_current, _total) {
                 current = _current;
@@ -77,7 +77,7 @@ describe('"uploading" option', function() {
         });
     });
     it('has the first "current" be equal to 0', function(done) {
-        var abort = httpinvoke(url, {
+        var abort = httpinvoke(cfg.url, {
             input: 'foobar',
             uploading: function(current) {
                 if(done === null) {
@@ -94,7 +94,7 @@ describe('"uploading" option', function() {
         });
     });
     it('has "current" not greater than "total"', function(done) {
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             input: 'foobar',
             uploading: function(current, total) {
                 if(current > total) {
@@ -112,7 +112,7 @@ describe('"uploading" option', function() {
     });
     it('has "total" always be the same', function(done) {
         var total = null;
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             input: 'foobar',
             uploading: function(current, _total) {
                 if(done === null) {
@@ -137,7 +137,7 @@ describe('"uploading" option', function() {
     });
     it('has "total" be equal to input length', function(done) {
         var input = 'foobar';
-        var abort = httpinvoke(url, {
+        var abort = httpinvoke(cfg.url, {
             input: input,
             uploading: function(_, total) {
                 if(done === null) {
@@ -155,7 +155,7 @@ describe('"uploading" option', function() {
     });
     it('has "current" be non-decreasing', function(done) {
         var current = null;
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             input: 'foobar',
             uploading: function(_current) {
                 if(done === null) {

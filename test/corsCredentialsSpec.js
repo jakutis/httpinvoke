@@ -1,4 +1,4 @@
-var url = typeof window === 'undefined' ? 'http://example.org' : location.href;
+var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('"corsCredentials" feature flag', function() {

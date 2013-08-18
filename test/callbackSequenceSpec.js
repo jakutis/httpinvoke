@@ -1,11 +1,11 @@
-var url = typeof window === 'undefined' ? 'http://example.org' : location.href;
+var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('sequence of callback options', function() {
     this.timeout(10000);
     it('ensures that "uploading" is called before "gotStatus"', function(done) {
         var uploading = false;
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             uploading: function() {
                 uploading = true;
             },
@@ -24,7 +24,7 @@ describe('sequence of callback options', function() {
     });
     it('ensures that "gotStatus" is called before "downloading"', function(done) {
         var gotStatus = false;
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             gotStatus: function() {
                 gotStatus = true;
             },
@@ -43,7 +43,7 @@ describe('sequence of callback options', function() {
     });
     it('ensures that "downloading" is called before "finished"', function(done) {
         var downloading = false;
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             downloading: function() {
                 downloading = true;
             },

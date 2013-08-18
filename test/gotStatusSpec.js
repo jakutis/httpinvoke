@@ -1,10 +1,10 @@
-var url = typeof window === 'undefined' ? 'http://example.org' : location.href;
+var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('"gotStatus" option', function() {
     this.timeout(10000);
     it('receives Content-Type header', function(done) {
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             gotStatus: function(_, headers) {
                 done(typeof headers['content-type'] === 'string' ? null : new Error('Content-Type was not received'));
             }
@@ -12,7 +12,7 @@ describe('"gotStatus" option', function() {
     });
     it('is called exactly once', function(done) {
         var count = 0;
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             gotStatus: function() {
                 count += 1;
             },

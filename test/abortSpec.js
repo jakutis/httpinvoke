@@ -1,10 +1,10 @@
-var url = typeof window === 'undefined' ? 'http://example.org' : location.href;
+var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('abort', function() {
     this.timeout(10000);
     it('does not throw', function(done) {
-        var abort = httpinvoke(url);
+        var abort = httpinvoke(cfg.url);
         try {
             abort();
             done();
@@ -20,7 +20,7 @@ describe('abort', function() {
             done(new Error('A callback has been called'));
             done = null;
         };
-        var abort = httpinvoke(url, {
+        var abort = httpinvoke(cfg.url, {
             gotStatus: callback,
             downloading: callback,
             uploading: callback,

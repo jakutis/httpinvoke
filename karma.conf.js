@@ -1,5 +1,6 @@
 // Karma configuration
 // Generated on Sat Aug 17 2013 15:17:48 GMT+0300 (EEST)
+var dummyserverCfg = require('./dummyserver-config');
 
 module.exports = function(config) {
   config.set({
@@ -65,6 +66,11 @@ module.exports = function(config) {
 
     // Continuous Integration mode
     // if true, it capture browsers, run tests and exit
-    singleRun: false
+    singleRun: false,
+
+    proxies: {
+        '/dummyserver': dummyserverCfg.url
+    }
+
   });
 };

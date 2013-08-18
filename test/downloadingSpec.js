@@ -1,11 +1,11 @@
-var url = typeof window === 'undefined' ? 'http://example.org' : location.href;
+var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('"downloading" option', function() {
     this.timeout(10000);
     it('is called at least twice', function(done) {
         var count = 0;
-        var abort = httpinvoke(url, {
+        var abort = httpinvoke(cfg.url, {
             downloading: function() {
                 count += 1;
                 if(count === 2) {
@@ -25,7 +25,7 @@ describe('"downloading" option', function() {
             done(new Error(msg));
             done = null;
         };
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             downloading: function(current, total) {
                 if(done === null) {
                     return;
@@ -59,7 +59,7 @@ describe('"downloading" option', function() {
     });
     it('has the last "current" be equal to total', function(done) {
         var current, total;
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             downloading: function(_current, _total) {
                 current = _current;
                 total = _total;
@@ -74,7 +74,7 @@ describe('"downloading" option', function() {
         });
     });
     it('has the first "current" be equal to 0', function(done) {
-        var abort = httpinvoke(url, {
+        var abort = httpinvoke(cfg.url, {
             downloading: function(current) {
                 if(done === null) {
                     return;
@@ -90,7 +90,7 @@ describe('"downloading" option', function() {
         });
     });
     it('has "current" not greater than "total"', function(done) {
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             downloading: function(current, total) {
                 if(current > total) {
                     done(new Error('"current" was greater than "total"'));
@@ -107,7 +107,7 @@ describe('"downloading" option', function() {
     });
     it('has "total" always be the same', function(done) {
         var total = null;
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             downloading: function(current, _total) {
                 if(done === null) {
                     return;
@@ -131,7 +131,7 @@ describe('"downloading" option', function() {
     });
     it('has "total" be equal to output length', function(done) {
         var total = null;
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             downloading: function(_, _total) {
                 total = _total;
             },
@@ -149,7 +149,7 @@ describe('"downloading" option', function() {
     });
     it('has "current" be non-decreasing', function(done) {
         var current = null;
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             downloading: function(_current) {
                 if(done === null) {
                     return;

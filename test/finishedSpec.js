@@ -1,11 +1,11 @@
-var url = typeof window === 'undefined' ? 'http://example.org' : location.href;
+var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('"finished" option', function() {
     this.timeout(10000);
     it('is called exactly once', function(done) {
         var count = 0;
-        httpinvoke(url, {
+        httpinvoke(cfg.url, {
             finished: function() {
                 count += 1;
                 if(count === 1) {

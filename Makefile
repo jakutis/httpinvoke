@@ -1,4 +1,4 @@
-.PHONY: compile test
+.PHONY: compile test-node test-node-singlerun test-browser
 
 compile: httpinvoke-generated-commonjs.js
 
@@ -9,11 +9,23 @@ httpinvoke-generated-commonjs.js: httpinvoke-node.js httpinvoke-browser.js
 	cat httpinvoke-browser.js >> httpinvoke-generated-commonjs.js
 	echo '}' >> httpinvoke-generated-commonjs.js
 
+.ONESHELL:
 test-node:
+	node ./dummyserver.js &
+	DPID=$$!
 	./node_modules/.bin/mocha --watch
+	kill $$DPID
 
+.ONESHELL:
 test-node-singlerun:
+	node ./dummyserver.js &
+	DPID=$$!
 	./node_modules/.bin/mocha
+	kill $$DPID
 
+.ONESHELL:
 test-browser:
+	node ./dummyserver.js &
+	DPID=$$!
 	./node_modules/.bin/karma start
+	kill $$DPID

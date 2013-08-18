@@ -1,4 +1,4 @@
-var url = typeof window === 'undefined' ? 'http://example.org' : location.href;
+var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('"cors" feature flag', function() {
@@ -16,7 +16,7 @@ describe('"cors" feature flag', function() {
         if(!httpinvoke.cors) {
             return done();
         }
-        httpinvoke('http://attacker-site.com/html5/CORS/show_cookies.php', done);
+        httpinvoke(cfg.corsURL, done);
     });
     it('ensures, when being false and making cross-origin request, that no callbacks are called, except "finished" with Error', function(done) {
         if(httpinvoke.cors) {
@@ -29,7 +29,7 @@ describe('"cors" feature flag', function() {
             done(new Error('A callback was called'));
             done = null;
         };
-        httpinvoke('http://attacker-site.com/html5/CORS/show_cookies.php', {
+        httpinvoke(cfg.corsURL, {
             uploading: callback,
             gotStatus: callback,
             downloading: callback,
