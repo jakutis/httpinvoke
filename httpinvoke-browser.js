@@ -217,23 +217,33 @@
                     return cb(new Error('"some type" of network error'));
                 }
                 onHeadersReceived();
-
-                if(outputLength === null) {
-                    downloadProgressCb(0, 0);
-                    downloadProgressCb(0, 0);
-                } else {
-                    downloadProgressCb(outputLength, outputLength);
-                }
                 if(cb === null) {
                     return;
                 }
 
                 output = (typeof xhr.responseType === 'undefined' || xhr.responseType === '') ? 'text' : xhr.responseType;
                 if(output === 'text') {
-                    cb(null, xhr.responseText);
+                    output = xhr.responseText;
                 } else {
                     cb(new Error('Unknown response body format ' + output));
+                    cb = null;
+                    return;
                 }
+
+                if(outputLength === null) {
+                    outputLength = output.length;
+                    downloadProgressCb(0, outputLength);
+                }
+                if(cb === null) {
+                    return;
+                }
+
+                downloadProgressCb(outputLength, outputLength);
+                if(cb === null) {
+                    return;
+                }
+
+                cb(null, output);
             }
         };
         xhr.open(method, uri, true);
