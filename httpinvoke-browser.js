@@ -107,6 +107,9 @@
         var statusCb = options.gotStatus || noop;
         var cb = options.finished || noop;
         var input = options.input || null, inputLength = input === null ? 0 : input.length, inputHeaders = options.headers || {};
+
+        var uploadProgressCbCalled = false;
+
         try {
             validateInputHeaders(inputHeaders);
         } catch(err) {
@@ -143,6 +146,10 @@
                     return;
                 }
                 if(progressEvent.lengthComputable) {
+                    if(!uploadProgressCbCalled) {
+                        uploadProgressCbCalled = true;
+                        uploadProgressCb(0, inputLength);
+                    }
                     uploadProgressCb(progressEvent.loaded, inputLength);
                 }
             };
@@ -193,6 +200,10 @@
             }
             fillOutputHeaders(xhr, outputHeaders);
 
+            if(!uploadProgressCbCalled) {
+                uploadProgressCbCalled = true;
+                uploadProgressCb(0, inputLength);
+            }
             uploadProgressCb(inputLength, inputLength);
             if(cb === null) {
                 return;
@@ -262,7 +273,10 @@
             if(cb === null) {
                 return;
             }
-            uploadProgressCb(0, inputLength);
+            if(!uploadProgressCbCalled) {
+                uploadProgressCbCalled = true;
+                uploadProgressCb(0, inputLength);
+            }
         }, 0);
         return function() {
             if(cb === null) {
