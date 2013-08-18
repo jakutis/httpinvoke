@@ -92,5 +92,6 @@ var httpinvoke = function(uri, method, options) {
     };
 };
 httpinvoke.cors = true;
+httpinvoke.corsCredentials = true;
 
 module.exports = httpinvoke;
