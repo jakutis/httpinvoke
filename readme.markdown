@@ -32,14 +32,14 @@ Load using your package manager, or use directly in web browser by adding `<scri
         headers: {
             'Content-Type': 'application/json'
         },
-        uploading: function(min, current, max) {
-            console.log('Uploading', arguments);
+        uploading: function(current, total) {
+            console.log('Uploaded ', current, ' bytes of ', total, ' total');
         },
         gotStatus: function(status, headers) {
             console.log('Got status', status, headers);
         },
-        downloading: function(min, current, max) {
-            console.log('Downloading', arguments);
+        downloading: function(current, total) {
+            console.log('Downloaded ', current, ' bytes of ', total, ' total');
         },
         finished: function(err, output) {
             if(err) {
