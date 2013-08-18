@@ -35,24 +35,40 @@ module.exports = function(uri, method, options) {
         path: uri.path,
         method: method
     }, function(res) {
-        if(statusCb) {
-            statusCb(res.statusCode, res.headers);
-            statusCb = null;
+        if(cb === null) {
+            return;
         }
-        if(cb) {
-            var output = '';
-            res.setEncoding('utf8');
-            res.on('data', function(chunk) {
-                output += chunk;
-            });
-            res.on('end', function() {
-                if(cb) {
-                    cb(null, output);
-                }
-            });
+        uploadProgressCb(inputLength, inputLength);
+        statusCb(res.statusCode, res.headers);
+        if(typeof res.headers['content-length'] === 'undefined') {
+            downloadProgressCb(0, 0);
+            downloadProgressCb(0, 0);
+            cb(null, '');
+            return;
         }
+        outputLength = Number(res.headers['content-length']);
+        downloadProgressCb(0, outputLength);
+        var output = '';
+        res.setEncoding('utf8');
+        res.on('data', function(chunk) {
+            if(cb === null) {
+                return;
+            }
+            downloadProgressCb(output.length, outputLength);
+            output += chunk;
+        });
+        res.on('end', function() {
+            if(cb === null) {
+                return;
+            }
+            downloadProgressCb(outputLength, outputLength);
+            cb(null, output);
+        });
     });
 
+    setTimeout(function() {
+        uploadProgressCb(0, inputLength);
+    }, 0);
     if(input !== null) {
         req.write(input);
     }
@@ -61,4 +77,7 @@ module.exports = function(uri, method, options) {
         deleteCallbacks();
     });
     req.end();
+    return function() {
+        // TODO implement abort function
+    };
 };
