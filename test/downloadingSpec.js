@@ -129,6 +129,24 @@ describe('"downloading" option', function() {
             }
         });
     });
+    it('has "total" be equal to output length', function(done) {
+        var total = null;
+        httpinvoke(url, {
+            downloading: function(_, _total) {
+                total = _total;
+            },
+            finished: function(err, output) {
+                if(err) {
+                    return done(err);
+                }
+                if(output.length !== total) {
+                    done(new Error('"total"=' + total + ' was not equal to output length = ' + output.length));
+                } else {
+                    done();
+                }
+            }
+        });
+    });
     it('has "current" be non-decreasing', function(done) {
         var current = null;
         httpinvoke(url, {
