@@ -1,9 +1,9 @@
 var url = typeof window === 'undefined' ? 'http://example.org' : location.href;
 var httpinvoke = require('../httpinvoke-node');
 
-describe('Simplest GET invocation', function() {
+describe('"finished" option', function() {
     this.timeout(10000);
-    it('calls "finished" exactly once', function(done) {
+    it('is called exactly once', function(done) {
         var count = 0;
         httpinvoke(url, {
             finished: function() {
