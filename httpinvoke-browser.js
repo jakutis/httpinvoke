@@ -135,7 +135,7 @@
             };
             xhr.upload.onprogress = function(progressEvent) {
                 if(uploadProgressCb && progressEvent.lengthComputable) {
-                    uploadProgressCb(0, progressEvent.loaded, inputLength);
+                    uploadProgressCb(progressEvent.loaded, inputLength);
                 }
             };
         }
@@ -159,7 +159,7 @@
         if(typeof xhr.onprogress !== 'undefined') {
             xhr.onprogress = function(progressEvent) {
                 if(downloadProgressCb && progressEvent.lengthComputable) {
-                    downloadProgressCb(0, progressEvent.loaded, outputLength);
+                    downloadProgressCb(progressEvent.loaded, outputLength);
                 }
             };
         }
@@ -176,11 +176,11 @@
             }
             fillOutputHeaders(xhr, outputHeaders);
             outputLength = Number(outputHeaders['content-length']);
-            uploadProgressCb(0, inputLength, inputLength);
+            uploadProgressCb(inputLength, inputLength);
             uploadProgressCb = null;
             statusCb(xhr.status, outputHeaders);
             statusCb = null;
-            downloadProgressCb(0, 0, outputLength);
+            downloadProgressCb(0, outputLength);
         };
         xhr.onreadystatechange = function() {
             if(!cb) {
@@ -196,7 +196,7 @@
                     return;
                 }
                 onHeadersReceived();
-                downloadProgressCb(0, outputLength, outputLength);
+                downloadProgressCb(outputLength, outputLength);
                 downloadProgressCb = null;
                 output = (typeof xhr.responseType === 'undefined' || xhr.responseType === '') ? 'text' : xhr.responseType;
                 if(output === 'text') {
@@ -215,7 +215,7 @@
         }
         // Content-Length header is set automatically
         xhr.send(input);
-        uploadProgressCb(0, 0, inputLength);
+        uploadProgressCb(0, inputLength);
         return function() {
             if(cb) {
                 cb(new Error('abort'));
