@@ -1,6 +1,6 @@
 {
   "name": "httpinvoke",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "HTTP client for JavaScript",
   "keywords": [
     "http",
