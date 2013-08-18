@@ -3,7 +3,9 @@
 HTTP client for JavaScript.
 
 * Sends requests and receives responses.
-* Lets you monitor upload and download progress, if supported by platform.
+* Gracefully upgrades to latest platform-specific features:
+  * [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
+  * [progress events](http://www.w3.org/TR/progress-events/)
 * Works on [web browser](http://en.wikipedia.org/wiki/Internet_Explorer_5) and [Node.js](http://nodejs.org) platforms.
 * Detects the presence of [CommonJS](http://www.commonjs.org/) and [AMD](https://www.google.com/search?q=advanced+module+definition) script loaders.
 * Available on [npm](https://npmjs.org/package/httpinvoke) and [GitHub](https://github.com/jakutis/httpinvoke).
@@ -56,7 +58,7 @@ Load using your package manager, or use directly in web browser by adding `<scri
         }
     });
 
-# API reference
+# API Reference
 
     var abort = httpinvoke(url, [method="GET", [options={}||cb]])
 
@@ -67,11 +69,9 @@ Load using your package manager, or use directly in web browser by adding `<scri
 
 ## Options
 
-See the Example section for all the options being used.
+See the Examples section for all the options being used.
 All options are optional.
 
-* **headers** is an object for HTTP request headers. Keys are header names, values are strings.
-* **input** is a string for HTTP request body.
 * **uploading** is a function that is called when HTTP request upload progress event happens. It is called with these arguments:
   0. **current** is a number for the number of bytes currently sent.
   0. **total** is a number for the total number of bytes to be sent.
@@ -84,8 +84,23 @@ All options are optional.
 * **finished** is a function that is called when HTTP response is fully downloaded, or any error happens. It is called with these arguments:
   0. **err** is null or an object that is an instance of Error.
   0. **output** is undefined, if err is not null, or a string for HTTP response body.
+* **headers** is an object for HTTP request headers. Keys are header names, values are strings.
+* **input** is a string for HTTP request body.
+* **corsHeaders** is an array of HTTP response headers to be extracted in **gotStatus** call. Default simple headers like "Content-Type" are always extracted. Applicable only for cross-origin requests.
+* **corsCredentials** is a boolean for requesting to send credentials. Applicable only for a cross-origin request. See Feature Flags section.
 
 The callbacks are called in this strict sequence: **uploading** (two or more times), **gotStatus** (one time), **downloading** (two or more times), **finished** (one time), except the case that **finished** can be called with Error any time, and then no callbacks will be called.
+
+## Feature Flags
+
+There are feature flags to be queried for platform-specific features.
+
+    if(httpinvoke.cors) {
+        console.log('Cross-Origin Resource Sharing support is available!');
+    }
+
+* **cors** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) is available
+* **corsCredentials** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports sending cookies and HTTP authentication credentials
 
 # Development
 

@@ -2,7 +2,7 @@ var http = require('http');
 var url = require('url');
 
 var noop = function() {};
-module.exports = function(uri, method, options) {
+var httpinvoke = function(uri, method, options) {
     if(typeof method === 'undefined') {
         method = 'GET';
         options = {};
@@ -91,3 +91,6 @@ module.exports = function(uri, method, options) {
         _cb(new Error('abort'));
     };
 };
+httpinvoke.cors = true;
+
+module.exports = httpinvoke;
