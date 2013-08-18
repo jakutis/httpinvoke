@@ -18,4 +18,31 @@ describe('"cors" feature flag', function() {
         }
         httpinvoke('http://attacker-site.com/html5/CORS/show_cookies.php', done);
     });
+    it('ensures, when being false and making cross-origin request, that no callbacks are called, except "finished" with Error', function(done) {
+        if(httpinvoke.cors) {
+            return done();
+        }
+        var callback = function() {
+            if(done === null) {
+                return;
+            }
+            done(new Error('A callback was called'));
+            done = null;
+        };
+        httpinvoke('http://attacker-site.com/html5/CORS/show_cookies.php', {
+            uploading: callback,
+            gotStatus: callback,
+            downloading: callback,
+            finished: function(err) {
+                if(done === null) {
+                    return;
+                }
+                if(typeof err === 'object' && err !== null && err instanceof Error) {
+                    done();
+                } else {
+                    done(new Error('"finished" was called without error'));
+                }
+            }
+        });
+    });
 });

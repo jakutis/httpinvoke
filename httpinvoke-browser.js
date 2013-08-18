@@ -92,18 +92,20 @@
         exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Expires', 'Last-Modified', 'Pragma']);
 
         var uploadProgressCbCalled = false;
-
-        try {
-            validateInputHeaders(inputHeaders);
-        } catch(err) {
+        var failWithoutRequest = function(err) {
             setTimeout(function() {
                 if(cb === null) {
                     return;
                 }
                 cb(err);
             }, 0);
-            return function() {
-            };
+            return noop;
+        };
+
+        try {
+            validateInputHeaders(inputHeaders);
+        } catch(err) {
+            return failWithoutRequest(err);
         }
         // IE may throw an exception when accessing
         // a field from window.location if document.domain has been set
@@ -119,7 +121,11 @@
         }
         var output, outputLength = null, outputHeaders = {};
         var i;
-        var xhr = createXHR(isCrossDomain(currentLocation, uri));
+        var crossDomain = isCrossDomain(currentLocation, uri);
+        if(crossDomain && !httpinvoke.cors) {
+            return failWithoutRequest(new Error('Cross-origin requests are not supported'));
+        }
+        var xhr = createXHR(crossDomain);
         xhr.open(method, uri, true);
         if(options.corsCredentials && httpinvoke.corsCredentials) {
             xhr.withCredentials = true;
