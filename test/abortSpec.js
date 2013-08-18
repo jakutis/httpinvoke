@@ -3,6 +3,15 @@ var httpinvoke = require('../httpinvoke-node');
 
 describe('abort', function() {
     this.timeout(10000);
+    it('does not throw', function(done) {
+        var abort = httpinvoke(url);
+        try {
+            abort();
+            done();
+        } catch(err) {
+            done(err);
+        }
+    });
     it('ensures that no callbacks, except finished with Error, are called when invoked immediately', function(done) {
         var callback = function() {
             if(done === null) {

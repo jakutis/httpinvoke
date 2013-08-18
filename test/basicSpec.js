@@ -8,13 +8,4 @@ describe('Simplest GET invocation', function() {
             finished: done
         });
     });
-    it('returns abort function', function(done) {
-        var abort = httpinvoke(url);
-        try {
-            abort();
-            done();
-        } catch(err) {
-            done(err);
-        }
-    });
 });
