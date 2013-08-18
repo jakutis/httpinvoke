@@ -102,39 +102,43 @@
         var downloadProgressCb = options.downloading || noop;
         var statusCb = options.gotStatus || noop;
         var cb = options.finished || noop;
-        var deleteCallbacks = function() {
-            uploadProgressCb = null;
-            downloadProgressCb = null;
-            statusCb = null;
-            cb = null;
-        };
         var input = options.input || null, inputLength = input === null ? 0 : input.length, inputHeaders = options.headers || {};
         try {
             validateInputHeaders(inputHeaders);
         } catch(err) {
-            cb(err);
-            deleteCallbacks();
-            return;
+            setTimeout(function() {
+                if(cb === null) {
+                    return;
+                }
+                cb(err);
+            }, 0);
+            return function() {
+            };
         }
-        var output, outputLength, outputHeaders = {};
+        var output, outputLength = null, outputHeaders = {};
         var xhr = createXHR();
         var i;
 
         if(typeof xhr.upload !== 'undefined') {
             xhr.upload.ontimeout = function(progressEvent) {
-                if(cb) {
-                    cb(new Error('upload timeout'));
-                    deleteCallbacks();
+                if(cb === null) {
+                    return;
                 }
+                cb(new Error('upload timeout'));
+                cb = null;
             };
             xhr.upload.onerror = function(progressEvent) {
-                if(cb) {
-                    cb(new Error('upload error'));
-                    deleteCallbacks();
+                if(cb === null) {
+                    return;
                 }
+                cb(new Error('upload error'));
+                cb = null;
             };
             xhr.upload.onprogress = function(progressEvent) {
-                if(uploadProgressCb && progressEvent.lengthComputable) {
+                if(cb === null) {
+                    return;
+                }
+                if(progressEvent.lengthComputable) {
                     uploadProgressCb(progressEvent.loaded, inputLength);
                 }
             };
@@ -142,23 +146,32 @@
 
         if(typeof xhr.ontimeout !== 'undefined') {
             xhr.ontimeout = function(progressEvent) {
-                if(cb) {
-                    cb(new Error('download timeout'));
-                    deleteCallbacks();
+                if(cb === null) {
+                    return;
                 }
+                cb(new Error('download timeout'));
+                cb = null;
             };
         }
         if(typeof xhr.onerror !== 'undefined') {
             xhr.onerror = function(progressEvent) {
-                if(cb) {
-                    cb(new Error('download error'));
-                    deleteCallbacks();
+                if(cb === null) {
+                    return;
                 }
+                cb(new Error('download error'));
+                cb = null;
             };
         }
         if(typeof xhr.onprogress !== 'undefined') {
             xhr.onprogress = function(progressEvent) {
-                if(downloadProgressCb && progressEvent.lengthComputable) {
+                if(cb === null) {
+                    return;
+                }
+                if(progressEvent.lengthComputable) {
+                    if(outputLength === null) {
+                        outputLength = progressEvent.total;
+                        downloadProgressCb(0, outputLength);
+                    }
                     downloadProgressCb(progressEvent.loaded, outputLength);
                 }
             };
@@ -175,15 +188,25 @@
                 return;
             }
             fillOutputHeaders(xhr, outputHeaders);
-            outputLength = Number(outputHeaders['content-length']);
+
             uploadProgressCb(inputLength, inputLength);
-            uploadProgressCb = null;
+            if(cb === null) {
+                return;
+            }
+
             statusCb(xhr.status, outputHeaders);
             statusCb = null;
-            downloadProgressCb(0, outputLength);
+            if(cb === null) {
+                return;
+            }
+
+            if(outputLength === null && typeof outputHeaders['content-length'] !== 'undefined') {
+                outputLength = Number(outputHeaders['content-length']);
+                downloadProgressCb(0, outputLength);
+            }
         };
         xhr.onreadystatechange = function() {
-            if(!cb) {
+            if(cb === null) {
                 return;
             }
             var readyState = readyStates[xhr.readyState];
@@ -191,20 +214,26 @@
                 onHeadersReceived();
             } else if(readyState === 'DONE') {
                 if(xhr.status === 0) {
-                    cb(new Error('"some type" of network error'));
-                    deleteCallbacks();
-                    return;
+                    return cb(new Error('"some type" of network error'));
                 }
                 onHeadersReceived();
-                downloadProgressCb(outputLength, outputLength);
-                downloadProgressCb = null;
+
+                if(outputLength === null) {
+                    downloadProgressCb(0, 0);
+                    downloadProgressCb(0, 0);
+                } else {
+                    downloadProgressCb(outputLength, outputLength);
+                }
+                if(cb === null) {
+                    return;
+                }
+
                 output = (typeof xhr.responseType === 'undefined' || xhr.responseType === '') ? 'text' : xhr.responseType;
                 if(output === 'text') {
                     cb(null, xhr.responseText);
                 } else {
                     cb(new Error('Unknown response body format ' + output));
                 }
-                deleteCallbacks();
             }
         };
         xhr.open(method, uri, true);
@@ -215,15 +244,22 @@
         }
         // Content-Length header is set automatically
         xhr.send(input);
-        uploadProgressCb(0, inputLength);
+        setTimeout(function() {
+            if(cb === null) {
+                return;
+            }
+            uploadProgressCb(0, inputLength);
+        }, 0);
         return function() {
-            if(cb) {
-                cb(new Error('abort'));
-                deleteCallbacks();
-                try {
-                    xhr.abort();
-                } catch(err){
-                }
+            if(cb === null) {
+                return;
+            }
+            var _cb = cb;
+            cb = null;
+            _cb(new Error('abort'));
+            try {
+                xhr.abort();
+            } catch(err){
             }
         };
     };
