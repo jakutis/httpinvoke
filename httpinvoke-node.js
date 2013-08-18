@@ -63,12 +63,12 @@ module.exports = function(uri, method, options) {
         });
     });
 
-    setTimeout(function() {
+    process.nextTick(function() {
         if(cb === null) {
             return;
         }
         uploadProgressCb(0, inputLength);
-    }, 0);
+    });
     if(input !== null) {
         req.write(input);
     }
