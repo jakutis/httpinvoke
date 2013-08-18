@@ -51,106 +51,34 @@ Load using your package manager, or use directly in web browser by adding `<scri
 
 # API reference
 
-    httpinvoke(url, [method, [options]])
+    var abort = httpinvoke(url, [method="GET", [options={}]])
 
-httpinvoke is just one function.
-The arguments are: uri, method, options.
-The return value is a function, which, when called, aborts the process.
-Aborting results in 'finished' callback being called with 'err'.
+* **url** is a string for URL, e.g. `"http://example.org/"`.
+* **method** is a string for HTTP method, e.g. `"GET"`, `"POST"`, etc.
+* **options** is an object for various options (see the Options section below).
+* **abort** is a function for aborting the HTTP request. It immediately calls the "finished" callback with an Error. If "finished" callback is already called before the "abort", nothing happens.
 
-## uri argument
+## Options
 
-Can be any http or https URI.
-Type is string.
-Required.
+See the Example section for all the options being used.
+All options are optional.
 
-## method argument
+* **headers** is an object for HTTP request headers. Keys are header names, values are strings.
+* **input** is a string for HTTP request body.
+* **uploading** is a function that is called when HTTP request upload progress event happens. It is called with these arguments:
+  0. **current** is a number for the number of bytes currently sent.
+  0. **total** is a number for the total number of bytes to be sent.
+* **downloading** is a function that is called when HTTP response download progress event happens. It is called with these arguments:
+  0. **current** is a number for the number of bytes currently received.
+  0. **total** is a number for the total number of bytes to be received.
+* **gotStatus** is a function that is called when HTTP response headers are received. It is called with these arguments:
+  0. **status** is a number for an HTTP response status code.
+  0. **headers** is an object for HTTP response headers. Keys are lower-cased header names, values are strings.
+* **finished** is a function that is called when HTTP response is fully downloaded, or any error happens. It is called with these arguments:
+  0. **err** is null or an object that is an instance of Error.
+  0. **output** is undefined, if err is not null, or a string for HTTP response body.
 
-Any HTTP method.
-Type is string.
-Optional, defaults to a string 'GET'.
-
-## options argument
-
-A collection of various options.
-Type is object.
-Optional, defaults to an object with no properties.
-
-### headers option
-
-HTTP request headers.
-Type is object.
-Keys are header names, values are strings.
-
-### uploading option
-
-TODO.
-Type is function.
-The arguments are: initial, current, final.
-Optional, defaults to a no-op function.
-
-#### initial argument
-
-TODO.
-Type is number.
-
-#### current argument
-
-TODO.
-Type is number.
-
-#### final argument
-
-TODO.
-Type is number.
-
-### downloading option
-
-TODO.
-Exactly the same as uploading option.
-
-### gotStatus option
-
-TODO.
-Type is function.
-The arguments are: status, headers.
-Optional, defaults to a no-op function.
-
-#### status argument
-
-HTTP response status code.
-Type is number.
-
-#### headers argument
-
-HTTP sponse headers.
-Type is object.
-Keys are header names, values are strings.
-Header names are converted to lower case.
-
-### finished option
-
-TODO.
-Type is function.
-The arguments are: err, output.
-Optional, defaults to a no-op function.
-
-#### err argument
-
-TODO.
-Type is object.
-Can either be null or instance of Error.
-
-#### output argument
-
-TODO.
-Type is string.
-
-### input option
-
-TODO.
-Type is string.
-Optional, defaults to null.
+The callbacks are called in this strict sequence: **uploading** (two or more times), **gotStatus** (one time), **downloading** (two or more times), **finished** (one time), except the case that **finished** can be called with Error any time, and then no callbacks will be called.
 
 # Development
 
