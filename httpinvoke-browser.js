@@ -254,9 +254,12 @@
             if(cb === null) {
                 return;
             }
+
+            // these statements are in case "abort" is called in "finished" callback
             var _cb = cb;
             cb = null;
             _cb(new Error('abort'));
+
             try {
                 xhr.abort();
             } catch(err){
