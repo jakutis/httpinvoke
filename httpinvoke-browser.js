@@ -98,6 +98,10 @@
                 method = 'GET';
             }
         }
+        options = typeof options === 'function' ? {
+            finished: options
+        } : options;
+
         var uploadProgressCb = options.uploading || noop;
         var downloadProgressCb = options.downloading || noop;
         var statusCb = options.gotStatus || noop;

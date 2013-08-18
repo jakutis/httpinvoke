@@ -25,7 +25,15 @@ HTTP client for JavaScript.
 
 Load using your package manager, or use directly in web browser by adding `<script src="/path_to_http_invoke/httpinvoke-browser.js"></script>` to your HTML file.
 
-## Example
+## Examples
+
+    httpinvoke('http://example.org', function(err, html) {
+        if(err) {
+            return console.log('Failure', err);
+        }
+        console.log('Success', html);
+    });
+
 
     httpinvoke('http://updates.html5rocks.com', 'POST', {
         input: JSON.stringify({foo:'bar'});
@@ -55,7 +63,7 @@ Load using your package manager, or use directly in web browser by adding `<scri
 
 * **url** is a string for URL, e.g. `"http://example.org/"`.
 * **method** is a string for HTTP method, e.g. `"GET"`, `"POST"`, etc.
-* **options** is an object for various options (see the Options section below).
+* **options** is an object for various options (see the Options section below) or a function, which is used as a "finished" option (see the first example).
 * **abort** is a function for aborting the HTTP request. It immediately calls the "finished" callback with an Error. If "finished" callback is already called before the "abort", nothing happens.
 
 ## Options
