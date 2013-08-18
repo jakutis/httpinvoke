@@ -34,7 +34,6 @@ Load using your package manager, or use directly in web browser by adding `<scri
         console.log('Success', html);
     });
 
-
     httpinvoke('http://updates.html5rocks.com', 'POST', {
         input: JSON.stringify({foo:'bar'});
         headers: {
@@ -59,7 +58,7 @@ Load using your package manager, or use directly in web browser by adding `<scri
 
 # API reference
 
-    var abort = httpinvoke(url, [method="GET", [options={}]])
+    var abort = httpinvoke(url, [method="GET", [options={}||cb]])
 
 * **url** is a string for URL, e.g. `"http://example.org/"`.
 * **method** is a string for HTTP method, e.g. `"GET"`, `"POST"`, etc.
