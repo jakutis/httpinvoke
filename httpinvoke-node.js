@@ -19,12 +19,6 @@ module.exports = function(uri, method, options) {
     var downloadProgressCb = options.downloading || noop;
     var statusCb = options.gotStatus || noop;
     var cb = options.finished || noop;
-    var deleteCallbacks = function() {
-        uploadProgressCb = null;
-        downloadProgressCb = null;
-        statusCb = null;
-        cb = null;
-    };
     var input = options.input || null, inputLength = input === null ? 0 : input.length, inputHeaders = options.headers || [];
     var output, outputLength, outputHeaders = {};
 
@@ -67,17 +61,30 @@ module.exports = function(uri, method, options) {
     });
 
     setTimeout(function() {
+        if(cb === null) {
+            return;
+        }
         uploadProgressCb(0, inputLength);
     }, 0);
     if(input !== null) {
         req.write(input);
     }
     req.on('error', function(e) {
+        if(cb === null) {
+            return;
+        }
         cb(e);
-        deleteCallbacks();
+        cb = null;
     });
     req.end();
     return function() {
-        // TODO implement abort function
+        if(cb === null) {
+            return;
+        }
+
+        // these statements are in case "abort" is called in "finished" callback
+        var _cb = cb;
+        cb = null;
+        _cb(new Error('abort'));
     };
 };
