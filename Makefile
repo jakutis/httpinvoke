@@ -10,6 +10,9 @@ httpinvoke-generated-commonjs.js: httpinvoke-node.js httpinvoke-browser.js
 	echo '}' >> httpinvoke-generated-commonjs.js
 
 test-node:
+	./node_modules/.bin/mocha --watch
+
+test-node-singlerun:
 	./node_modules/.bin/mocha
 
 test-browser:
