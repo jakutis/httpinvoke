@@ -19,6 +19,8 @@
         return -1;
     };
 
+    var supportedMethods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'];
+
     var parseHeader = function(header) {
         var colon = header.indexOf(':');
         return {
@@ -101,6 +103,10 @@
             }, 0);
             return noop;
         };
+
+        if(indexOf(supportedMethods, method) < 0) {
+            return failWithoutRequest(new Error('Unsupported method ' + method));
+        }
 
         try {
             validateInputHeaders(inputHeaders);

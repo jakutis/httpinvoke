@@ -63,7 +63,7 @@ Load using your package manager, or use directly in web browser by adding `<scri
     var abort = httpinvoke(url, [method="GET", [options={}||cb]])
 
 * **url** is a string for URL, e.g. `"http://example.org/"`.
-* **method** is a string for HTTP method, e.g. `"GET"`, `"POST"`, etc.
+* **method** is a string for HTTP method, one of `"HEAD"`, `"GET"`, `"POST"`, `"PUT"`, `"DELETE"`.
 * **options** is an object for various options (see the Options section below) or a function, which is used as a "finished" option (see the first example).
 * **abort** is a function for aborting the HTTP request. It immediately calls the "finished" callback with an Error. If "finished" callback is already called before the "abort", nothing happens.
 

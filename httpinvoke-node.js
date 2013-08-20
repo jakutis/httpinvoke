@@ -2,6 +2,7 @@ var http = require('http');
 var url = require('url');
 
 var noop = function() {};
+var supportedMethods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'];
 var httpinvoke = function(uri, method, options) {
     if(typeof method === 'undefined') {
         method = 'GET';
@@ -24,6 +25,20 @@ var httpinvoke = function(uri, method, options) {
     var cb = options.finished || noop;
     var input = options.input || null, inputLength = input === null ? 0 : input.length, inputHeaders = options.headers || [];
     var output, outputLength, outputHeaders = {};
+
+    var failWithoutRequest = function(err) {
+        process.nextTick(function() {
+            if(cb === null) {
+                return;
+            }
+            cb(err);
+        });
+        return noop;
+    };
+    if(supportedMethods.indexOf(method) < 0) {
+        return failWithoutRequest(new Error('Unsupported method ' + method));
+    }
+
 
     uri = url.parse(uri);
     var req = http.request({
