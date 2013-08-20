@@ -201,10 +201,12 @@
             if(statusCb === null) {
                 return;
             }
+            var status;
             try {
                 if(xhr.status === 'undefined') {
                     return;
                 }
+                status = xhr.status;
             } catch(_) {
                 return;
             }
@@ -234,7 +236,7 @@
                 return;
             }
 
-            statusCb(xhr.status, outputHeaders);
+            statusCb(status, outputHeaders);
             statusCb = null;
             if(cb === null) {
                 return;
