@@ -203,7 +203,7 @@
             }
             var status;
             try {
-                if(xhr.status === 'undefined') {
+                if(typeof xhr.status === 'undefined') {
                     return;
                 }
                 status = xhr.status;
