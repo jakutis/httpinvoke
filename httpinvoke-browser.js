@@ -301,12 +301,12 @@
                 xhr.setRequestHeader(inputHeaderName, inputHeaders[inputHeaderName]);
             }
         }
-        // Content-Length header is set automatically
-        xhr.send(input);
         setTimeout(function() {
             if(cb === null) {
                 return;
             }
+            // Content-Length header is set automatically
+            xhr.send(input);
             if(!uploadProgressCbCalled) {
                 uploadProgressCbCalled = true;
                 uploadProgressCb(0, inputLength);
