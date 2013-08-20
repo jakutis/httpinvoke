@@ -247,6 +247,20 @@
                 return;
             }
 
+            if(method === 'HEAD' || status === 204) {
+                downloadProgressCb(0, 0);
+                if(cb === null) {
+                    return;
+                }
+                downloadProgressCb(0, 0);
+                if(cb === null) {
+                    return;
+                }
+                cb(null, null);
+                cb = null;
+                return;
+            }
+
             if(outputLength === null && typeof outputHeaders['content-length'] !== 'undefined') {
                 outputLength = Number(outputHeaders['content-length']);
                 downloadProgressCb(0, outputLength);
