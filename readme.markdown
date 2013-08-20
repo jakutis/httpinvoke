@@ -83,7 +83,7 @@ All options are optional.
   0. **headers** is an object for HTTP response headers. Keys are lower-cased header names, values are strings.
 * **finished** is a function that is called when HTTP response is fully downloaded, or any error happens. It is called with these arguments:
   0. **err** is null or an object that is an instance of Error.
-  0. **output** is undefined, if err is not null, or a string for HTTP response body.
+  0. **output** is undefined, if err is not null, otherwise null or a string for HTTP response body.
 * **headers** is an object for HTTP request headers. Keys are header names, values are strings.
 * **input** is a string for HTTP request body.
 * **corsHeaders** is an array of HTTP response headers to be extracted in **gotStatus** call. Default simple headers like "Content-Type" are always extracted. Applicable only for cross-origin requests.
