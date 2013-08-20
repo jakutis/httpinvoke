@@ -13,17 +13,19 @@ describe('abort', function() {
         }
     });
     it('ensures that no callbacks, except finished with Error, are called when invoked immediately', function(done) {
-        var callback = function() {
-            if(done === null) {
-                return;
+        var callback = function(callback) {
+            return function() {
+                if(done === null) {
+                    return;
+                }
+                done(new Error('A ' + callback + ' callback has been called with arguments ' + [].slice.call(arguments)));
+                done = null;
             }
-            done(new Error('A callback has been called'));
-            done = null;
         };
-        var abort = httpinvoke(cfg.url, {
-            gotStatus: callback,
-            downloading: callback,
-            uploading: callback,
+        var abort = httpinvoke(cfg.url + '#MARK', {
+            gotStatus: callback('gotStatus'),
+            downloading: callback('downloading'),
+            uploading: callback('uploading'),
             finished: function(err) {
                 if(done === null) {
                     return;
