@@ -1,8 +1,10 @@
-var cfg = {
-    host: '127.0.0.1',
-    port: 1337, // when changing here, change also in ./mocha-requireHack.js
-    path: '/'
-};
+var cfg = require('./karma-mocha-requireHack');
+
+// overridding basic
+cfg.host = '127.0.0.1';
+cfg.port = cfg.dummyserverPort;
+cfg.path = '/';
+// generated
 cfg.url = 'http://' + cfg.host + ':' + cfg.port + cfg.path;
 cfg.corsURL = cfg.url;
 
