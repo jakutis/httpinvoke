@@ -35,30 +35,57 @@ var httpinvoke = function(uri, method, options) {
         if(cb === null) {
             return;
         }
+
         uploadProgressCb(inputLength, inputLength);
+        if(cb === null) {
+            return;
+        }
+
         statusCb(res.statusCode, res.headers);
+        if(cb === null) {
+            return;
+        }
+
         if(typeof res.headers['content-length'] === 'undefined') {
             downloadProgressCb(0, 0);
+            if(cb === null) {
+                return;
+            }
             downloadProgressCb(0, 0);
+            if(cb === null) {
+                return;
+            }
             cb(null, '');
             return;
         }
         outputLength = Number(res.headers['content-length']);
         downloadProgressCb(0, outputLength);
+        if(cb === null) {
+            return;
+        }
         var output = '';
         res.setEncoding('utf8');
         res.on('data', function(chunk) {
             if(cb === null) {
                 return;
             }
-            downloadProgressCb(output.length, outputLength);
             output += chunk;
+
+            downloadProgressCb(output.length, outputLength);
+            if(cb === null) {
+                return;
+            }
         });
         res.on('end', function() {
             if(cb === null) {
                 return;
             }
+
             downloadProgressCb(outputLength, outputLength);
+            if(cb === null) {
+                return;
+            }
+
             cb(null, output);
         });
     });
