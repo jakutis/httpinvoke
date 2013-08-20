@@ -210,6 +210,11 @@
             } catch(_) {
                 return;
             }
+            // sometimes IE returns 1223 when it should be 204
+            if(status === 1223) {
+                status = 204;
+            }
+
             try {
                 fillOutputHeaders(xhr, outputHeaders);
             } catch(err) {
