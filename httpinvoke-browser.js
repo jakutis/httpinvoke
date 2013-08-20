@@ -245,7 +245,7 @@
                 downloadProgressCb(0, outputLength);
             }
         };
-        var onLoad = function(a, b, c) {
+        var onLoad = function() {
             if(cb === null) {
                 return;
             }
