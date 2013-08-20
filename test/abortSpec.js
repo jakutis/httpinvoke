@@ -22,7 +22,7 @@ describe('abort', function() {
                 done = null;
             }
         };
-        var abort = httpinvoke(cfg.url + '#MARK', {
+        var abort = httpinvoke(cfg.url, {
             gotStatus: callback('gotStatus'),
             downloading: callback('downloading'),
             uploading: callback('uploading'),
