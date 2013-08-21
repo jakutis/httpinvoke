@@ -1,0 +1,50 @@
+<html>
+    <head>
+        <title>httpinvoke demo</title>
+    </head>
+    <body>
+        <p>Hello and welcome to a demonstration of <a href="https://github.com/jakutis/httpinvoke">httpinvoke</a>, an HTTP client for JavaScript.</p>
+        <p>You are encouraged to view the source of this demo web page. Also, check the network traffic in your dev tools (press F12).</p>
+        <hr>
+        <p>Uploaded: <span id="uploaded"></span></p>
+        <p>Downloaded: <span id="downloaded"></span></p>
+        <p>Response status: <span id="status"></span></p>
+        <p>Response headers: <span id="headers"></span></p>
+        <p>Response: <span id="response"></span></p>
+        <button id="demonstrate">Demonstrate</button>
+        <script src="./httpinvoke.js"></script>
+        <script>
+            var entity = 'I will not waste chalk.\n';
+            for(var i = 0; i < 16; i += 1) {
+                entity += entity;
+            }
+            document.getElementById('demonstrate').onclick = function() {
+                document.getElementById('demonstrate').setAttribute('disabled', 'disabled');
+                httpinvoke('./', 'POST', {
+                    input: entity,
+                    headers: {
+                        'Content-Type': 'text/plain',
+                        'Accept': 'text/plain'
+                    },
+                    uploading: function(current, total) {
+                        document.getElementById('uploaded').innerHTML = current + ' out of ' + total + ' bytes';
+                    },
+                    gotStatus: function(status, headers) {
+                        document.getElementById('status').innerHTML = String(status);
+                        document.getElementById('headers').innerHTML = JSON.stringify(headers);
+                    },
+                    downloading: function(current, total) {
+                        document.getElementById('downloaded').innerHTML = current + ' out of ' + total + ' bytes';
+                    },
+                    finished: function(err, entity) {
+                        document.getElementById('demonstrate').removeAttribute('disabled');
+                        if(err) {
+                            entity = String(err);
+                        }
+                        document.getElementById('response').appendChild(document.createTextNode(entity));
+                    }
+                });
+            };
+        </script>
+    </body>
+</html>

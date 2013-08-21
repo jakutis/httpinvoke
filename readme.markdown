@@ -1,6 +1,6 @@
 # httpinvoke
 
-HTTP client for JavaScript.
+HTTP client for JavaScript. [Check out the demo.](http://jakut.is:1337/)
 
 * Sends requests and receives responses.
 * Gracefully upgrades to latest platform-specific features:
