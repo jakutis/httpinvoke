@@ -12,6 +12,11 @@
         <p>Response headers: <span id="headers"></span></p>
         <p>Response: <span id="response"></span></p>
         <button id="demonstrate">Demonstrate</button>
+        <script>
+            if(typeof JSON === 'undefined') {
+                document.write('<' + 'script src="./json2.js"><' + '/script>');
+            }
+        </script>
         <script src="./httpinvoke.js"></script>
         <script>
             var entity = 'I will not waste chalk.\n';
