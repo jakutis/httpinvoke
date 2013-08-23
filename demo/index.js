@@ -23,15 +23,17 @@ http.createServer(function (req, res) {
     console.log(req.method + ' ' + req.url);
     if(req.method === 'GET') {
         if(req.url === '/httpinvoke.js') {
-            serveFile(res, __dirname + '/../httpinvoke-browser.js', 'text/javascript');
+            serveFile(res, __dirname + '/../httpinvoke-browser.js', 'text/javascript; charset=UTF-8');
+        } else if(req.url === '/json2.js') {
+            serveFile(res, __dirname + '/json2.js', 'text/javascript; charset=UTF-8');
         } else {
-            serveFile(res, __dirname + '/index.html', 'text/html');
+            serveFile(res, __dirname + '/index.html', 'text/html; charset=UTF-8');
         }
     } else if(req.method === 'POST') {
-        var entity = 'This School Is Not Falling Apart.\n';
+        var entity = 'Ši mokykla negriūva.\n';
         var n = 100;
         res.writeHead(200, {
-            'Content-Type': 'text/plain',
+            'Content-Type': 'text/plain; charset=UTF-8',
             'Content-Length': entity.length * n
         });
 
