@@ -1,43 +1,82 @@
 var http = require('http');
 var cfg = require('./dummyserver-config');
 
+var bigslowHello = function(res) {
+    var entity = 'This School Is Not Falling Apart.\n';
+    var n = 100;
+    res.writeHead(200, {
+        'Content-Type': 'text/plain; charset=UTF-8',
+        'Content-Length': entity.length * n * 100,
+        'Content-Encoding': 'identity',
+        'Transfer-Encoding': 'identity'
+    });
+
+    var i = 0;
+    var interval = setInterval(function() {
+        if(i < n) {
+            for(var j = 0; j < 100; j+=1) {
+                res.write(entity);
+            }
+            i += 1;
+        } else {
+            clearInterval(interval);
+            res.end();
+        }
+    }, 1000);
+};
+
+var endsWith = function(str, substr) {
+    return str.substr(str.length - substr.length) === substr;
+};
+
+
 http.createServer(function (req, res) {
-    var hello = function(status, body, head) {
-        var str = 'Hello World\n';
+    res.useChunkedEncodingByDefault = false;
+
+    var output = function(status, body, head) {
         var headers = {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'OPTIONS, POST, HEAD, PUT, DELETE, GET',
             'Access-Control-Allow-Headers': ''
         };
-        if(body || head) {
-            headers['Content-Type'] = 'text/plain';
-            headers['Content-Length'] = String(str.length);
-            headers['Content-Range'] = 'bytes 0-' + (str.length - 1) + '/' + str.length;
+        if(body !== null || head) {
+            headers['Content-Type'] = 'text/plain; charset=UTF-8';
+            headers['Content-Length'] = String(body.length);
+            headers['Content-Encoding'] = 'identity';
+            headers['Transfer-Encoding'] = 'identity';
+            headers['Content-Range'] = 'bytes 0-' + (body.length - 1) + '/' + body.length;
         }
         if(typeof req.headers.origin === 'string') {
             headers['Access-Control-Allow-Origin'] = req.headers.origin;
         }
         res.writeHead(status, headers);
-        if(body) {
-            res.end(str);
-        } else {
+        if(body === null || head) {
             res.end();
+        } else {
+            res.end(body);
         }
     };
+    var hello = 'Hello World\n';
 
     if(req.method === 'OPTIONS') {
-        hello(200, true, false);
+        output(200, hello, false);
     } else if(req.method === 'POST') {
-        hello(200, true, false);
+        output(200, hello, false);
     } else if(req.method === 'HEAD') {
-        hello(200, false, true);
+        output(200, hello, true);
     } else if(req.method === 'PUT') {
-        hello(200, true, false);
+        output(200, hello, false);
     } else if(req.method === 'DELETE') {
-        hello(200, true, false);
+        output(200, hello, false);
     } else if(req.method === 'GET') {
-        hello(200, true, false);
+        if(endsWith(req.url, '/bigslow')) {
+            bigslowHello(res);
+        } else if(endsWith(req.url, '/utf8')) {
+            output(200, new Buffer('Sveika Žeme\n', 'utf8'), false);
+        } else {
+            output(200, hello, false);
+        }
     } else {
-        hello(406, false, false);
+        output(406, hello, false);
     }
 }).listen(cfg.port, cfg.host);
