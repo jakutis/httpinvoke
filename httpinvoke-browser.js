@@ -324,6 +324,12 @@
             if(xhr.readyState === 2) {
                 // HEADERS_RECEIVED
                 onHeadersReceived(false);
+            } else if(xhr.readyState === 3) {
+                // LOADING
+                try {
+                    updateDownload(xhr.responseText.length);
+                } catch(err) {
+                }
             } else if(xhr.readyState === 4) {
                 // DONE
                 onLoad();
