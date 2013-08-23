@@ -93,6 +93,20 @@
         var exposedHeaders = options.corsHeaders || [];
         exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Expires', 'Last-Modified', 'Pragma']);
 
+        var initDownload = function(total) {
+            if(outputLength !== null) {
+                return;
+            }
+            outputLength = total;
+            downloadProgressCb(0, outputLength);
+        };
+        var updateDownload = function(value) {
+            if(outputLength === null) {
+                return;
+            }
+            downloadProgressCb(value, outputLength);
+        };
+
         var uploadProgressCbCalled = false;
         var failWithoutRequest = function(err) {
             setTimeout(function() {
@@ -189,13 +203,9 @@
                 if(cb === null) {
                     return;
                 }
-                // TODO query xhr.responseText.length as a fallback
                 if(typeof progressEvent !== 'undefined' && progressEvent.lengthComputable) {
-                    if(outputLength === null) {
-                        outputLength = progressEvent.total;
-                        downloadProgressCb(0, outputLength);
-                    }
-                    downloadProgressCb(progressEvent.loaded, outputLength);
+                    initDownload(progressEvent.total);
+                    updateDownload(progressEvent.loaded);
                 }
             };
         }
@@ -254,11 +264,11 @@
             }
 
             if(method === 'HEAD' || status === 204) {
-                downloadProgressCb(0, 0);
+                initDownload(0);
                 if(cb === null) {
                     return;
                 }
-                downloadProgressCb(0, 0);
+                updateDownload(0);
                 if(cb === null) {
                     return;
                 }
@@ -267,9 +277,9 @@
                 return;
             }
 
-            if(outputLength === null && typeof outputHeaders['content-length'] !== 'undefined') {
-                outputLength = Number(outputHeaders['content-length']);
-                downloadProgressCb(0, outputLength);
+            if(typeof outputHeaders['content-length'] !== 'undefined') {
+                // TODO check if it is correct when Content-Encoding is gzip
+                initDownload(Number(outputHeaders['content-length']));
             }
         };
         var onLoad = function() {
@@ -297,15 +307,12 @@
                 return;
             }
 
-            if(outputLength === null) {
-                outputLength = output.length;
-                downloadProgressCb(0, outputLength);
-            }
+            initDownload(output.length);
             if(cb === null) {
                 return;
             }
 
-            downloadProgressCb(outputLength, outputLength);
+            updateDownload(outputLength);
             if(cb === null) {
                 return;
             }
