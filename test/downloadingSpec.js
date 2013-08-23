@@ -3,6 +3,7 @@ var httpinvoke = require('../httpinvoke-node');
 
 describe('"downloading" option', function() {
     this.timeout(10000);
+    // TODO do all of these tests for various binary and variously encoded text responses
     it('is called at least twice', function(done) {
         var count = 0;
         var abort = httpinvoke(cfg.url, {

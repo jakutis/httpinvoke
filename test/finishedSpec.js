@@ -19,6 +19,7 @@ describe('"finished" option', function() {
             }
         });
     });
+    // TODO do this test for various binary and variously encoded text responses
     it('has "output" be an ascii encoded string, when response Content-Type is "text/plain; charset=UTF-8"', function(done) {
         var expectedOutput = unescape(encodeURIComponent('Sveika Žeme\n'));
         httpinvoke(cfg.url + 'utf8', {
