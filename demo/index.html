@@ -23,6 +23,7 @@
             for(var i = 0; i < 16; i += 1) {
                 entity += entity;
             }
+            document.getElementById('demonstrate').removeAttribute('disabled');
             document.getElementById('demonstrate').onclick = function() {
                 document.getElementById('demonstrate').setAttribute('disabled', 'disabled');
                 httpinvoke('./', 'POST', {
