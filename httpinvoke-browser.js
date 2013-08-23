@@ -341,6 +341,7 @@
                 xhr.setRequestHeader(inputHeaderName, inputHeaders[inputHeaderName]);
             }
         }
+        xhr.overrideMimeType('text/plain; charset=iso-8859-1');
         setTimeout(function() {
             if(cb === null) {
                 return;

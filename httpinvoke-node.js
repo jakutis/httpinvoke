@@ -79,7 +79,7 @@ var httpinvoke = function(uri, method, options) {
             return;
         }
         var output = '';
-        res.setEncoding('utf8');
+        res.setEncoding('binary');
         res.on('data', function(chunk) {
             if(cb === null) {
                 return;
