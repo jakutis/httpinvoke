@@ -6,9 +6,7 @@ var bigslowHello = function(res) {
     var n = 100;
     res.writeHead(200, {
         'Content-Type': 'text/plain; charset=UTF-8',
-        'Content-Length': entity.length * n * 100,
-        'Content-Encoding': 'identity',
-        'Transfer-Encoding': 'identity'
+        'Content-Length': entity.length * n * 100
     });
 
     var i = 0;
@@ -39,11 +37,9 @@ http.createServer(function (req, res) {
             'Access-Control-Allow-Methods': 'OPTIONS, POST, HEAD, PUT, DELETE, GET',
             'Access-Control-Allow-Headers': ''
         };
-        if(body !== null || head) {
+        if(body !== null) {
             headers['Content-Type'] = 'text/plain; charset=UTF-8';
             headers['Content-Length'] = String(body.length);
-            headers['Content-Encoding'] = 'identity';
-            headers['Transfer-Encoding'] = 'identity';
             headers['Content-Range'] = 'bytes 0-' + (body.length - 1) + '/' + body.length;
         }
         if(typeof req.headers.origin === 'string') {
