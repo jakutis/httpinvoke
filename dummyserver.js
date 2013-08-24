@@ -31,14 +31,14 @@ var endsWith = function(str, substr) {
 http.createServer(function (req, res) {
     res.useChunkedEncodingByDefault = false;
 
-    var output = function(status, body, head) {
+    var output = function(status, body, head, mimeType) {
         var headers = {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'OPTIONS, POST, HEAD, PUT, DELETE, GET',
             'Access-Control-Allow-Headers': ''
         };
         if(body !== null) {
-            headers['Content-Type'] = 'text/plain; charset=UTF-8';
+            headers['Content-Type'] = mimeType;
             headers['Content-Length'] = String(body.length);
             headers['Content-Range'] = 'bytes 0-' + (body.length - 1) + '/' + body.length;
         }
@@ -55,24 +55,24 @@ http.createServer(function (req, res) {
     var hello = 'Hello World\n';
 
     if(req.method === 'OPTIONS') {
-        output(200, hello, false);
+        output(200, hello, false, 'text/plain; charset=UTF-8');
     } else if(req.method === 'POST') {
-        output(200, hello, false);
+        output(200, hello, false, 'text/plain; charset=UTF-8');
     } else if(req.method === 'HEAD') {
-        output(200, hello, true);
+        output(200, hello, true, 'text/plain; charset=UTF-8');
     } else if(req.method === 'PUT') {
-        output(200, hello, false);
+        output(200, hello, false, 'text/plain; charset=UTF-8');
     } else if(req.method === 'DELETE') {
-        output(200, hello, false);
+        output(200, hello, false, 'text/plain; charset=UTF-8');
     } else if(req.method === 'GET') {
         if(endsWith(req.url, '/bigslow')) {
             bigslowHello(res);
         } else if(endsWith(req.url, '/utf8')) {
-            output(200, new Buffer('Sveika Žeme\n', 'utf8'), false);
+            output(200, new Buffer('Sveika Žeme\n', 'utf8'), false, 'text/plain; charset=UTF-8');
         } else {
-            output(200, hello, false);
+            output(200, hello, false, 'text/plain; charset=UTF-8');
         }
     } else {
-        output(406, hello, false);
+        output(406, hello, false, 'text/plain; charset=UTF-8');
     }
 }).listen(cfg.port, cfg.host);
