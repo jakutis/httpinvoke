@@ -185,12 +185,44 @@
         if(crossDomain && !httpinvoke.cors) {
             return failWithoutRequest(new Error('Cross-origin requests are not supported'));
         }
-        var overrideMimeType = false;
         var getOutput = function(xhr) {
-            return (overrideMimeType || typeof xhr.responseBody === 'undefined') ? xhr.responseText : responseBodyToText(xhr.responseBody);
+            if(typeof xhr.responseBody !== 'undefined') {
+                return responseBodyToText(xhr.responseBody);
+            }
+
+            var c, byteString = '', utf8String = xhr.responseText.replace(/\r\n/g, '\n');
+            for (var i = 0; i < utf8String.length; i += 1) {
+                c = utf8String.charCodeAt(i);
+                if (c < 128) {
+                    byteString += String.fromCharCode(c);
+                } else if (c < 2048) {
+                    byteString += String.fromCharCode((c >> 6) | 192);
+                    byteString += String.fromCharCode((c & 63) | 128);
+                } else {
+                    byteString += String.fromCharCode((c >> 12) | 224);
+                    byteString += String.fromCharCode(((c >> 6) & 63) | 128);
+                    byteString += String.fromCharCode((c & 63) | 128);
+                }
+            }
+            return byteString;
         };
         var getOutputLength = function(xhr) {
-            return (overrideMimeType || typeof xhr.responseBody === 'undefined') ? xhr.responseText.length : responseBodyLength(xhr.responseBody);
+            if(typeof xhr.responseBody !== 'undefined') {
+                return responseBodyLength(xhr.responseBody);
+            }
+
+            var c, n = 0, utf8String = xhr.responseText.replace(/\r\n/g, '\n');
+            for (var i = 0; i < utf8String.length; i += 1) {
+                c = utf8String.charCodeAt(i);
+                if (c < 128) {
+                    n += 1;
+                } else if (c < 2048) {
+                    n += 2;
+                } else {
+                    n += 3;
+                }
+            }
+            return n;
         };
         var xhr = createXHR(crossDomain);
         xhr.open(method, uri, true);
@@ -382,8 +414,7 @@
             }
         }
         if(xhr.overrideMimeType) {
-            overrideMimeType = true;
-            xhr.overrideMimeType('text/plain; charset=iso-8859-1');
+            xhr.overrideMimeType('text/plain');
         }
         setTimeout(function() {
             if(cb === null) {
