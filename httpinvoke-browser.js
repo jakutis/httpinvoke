@@ -186,6 +186,12 @@
             return failWithoutRequest(new Error('Cross-origin requests are not supported'));
         }
         var overrideMimeType = false;
+        var getOutput = function(xhr) {
+            return (overrideMimeType || typeof xhr.responseBody === 'undefined') ? xhr.responseText : responseBodyToText(xhr.responseBody);
+        };
+        var getOutputLength = function(xhr) {
+            return (overrideMimeType || typeof xhr.responseBody === 'undefined') ? xhr.responseText.length : responseBodyLength(xhr.responseBody);
+        };
         var xhr = createXHR(crossDomain);
         xhr.open(method, uri, true);
         if(options.corsCredentials && httpinvoke.corsCredentials) {
@@ -339,7 +345,7 @@
                 return;
             }
 
-            output = (overrideMimeType || typeof xhr.responseBody === 'undefined') ? xhr.responseText : responseBodyToText(xhr.responseBody);
+            output = getOutput(xhr);
 
             initDownload(output.length);
             if(cb === null) {
@@ -361,7 +367,7 @@
             } else if(xhr.readyState === 3) {
                 // LOADING
                 try {
-                    updateDownload((overrideMimeType || typeof xhr.responseBody === 'undefined') ? xhr.responseText.length : responseBodyLength(xhr.responseBody));
+                    updateDownload(getOutputLength(xhr));
                 } catch(err) {
                 }
             } else if(xhr.readyState === 4) {
