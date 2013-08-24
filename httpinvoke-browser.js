@@ -7,6 +7,46 @@
         root.httpinvoke = factory();
   }
 }(this, function () {
+    var responseBodyToText, responseBodyLength;
+    (function() {
+        try {
+            var vbscript = '';
+            vbscript += 'Function HTTPINVOKE_BinaryToByteStr(Binary)\r\n';
+            vbscript += '    HTTPINVOKE_BinaryToByteStr = CStr(Binary)\r\n';
+            vbscript += 'End Function\r\n';
+            vbscript += '\r\n';
+            vbscript += 'Function HTTPINVOKE_BinaryLen(Binary)\r\n';
+            vbscript += '    HTTPINVOKE_BinaryLen = LenB(Binary)\r\n';
+            vbscript += 'End Function\r\n';
+            vbscript += '\r\n';
+            vbscript += 'Function HTTPINVOKE_BinaryToByteStrLast(Binary)\r\n';
+            vbscript += '    Dim lastIndex\r\n';
+            vbscript += '    lastIndex = LenB(Binary)\r\n';
+            vbscript += '    If lastIndex mod 2 Then\r\n';
+            vbscript += '        HTTPINVOKE_BinaryToByteStrLast = Chr(AscB(MidB(Binary, lastIndex, 1)))\r\n';
+            vbscript += '    Else\r\n';
+            vbscript += '        HTTPINVOKE_BinaryToByteStrLast = ""\r\n';
+            vbscript += '    End If\r\n';
+            vbscript += 'End Function\r\n';
+            window.execScript(vbscript, 'vbscript');
+
+            var byteMapping = {};
+            for(var i = 0; i < 256; i += 1) {
+                for (var j = 0; j < 256; j += 1) {
+                    byteMapping[String.fromCharCode(i + j * 256)] = String.fromCharCode(i) + String.fromCharCode(j);
+                }
+            }
+            responseBodyToText = function(binary) {
+                return HTTPINVOKE_BinaryToByteStr(binary).replace(/[\s\S]/g, function(match) {
+                    return byteMapping[match];
+                }) + HTTPINVOKE_BinaryToByteStrLast(binary);
+            };
+            responseBodyLength = function(binary) {
+                return HTTPINVOKE_BinaryLen(binary);
+            };
+        } catch(err) {
+        }
+    })();
     var trim = function(string) {
         return string.replace(/^\s+|\s+$/g,'');
     };
@@ -145,6 +185,7 @@
         if(crossDomain && !httpinvoke.cors) {
             return failWithoutRequest(new Error('Cross-origin requests are not supported'));
         }
+        var overrideMimeType = false;
         var xhr = createXHR(crossDomain);
         xhr.open(method, uri, true);
         if(options.corsCredentials && httpinvoke.corsCredentials) {
@@ -298,14 +339,7 @@
                 return;
             }
 
-            output = (typeof xhr.responseType === 'undefined' || xhr.responseType === '') ? 'text' : xhr.responseType;
-            if(output === 'text') {
-                output = xhr.responseText;
-            } else {
-                cb(new Error('Unknown response body format ' + output));
-                cb = null;
-                return;
-            }
+            output = (overrideMimeType || typeof xhr.responseBody === 'undefined') ? xhr.responseText : responseBodyToText(xhr.responseBody);
 
             initDownload(output.length);
             if(cb === null) {
@@ -327,7 +361,7 @@
             } else if(xhr.readyState === 3) {
                 // LOADING
                 try {
-                    updateDownload(xhr.responseText.length);
+                    updateDownload((overrideMimeType || typeof xhr.responseBody === 'undefined') ? xhr.responseText.length : responseBodyLength(xhr.responseBody));
                 } catch(err) {
                 }
             } else if(xhr.readyState === 4) {
@@ -341,7 +375,10 @@
                 xhr.setRequestHeader(inputHeaderName, inputHeaders[inputHeaderName]);
             }
         }
-        xhr.overrideMimeType('text/plain; charset=iso-8859-1');
+        if(xhr.overrideMimeType) {
+            overrideMimeType = true;
+            xhr.overrideMimeType('text/plain; charset=iso-8859-1');
+        }
         setTimeout(function() {
             if(cb === null) {
                 return;
