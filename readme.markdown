@@ -38,7 +38,7 @@ Load using your package manager, or use directly in web browser by adding `<scri
 
     httpinvoke('http://updates.html5rocks.com', 'POST', {
         inputType: 'json',
-        outputType: 'string',
+        outputType: 'text',
         input: {foo:'bar'},
         headers: {
             'X-SomeHeader': 'ehlo'
