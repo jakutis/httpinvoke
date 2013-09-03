@@ -57,7 +57,11 @@ http.createServer(function (req, res) {
     if(req.method === 'OPTIONS') {
         output(200, hello, false, 'text/plain; charset=UTF-8');
     } else if(req.method === 'POST') {
-        output(200, hello, false, 'text/plain; charset=UTF-8');
+        if(endsWith(req.url, '/204')) {
+            output(204, null, false);
+        } else {
+            output(200, hello, false, 'text/plain; charset=UTF-8');
+        }
     } else if(req.method === 'HEAD') {
         output(200, hello, true, 'text/plain; charset=UTF-8');
     } else if(req.method === 'PUT') {
@@ -67,8 +71,14 @@ http.createServer(function (req, res) {
     } else if(req.method === 'GET') {
         if(endsWith(req.url, '/bigslow')) {
             bigslowHello(res);
-        } else if(endsWith(req.url, '/utf8')) {
-            output(200, new Buffer('Sveika Žeme\n', 'utf8'), false, 'text/plain; charset=UTF-8');
+        } else if(endsWith(req.url, '/text/utf8')) {
+            output(200, new Buffer(cfg.textTest(), 'utf8'), false, 'text/plain; charset=UTF-8');
+        } else if(endsWith(req.url, '/json')) {
+            output(200, new Buffer(JSON.stringify(cfg.jsonTest()), 'utf8'), false, 'application/json');
+        } else if(endsWith(req.url, '/bytearray')) {
+            output(200, new Buffer(cfg.bytearrayTest()), false, 'application/octet-stream');
+        } else if(endsWith(req.url, '/error')) {
+            res.end();
         } else {
             output(200, hello, false, 'text/plain; charset=UTF-8');
         }
