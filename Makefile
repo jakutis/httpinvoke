@@ -1,5 +1,6 @@
 .PHONY: compile test-node test-node-singlerun test-browser
 
+# TODO minification
 compile: httpinvoke-generated-commonjs.js
 
 httpinvoke-generated-commonjs.js: httpinvoke-node.js httpinvoke-browser.js
