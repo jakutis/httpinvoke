@@ -47,9 +47,12 @@ describe('sequence of callback options', function() {
             downloading: function() {
                 downloading = true;
             },
-            finished: function() {
+            finished: function(err) {
                 if(done === null) {
                     return;
+                }
+                if(err) {
+                    return done(err);
                 }
                 if(downloading) {
                     done();

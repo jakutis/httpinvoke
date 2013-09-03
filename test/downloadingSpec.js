@@ -11,9 +11,16 @@ describe('"downloading" option', function() {
                 count += 1;
                 if(count === 2) {
                     done();
+                    done = null;
                 }
             },
-            finished: function() {
+            finished: function(err) {
+                if(done === null) {
+                    return;
+                }
+                if(err) {
+                    return done(err);
+                }
                 if(count < 2) {
                     done(new Error('It was called ' + count + ' times'));
                 }
@@ -50,9 +57,12 @@ describe('"downloading" option', function() {
                     return fail('"total" was not an non-negative');
                 }
             },
-            finished: function() {
+            finished: function(err) {
                 if(done === null) {
                     return;
+                }
+                if(err) {
+                    return done(err);
                 }
                 done();
             }
@@ -65,7 +75,10 @@ describe('"downloading" option', function() {
                 current = _current;
                 total = _total;
             },
-            finished: function() {
+            finished: function(err) {
+                if(err) {
+                    return done(err);
+                }
                 if(current !== total) {
                     done(new Error('The last received "current"=' + current + ' is not equal to "total"=' + total));
                 } else {
@@ -98,9 +111,12 @@ describe('"downloading" option', function() {
                     done = null;
                 }
             },
-            finished: function() {
+            finished: function(err) {
                 if(done === null) {
                     return;
+                }
+                if(err) {
+                    return done(err);
                 }
                 done();
             }
@@ -122,9 +138,12 @@ describe('"downloading" option', function() {
                     done = null;
                 }
             },
-            finished: function() {
+            finished: function(err) {
                 if(done === null) {
                     return;
+                }
+                if(err) {
+                    return done(err);
                 }
                 done();
             }
@@ -164,9 +183,12 @@ describe('"downloading" option', function() {
                     done = null;
                 }
             },
-            finished: function() {
+            finished: function(err) {
                 if(done === null) {
                     return;
+                }
+                if(err) {
+                    return done(err);
                 }
                 done();
             }

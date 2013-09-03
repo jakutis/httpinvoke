@@ -5,7 +5,8 @@ describe('"uploading" option', function() {
     this.timeout(10000);
     it('is called at least twice', function(done) {
         var count = 0;
-        var abort = httpinvoke(cfg.url, {
+        httpinvoke(cfg.url, 'POST', {
+            inputType: 'text',
             input: 'foobar',
             uploading: function() {
                 count += 1;
@@ -13,11 +14,13 @@ describe('"uploading" option', function() {
                     done();
                 }
             },
-            finished: function() {
+            finished: function(err) {
+                if(err) {
+                    return done(err);
+                }
                 if(count < 2) {
                     done(new Error('It was called ' + count + ' times'));
                 }
-                abort();
             }
         });
     });
@@ -26,7 +29,8 @@ describe('"uploading" option', function() {
             done(new Error(msg));
             done = null;
         };
-        httpinvoke(cfg.url, {
+        httpinvoke(cfg.url, 'POST', {
+            inputType: 'text',
             input: 'foobar',
             uploading: function(current, total) {
                 if(done === null) {
@@ -51,9 +55,12 @@ describe('"uploading" option', function() {
                     return fail('"total" was not an non-negative');
                 }
             },
-            finished: function() {
+            finished: function(err) {
                 if(done === null) {
                     return;
+                }
+                if(err) {
+                    return done(err);
                 }
                 done();
             }
@@ -61,13 +68,17 @@ describe('"uploading" option', function() {
     });
     it('has the last "current" be equal to total', function(done) {
         var current, total;
-        httpinvoke(cfg.url, {
+        httpinvoke(cfg.url, 'POST', {
+            inputType: 'text',
             input: 'foobar',
             uploading: function(_current, _total) {
                 current = _current;
                 total = _total;
             },
-            finished: function() {
+            finished: function(err) {
+                if(err) {
+                    return done(err);
+                }
                 if(current !== total) {
                     done(new Error('The last received "current"=' + current + ' is not equal to "total"=' + total));
                 } else {
@@ -77,7 +88,8 @@ describe('"uploading" option', function() {
         });
     });
     it('has the first "current" be equal to 0', function(done) {
-        var abort = httpinvoke(cfg.url, {
+        var abort = httpinvoke(cfg.url, 'POST', {
+            inputType: 'text',
             input: 'foobar',
             uploading: function(current) {
                 if(done === null) {
@@ -94,7 +106,8 @@ describe('"uploading" option', function() {
         });
     });
     it('has "current" not greater than "total"', function(done) {
-        httpinvoke(cfg.url, {
+        httpinvoke(cfg.url, 'POST', {
+            inputType: 'text',
             input: 'foobar',
             uploading: function(current, total) {
                 if(current > total) {
@@ -102,7 +115,10 @@ describe('"uploading" option', function() {
                     done = null;
                 }
             },
-            finished: function() {
+            finished: function(err) {
+                if(err) {
+                    return done(err);
+                }
                 if(done === null) {
                     return;
                 }
@@ -112,7 +128,8 @@ describe('"uploading" option', function() {
     });
     it('has "total" always be the same', function(done) {
         var total = null;
-        httpinvoke(cfg.url, {
+        httpinvoke(cfg.url, 'POST', {
+            inputType: 'text',
             input: 'foobar',
             uploading: function(current, _total) {
                 if(done === null) {
@@ -127,9 +144,12 @@ describe('"uploading" option', function() {
                     done = null;
                 }
             },
-            finished: function() {
+            finished: function(err) {
                 if(done === null) {
                     return;
+                }
+                if(err) {
+                    return done(err);
                 }
                 done();
             }
@@ -137,7 +157,8 @@ describe('"uploading" option', function() {
     });
     it('has "total" be equal to input length', function(done) {
         var input = 'foobar';
-        var abort = httpinvoke(cfg.url, {
+        var abort = httpinvoke(cfg.url, 'POST', {
+            inputType: 'text',
             input: input,
             uploading: function(_, total) {
                 if(done === null) {
@@ -155,7 +176,8 @@ describe('"uploading" option', function() {
     });
     it('has "current" be non-decreasing', function(done) {
         var current = null;
-        httpinvoke(cfg.url, {
+        httpinvoke(cfg.url, 'POST', {
+            inputType: 'text',
             input: 'foobar',
             uploading: function(_current) {
                 if(done === null) {
@@ -170,9 +192,12 @@ describe('"uploading" option', function() {
                     done = null;
                 }
             },
-            finished: function() {
+            finished: function(err) {
                 if(done === null) {
                     return;
+                }
+                if(err) {
+                    return done(err);
                 }
                 done();
             }

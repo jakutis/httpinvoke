@@ -16,7 +16,10 @@ describe('"gotStatus" option', function() {
             gotStatus: function() {
                 count += 1;
             },
-            finished: function() {
+            finished: function(err) {
+                if(err) {
+                    return done(err);
+                }
                 if(count !== 1) {
                     return done(new Error('It was called ' + count + ' times'));
                 }
