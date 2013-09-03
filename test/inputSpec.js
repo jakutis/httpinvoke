@@ -64,4 +64,5 @@ describe('"input" option', function() {
     });
     // TODO test all inputTypes (json, text, bytearray, auto) on server
     // TODO test all input types (Array, ArrayBuffer, Uint8Array, Buffer) on server
+    // TODO test that server receives content-type header, when it is generated from inputType
 });
