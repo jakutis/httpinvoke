@@ -75,6 +75,8 @@ http.createServer(function (req, res) {
             output(200, new Buffer(cfg.textTest(), 'utf8'), false, 'text/plain; charset=UTF-8');
         } else if(endsWith(req.url, '/json')) {
             output(200, new Buffer(JSON.stringify(cfg.jsonTest()), 'utf8'), false, 'application/json');
+        } else if(endsWith(req.url, '/json/null')) {
+            output(200, new Buffer('null', 'utf8'), false, 'application/json');
         } else if(endsWith(req.url, '/bytearray')) {
             output(200, new Buffer(cfg.bytearrayTest()), false, 'application/octet-stream');
         } else if(endsWith(req.url, '/error')) {
