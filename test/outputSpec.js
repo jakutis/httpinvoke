@@ -78,6 +78,20 @@ describe('"output" argument of "finished" option', function() {
             finished: makeJSONFinished(done)
         });
     });
+    it('supports null JSON document', function(done) {
+        httpinvoke(cfg.url + 'json/null', {
+            outputType: 'json',
+            finished: function(err, output) {
+                if(err) {
+                    return done(err);
+                }
+                if(output !== null) {
+                    return done(new Error('Received output ' + JSON.stringify(output) + ' is not equal to expected output null'));
+                }
+                done();
+            }
+        });
+    });
     it('matches an expected bytearray when outputType is bytearray', function(done) {
         httpinvoke(cfg.url + 'bytearray', {
             outputType: 'bytearray',
