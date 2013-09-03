@@ -54,6 +54,17 @@ var makeByteArrayFinished = function(done) {
 };
 
 describe('"output" argument of "finished" option', function() {
+    it('finishes with error, if "outputType" option is not one of: "text", "auto", "json", "bytearray"', function(done) {
+        httpinvoke(cfg.url, {
+            outputType: "string",
+            finished: function(err, output) {
+                if(err) {
+                    return done();
+                }
+                done(new Error('Did not finish with an error'));
+            }
+        });
+    });
     // TODO test various encodings
     it('matches an expected string when outputType is text', function(done) {
         httpinvoke(cfg.url + 'text/utf8', {
