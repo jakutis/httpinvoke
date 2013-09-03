@@ -55,49 +55,49 @@ var makeByteArrayFinished = function(done) {
 
 describe('"output" argument of "finished" option', function() {
     // TODO test various encodings
-    it('is an expected string when outputType is text', function(done) {
+    it('matches an expected string when outputType is text', function(done) {
         httpinvoke(cfg.url + 'text/utf8', {
             outputType: 'text',
             finished: makeTextFinished(done)
         });
     });
-    it('is an expected JSON value when outputType is json', function(done) {
+    it('matches an expected JSON value when outputType is json', function(done) {
         httpinvoke(cfg.url + 'json', {
             outputType: 'json',
             finished: makeJSONFinished(done)
         });
     });
-    it('is an expected bytearray when outputType is bytearray', function(done) {
+    it('matches an expected bytearray when outputType is bytearray', function(done) {
         httpinvoke(cfg.url + 'bytearray', {
             outputType: 'bytearray',
             finished: makeByteArrayFinished(done)
         });
     });
-    it('is an expected string when outputType is auto and Content-Type is text/*', function(done) {
+    it('matches an expected string when outputType is auto and Content-Type is text/*', function(done) {
         httpinvoke(cfg.url + 'text/utf8', {
             outputType: 'auto',
             finished: makeTextFinished(done)
         });
     });
-    it('is an expected JSON value when outputType is auto and Content-Type is application/json', function(done) {
+    it('matches an expected JSON value when outputType is auto and Content-Type is application/json', function(done) {
         httpinvoke(cfg.url + 'json', {
             outputType: 'auto',
             finished: makeJSONFinished(done)
         });
     });
-    it('is an expected bytearray when outputType is auto and Content-Type is application/octet-stream', function(done) {
+    it('matches an expected bytearray when outputType is auto and Content-Type is application/octet-stream', function(done) {
         httpinvoke(cfg.url + 'bytearray', {
             outputType: 'auto',
             finished: makeByteArrayFinished(done)
         });
     });
-    it('is an expected string when outputType is not defined and Content-Type is text/*', function(done) {
+    it('matches an expected string when outputType is not defined and Content-Type is text/*', function(done) {
         httpinvoke(cfg.url + 'text/utf8', makeTextFinished(done));
     });
-    it('is an expected JSON value when outputType is not defined and Content-Type is application/json', function(done) {
+    it('matches an expected JSON value when outputType is not defined and Content-Type is application/json', function(done) {
         httpinvoke(cfg.url + 'json', makeJSONFinished(done));
     });
-    it('is an expected bytearray when outputType is not defined and Content-Type is application/octet-stream', function(done) {
+    it('matches an expected bytearray when outputType is not defined and Content-Type is application/octet-stream', function(done) {
         httpinvoke(cfg.url + 'bytearray', makeByteArrayFinished(done));
     });
     if(typeof Buffer !== 'undefined') {
