@@ -194,4 +194,5 @@ describe('"downloading" option', function() {
             }
         });
     });
+    // TODO test total downloading length for outputType=text and various strings and characters, e.g. character '𝌆'
 });
