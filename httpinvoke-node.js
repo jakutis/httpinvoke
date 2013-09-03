@@ -120,12 +120,18 @@ var httpinvoke = function(uri, method, options) {
             }
             input = options.input;
             inputLength = countStringBytes(input);
+            if(typeof inputHeaders['Content-Type'] === 'undefined') {
+                inputHeaders['Content-Type'] = 'text/plain; charset=UTF-8';
+            }
         } else if(inputType === 'json') {
             try {
                 input = JSON.stringify(options.input);
-                inputLength = input.length;
             } catch(err) {
                 return failWithoutRequest(cb, err);
+            }
+            inputLength = input.length;
+            if(typeof inputHeaders['Content-Type'] === 'undefined') {
+                inputHeaders['Content-Type'] = 'application/json';
             }
         } else if(inputType === 'bytearray') {
             if(typeof options.input === 'object' && options.input !== null) {
@@ -147,6 +153,9 @@ var httpinvoke = function(uri, method, options) {
                 }
             } else {
                 return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither Uint8Array, nor ArrayBuffer, nor Buffer, nor Array'));
+            }
+            if(typeof inputHeaders['Content-Type'] === 'undefined') {
+                inputHeaders['Content-Type'] = 'application/octet-stream';
             }
         }
     }
