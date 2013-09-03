@@ -62,5 +62,6 @@ describe('"input" option', function() {
             finished: makeErrorFinished(done)
         });
     });
-    // TODO test all inputTypes on server
+    // TODO test all inputTypes (json, text, bytearray, auto) on server
+    // TODO test all input types (Array, ArrayBuffer, Uint8Array, Buffer) on server
 });
