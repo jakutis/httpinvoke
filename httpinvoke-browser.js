@@ -7,27 +7,22 @@
         root.httpinvoke = factory();
   }
 }(this, function () {
-    var responseBodyToText, responseBodyLength;
+    var responseBodyToBytes, responseBodyLength;
     (function() {
         try {
             var vbscript = '';
-            vbscript += 'Function HTTPINVOKE_BinaryToByteStr(Binary)\r\n';
-            vbscript += '    HTTPINVOKE_BinaryToByteStr = CStr(Binary)\r\n';
+            vbscript += 'Function HTTPINVOKE_BinaryExtract(Binary, Array)\r\n';
+            vbscript += '    Dim len, i\r\n';
+            vbscript += '    len = LenB(Binary)\r\n';
+            vbscript += '    For i = 1 to len\r\n';
+            vbscript += '        Array.push(AscB(MidB(Binary, i, 1)))\r\n';
+            vbscript += '    Next\r\n';
             vbscript += 'End Function\r\n';
             vbscript += '\r\n';
-            vbscript += 'Function HTTPINVOKE_BinaryLen(Binary)\r\n';
+            vbscript += 'Function HTTPINVOKE_BinaryLength(Binary)\r\n';
             vbscript += '    HTTPINVOKE_BinaryLen = LenB(Binary)\r\n';
             vbscript += 'End Function\r\n';
             vbscript += '\r\n';
-            vbscript += 'Function HTTPINVOKE_BinaryToByteStrLast(Binary)\r\n';
-            vbscript += '    Dim lastIndex\r\n';
-            vbscript += '    lastIndex = LenB(Binary)\r\n';
-            vbscript += '    If lastIndex mod 2 Then\r\n';
-            vbscript += '        HTTPINVOKE_BinaryToByteStrLast = Chr(AscB(MidB(Binary, lastIndex, 1)))\r\n';
-            vbscript += '    Else\r\n';
-            vbscript += '        HTTPINVOKE_BinaryToByteStrLast = ""\r\n';
-            vbscript += '    End If\r\n';
-            vbscript += 'End Function\r\n';
             window.execScript(vbscript, 'vbscript');
 
             var byteMapping = {};
@@ -36,30 +31,49 @@
                     byteMapping[String.fromCharCode(i + j * 256)] = String.fromCharCode(i) + String.fromCharCode(j);
                 }
             }
-            responseBodyToText = function(binary) {
-                return HTTPINVOKE_BinaryToByteStr(binary).replace(/[\s\S]/g, function(match) {
-                    return byteMapping[match];
-                }) + HTTPINVOKE_BinaryToByteStrLast(binary);
+            responseBodyToBytes = function(binary) {
+                var bytes = [];
+                HTTPINVOKE_BinaryExtract(binary, bytes);
+                return bytes;
             };
             responseBodyLength = function(binary) {
-                return HTTPINVOKE_BinaryLen(binary);
+                return HTTPINVOKE_BinaryLength(binary);
             };
         } catch(err) {
         }
     })();
-    var trim = function(string) {
+    var trim = typeof ''.trim === 'undefined' ? function(string) {
         return string.replace(/^\s+|\s+$/g,'');
+    } : function(string) {
+        return string.trim();
     };
-    var indexOf = function(array, item) {
+    var indexOf = typeof [].indexOf === 'undefined' ? function(array, item) {
         for(var i = 0; i < array.length; i += 1) {
             if(array[i] === item) {
                 return i;
             }
         }
         return -1;
+    } : function(array, item) {
+        return array.indexOf(item);
+    };
+    var countStringBytes = function(string) {
+        var n = 0;
+        for(var i = 0; i < string.length; i += 1) {
+            var c = string.charCodeAt(i);
+            if (c < 128) {
+                n += 1;
+            } else if (c < 2048) {
+                n += 2;
+            } else {
+                n += 3;
+            }
+        }
+        return n;
     };
 
     var supportedMethods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'];
+    var supportedDataTypes = ["auto", "bytearray", "json", "text"];
 
     var parseHeader = function(header) {
         var colon = header.indexOf(':');
@@ -70,7 +84,7 @@
     };
 
     // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
-    var forbiddenInputHeaders = ['accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
+    var forbiddenInputHeaders = ['accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'content-transfer-encoding', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
     var validateInputHeaders = function(headers) {
         for(var header in headers) {
             if(headers.hasOwnProperty(header)) {
@@ -107,9 +121,19 @@
         location = urlPartitioningRegExp.exec(location.toLowerCase()) || [];
         return !!(uri && (uri[1] !== location[1] || uri[2] !== location[2] || (uri[3] || (uri[1] === 'http:' ? '80' : '443')) !== (location[3] || (location[1] === 'http:' ? '80' : '443'))));
     };
+    var failWithoutRequest = function(cb, err) {
+        setTimeout(function() {
+            if(cb === null) {
+                return;
+            }
+            cb(err);
+        }, 0);
+        return noop;
+    };
     var noop = function() {};
     var createXHR;
     var httpinvoke = function(uri, method, options) {
+        /*************** initialize parameters **************/
         if(typeof method === 'undefined') {
             method = 'GET';
             options = {};
@@ -124,15 +148,116 @@
         options = typeof options === 'function' ? {
             finished: options
         } : options;
-
+        // TODO is it possible to support progress events when size is not known - make second argument to "downloading" optional?
         var uploadProgressCb = options.uploading || noop;
         var downloadProgressCb = options.downloading || noop;
         var statusCb = options.gotStatus || noop;
         var cb = options.finished || noop;
-        var input = options.input || null, inputLength = input === null ? 0 : input.length, inputHeaders = options.headers || {};
+        // TODO make sure the undefined output and input cases are thoroughly handled
+        var input, inputLength, inputHeaders = options.headers || {};
+        var inputType;
+        var outputType = options.outputType || "auto";
         var exposedHeaders = options.corsHeaders || [];
         exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Expires', 'Last-Modified', 'Pragma']);
 
+        /*************** convert and validate parameters **************/
+        if(indexOf(supportedMethods, method) < 0) {
+            return failWithoutRequest(cb, new Error('Unsupported method ' + method));
+        }
+        if(indexOf(supportedDataTypes, outputType) < 0) {
+            return failWithoutRequest(cb, new Error('Unsupported outputType ' + outputType));
+        }
+        if(typeof options.input === 'undefined') {
+            if(typeof options.inputType !== 'undefined') {
+                return failWithoutRequest(cb, new Error('"input" is undefined, but inputType is defined'));
+            }
+            if(typeof inputHeaders['Content-Type'] !== 'undefined') {
+                return failWithoutRequest(cb, new Error('"input" is undefined, but Content-Type request header is defined'));
+            }
+        } else {
+            if(typeof options.inputType === 'undefined') {
+                inputType = 'auto';
+            } else {
+                inputType = options.inputType;
+                if(indexOf(supportedDataTypes, inputType) < 0) {
+                    return failWithoutRequest(cb, new Error('Unsupported inputType ' + inputType));
+                }
+            }
+            if(inputType === 'auto') {
+                if(typeof inputHeaders['Content-Type'] === 'undefined') {
+                    return failWithoutRequest(cb, new Error('inputType is auto and Content-Type request header is not specified'));
+                }
+                if(typeof inputHeaders['Content-Type'] === 'undefined') {
+                    inputType = 'bytearray';
+                } else if(inputHeaders['Content-Type'] === 'application/json') {
+                    inputType = 'json';
+                } else if(inputHeaders['Content-Type'].substr(0, 'text/'.length) === 'text/') {
+                    inputType = 'text';
+                } else {
+                    inputType = 'bytearray';
+                }
+            }
+            if(inputType === 'text') {
+                if(typeof options.input !== 'string') {
+                    return failWithoutRequest(cb, new Error('inputType is text, but input is not a string'));
+                }
+                input = options.input;
+                inputLength = countStringBytes(input);
+            } else if(inputType === 'json') {
+                try {
+                    input = JSON.stringify(options.input);
+                    inputLength = input.length;
+                } catch(err) {
+                    return failWithoutRequest(cb, err);
+                }
+            } else if(inputType === 'bytearray') {
+                if(typeof options.input === 'object' && options.input !== null) {
+                    if(typeof Uint8Array !== 'undefined' && options.input instanceof Uint8Array) {
+                        options.input = options.input.buffer;
+                    }
+
+                    if(typeof ArrayBuffer !== 'undefined' && options.input instanceof ArrayBuffer) {
+                        input = options.input;
+                        inputLength = input.byteLength;
+                    } else if(typeof Buffer !== 'undefined' && options.input instanceof Buffer) {
+                        input = options.input;
+                        inputLength = input.length;
+                    } else if(typeof Array !== 'undefined' && options.input instanceof Array) {
+                        input = options.input;
+                        inputLength = input.length;
+                    } else {
+                        return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither Uint8Array, nor ArrayBuffer, nor Buffer, nor Array'));
+                    }
+                } else {
+                    return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither Uint8Array, nor ArrayBuffer, nor Buffer, nor Array'));
+                }
+            }
+        }
+
+        try {
+            validateInputHeaders(inputHeaders);
+        } catch(err) {
+            return failWithoutRequest(cb, err);
+        }
+
+        /*************** initialize helper variables **************/
+        var responseTypeSupported = false;
+        var uploadProgressCbCalled = false;
+        var output, outputLength = null, outputHeaders = {};
+        var i;
+        var currentLocation;
+        try {
+            // IE may throw an exception when accessing
+            // a field from window.location if document.domain has been set
+            currentLocation = window.location.href;
+        } catch(_) {
+            // Use the href attribute of an A element
+            // since IE will modify it given document.location
+            currentLocation = window.document.createElement('a');
+            currentLocation.href = '';
+            currentLocation = currentLocation.href;
+        }
+        var crossDomain = isCrossDomain(currentLocation, uri);
         var initDownload = function(total) {
             if(outputLength !== null) {
                 return;
@@ -146,90 +271,54 @@
             }
             downloadProgressCb(value, outputLength);
         };
-
-        var uploadProgressCbCalled = false;
-        var failWithoutRequest = function(err) {
-            setTimeout(function() {
-                if(cb === null) {
-                    return;
+        var getOutput = {
+            'text' : function(xhr) {
+                if(responseTypeSupported) {
+                    return xhr.response;
                 }
-                cb(err);
-            }, 0);
-            return noop;
-        };
-
-        if(indexOf(supportedMethods, method) < 0) {
-            return failWithoutRequest(new Error('Unsupported method ' + method));
-        }
-
-        try {
-            validateInputHeaders(inputHeaders);
-        } catch(err) {
-            return failWithoutRequest(err);
-        }
-        // IE may throw an exception when accessing
-        // a field from window.location if document.domain has been set
-        var currentLocation;
-        try {
-            currentLocation = window.location.href;
-        } catch(_) {
-            // Use the href attribute of an A element
-            // since IE will modify it given document.location
-            currentLocation = window.document.createElement('a');
-            currentLocation.href = '';
-            currentLocation = currentLocation.href;
-        }
-        var output, outputLength = null, outputHeaders = {};
-        var i;
-        var crossDomain = isCrossDomain(currentLocation, uri);
-        if(crossDomain && !httpinvoke.cors) {
-            return failWithoutRequest(new Error('Cross-origin requests are not supported'));
-        }
-        var getOutput = function(xhr) {
-            if(typeof xhr.responseBody !== 'undefined') {
-                return responseBodyToText(xhr.responseBody);
-            }
-
-            var c, byteString = '', utf8String = xhr.responseText.replace(/\r\n/g, '\n');
-            for (var i = 0; i < utf8String.length; i += 1) {
-                c = utf8String.charCodeAt(i);
-                if (c < 128) {
-                    byteString += String.fromCharCode(c);
-                } else if (c < 2048) {
-                    byteString += String.fromCharCode((c >> 6) | 192);
-                    byteString += String.fromCharCode((c & 63) | 128);
-                } else {
-                    byteString += String.fromCharCode((c >> 12) | 224);
-                    byteString += String.fromCharCode(((c >> 6) & 63) | 128);
-                    byteString += String.fromCharCode((c & 63) | 128);
+                return xhr.responseText;
+            },
+            'json' : function(xhr) {
+                if(responseTypeSupported) {
+                    return xhr.response;
                 }
+                return JSON.parse(xhr.responseText);
+            },
+            'bytearray' : function(xhr) {
+                if(responseTypeSupported) {
+                    return new Uint8Array(xhr.response);
+                }
+                if(typeof xhr.responseBody !== 'undefined') {
+                    return responseBodyToBytes(xhr.responseBody);
+                }
+                var bytearray = [], str = xhr.responseText, n = str.length;
+                for(var i = 0; i < n; i += 1) {
+                    bytearray.push(str.charCodeAt(i) & 0xFF);
+                }
+                return bytearray;
             }
-            return byteString;
         };
         var getOutputLength = function(xhr) {
+            if(responseTypeSupported && outputType === 'bytearray') {
+                return xhr.response.byteLength;
+            }
             if(typeof xhr.responseBody !== 'undefined') {
                 return responseBodyLength(xhr.responseBody);
             }
-
-            var c, n = 0, utf8String = xhr.responseText.replace(/\r\n/g, '\n');
-            for (var i = 0; i < utf8String.length; i += 1) {
-                c = utf8String.charCodeAt(i);
-                if (c < 128) {
-                    n += 1;
-                } else if (c < 2048) {
-                    n += 2;
-                } else {
-                    n += 3;
-                }
-            }
-            return n;
+            return xhr.responseText.length;
         };
+
+        /*************** start XHR **************/
+        if(crossDomain && !httpinvoke.cors) {
+            return failWithoutRequest(cb, new Error('Cross-origin requests are not supported'));
+        }
         var xhr = createXHR(crossDomain);
         xhr.open(method, uri, true);
         if(options.corsCredentials && httpinvoke.corsCredentials) {
             xhr.withCredentials = true;
         }
 
+        /*************** bind XHR event listeners **************/
         if(typeof xhr.upload !== 'undefined') {
             xhr.upload.ontimeout = function(progressEvent) {
                 if(cb === null) {
@@ -288,6 +377,18 @@
                 }
             };
         }
+        var noData = function() {
+            initDownload(0);
+            if(cb === null) {
+                return;
+            }
+            updateDownload(0);
+            if(cb === null) {
+                return;
+            }
+            cb();
+            cb = null;
+        };
         var onHeadersReceived = function(lastTry) {
             if(cb === null) {
                 return;
@@ -320,6 +421,7 @@
                     try {
                         var header = xhr.getResponseHeader(exposedHeaders[i]);
                         if(typeof header === 'string') {
+                            // TODO change API - camelcase?
                             outputHeaders[exposedHeaders[i].toLowerCase()] = header;
                         }
                     } catch(err) {
@@ -342,18 +444,39 @@
                 return;
             }
 
-            if(method === 'HEAD' || status === 204) {
-                initDownload(0);
-                if(cb === null) {
-                    return;
+            if(method === 'HEAD') {
+                return noData();
+            }
+
+            if(outputType === 'auto') {
+                if(typeof outputHeaders['content-type'] !== 'undefined') {
+                    if(outputHeaders['content-type'] === 'application/json') {
+                        outputType = 'json';
+                    } else if(outputHeaders['content-type'].substr(0, 'text/'.length) === 'text/') {
+                        outputType = 'text';
+                    } else {
+                        outputType = 'bytearray';
+                    }
+                } else {
+                    outputType = 'bytearray';
                 }
-                updateDownload(0);
-                if(cb === null) {
-                    return;
+            }
+            try {
+                xhr.responseType = outputType === 'bytearray' ? 'arraybuffer' : outputType;
+                responseTypeSupported = xhr.response !== 'undefined' && xhr.responseType === (outputType === 'bytearray' ? 'arraybuffer' : outputType);
+            } catch(err) {
+            }
+            try {
+                if(outputType === 'bytearray') {
+                    xhr.overrideMimeType('text/plain; charset=x-user-defined');
+                } else if(outputType === 'json') {
+                    xhr.overrideMimeType('application/json');
+                } else if(outputType === 'text') {
+                    if(outputHeaders['content-type'].substr(0, 'text/'.length) !== 'text/') {
+                        xhr.overrideMimeType('text/plain');
+                    }
                 }
-                cb(null, null);
-                cb = null;
-                return;
+            } catch(err) {
             }
 
             if(typeof outputHeaders['content-length'] !== 'undefined') {
@@ -377,7 +500,13 @@
                 return;
             }
 
-            output = getOutput(xhr);
+            if(responseTypeSupported && xhr.response === null) {
+                return noData();
+            }
+
+            // TODO check whether there is output at all, if no - make output undefined
+            // TODO also, any output vs. outputType validation/conversion?
+            output = getOutput[outputType](xhr);
 
             initDownload(output.length);
             if(cb === null) {
@@ -408,14 +537,15 @@
             }
         };
         xhr.onload = onLoad;
+
+        /*************** set XHR request headers **************/
         for(var inputHeaderName in inputHeaders) {
             if(inputHeaders.hasOwnProperty(inputHeaderName)) {
                 xhr.setRequestHeader(inputHeaderName, inputHeaders[inputHeaderName]);
             }
         }
-        if(xhr.overrideMimeType) {
-            xhr.overrideMimeType('text/plain');
-        }
+
+        /*************** invoke XHR request process **************/
         setTimeout(function() {
             if(cb === null) {
                 return;
@@ -427,6 +557,8 @@
                 uploadProgressCb(0, inputLength);
             }
         }, 0);
+
+        /*************** return "abort" function **************/
         return function() {
             if(cb === null) {
                 return;
