@@ -168,7 +168,7 @@ describe('"output" argument of "finished" option', function() {
         });
     });
     it('is undefined when method is HEAD', function(done) {
-        httpinvoke(cfg.url + 'error', 'HEAD', {
+        httpinvoke(cfg.url, 'HEAD', {
             finished: function(err, output) {
                 if(err) {
                     return done(err);
