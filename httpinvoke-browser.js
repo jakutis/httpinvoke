@@ -519,7 +519,7 @@
             // TODO also, any output vs. outputType validation/conversion?
             output = getOutput[outputType](xhr);
 
-            initDownload(output.length);
+            initDownload(getOutputLength(xhr));
             if(cb === null) {
                 return;
             }
