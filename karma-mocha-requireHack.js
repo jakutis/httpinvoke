@@ -23,37 +23,30 @@ window._cfg = {
     },
     jsonTestPasses: function(json) {
         if(typeof json !== 'object' || json === null) {
-            console.log('1');
             return false;
         }
         if(!(json instanceof Array)) {
-            console.log('2');
             return false;
         }
         if(typeof json[0] !== 'object' || json === null) {
-            console.log('3');
             return false;
         }
         if(!(json[0] instanceof Object)) {
-            console.log('4');
             return false;
         }
         if(json[0].a !== 0) {
-            console.log('6');
             return false;
         }
         if(json[0].b !== false) {
-            console.log('7');
             return false;
         }
         if(json[0].c !== 'false') {
-            console.log('8');
             return false;
         }
         if(json[0].d !== null) {
-            console.log('9');
             return false;
         }
+        return true;
     },
     textTest: function() {
         return 'ąčęėįšųū„“–ž1234567890-=!@#$%^&*()_+´¬¿,./;[]';
