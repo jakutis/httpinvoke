@@ -73,6 +73,8 @@
     };
 
     var supportedMethods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'];
+    // TODO add datatype "document"
+    // TODO add feature flags for json, document
     var supportedDataTypes = ["auto", "bytearray", "json", "text"];
 
     var parseHeader = function(header) {

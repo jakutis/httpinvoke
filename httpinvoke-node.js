@@ -3,6 +3,8 @@ var url = require('url');
 
 var noop = function() {};
 var supportedMethods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'];
+// TODO add datatype "document"
+// TODO add feature flags for json, document
 var supportedDataTypes = ["auto", "bytearray", "json", "text"];
 var failWithoutRequest = function(cb, err) {
     process.nextTick(function() {
