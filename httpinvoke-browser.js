@@ -252,7 +252,6 @@
         }
 
         /*************** initialize helper variables **************/
-        var responseTypeSupported = false;
         var uploadProgressCbCalled = false;
         var output, outputLength = null, outputHeaders = {};
         var i;
@@ -284,19 +283,16 @@
         };
         var getOutput = {
             'text' : function(xhr) {
-                if(responseTypeSupported) {
+                if(typeof xhr.response !== 'undefined') {
                     return xhr.response;
                 }
                 return xhr.responseText;
             },
             'json' : function(xhr) {
-                if(responseTypeSupported) {
-                    return xhr.response;
-                }
-                return JSON.parse(xhr.responseText);
+                return JSON.parse(getOutput.text(xhr));
             },
             'bytearray' : function(xhr) {
-                if(responseTypeSupported) {
+                if(typeof xhr.response !== 'undefined') {
                     return new Uint8Array(xhr.response);
                 }
                 if(typeof xhr.responseBody !== 'undefined') {
@@ -310,13 +306,17 @@
             }
         };
         var getOutputLength = function(xhr) {
-            if(responseTypeSupported && outputType === 'bytearray') {
-                return xhr.response.byteLength;
+            if(outputType === 'bytearray') {
+                if(typeof xhr.response !== 'undefined') {
+                    return xhr.response.byteLength;
+                }
+                if(typeof xhr.responseBody !== 'undefined') {
+                    return responseBodyLength(xhr.responseBody);
+                }
+                return xhr.responseText.length;
+            } else {
+                return countStringBytes(getOutput.text(xhr));
             }
-            if(typeof xhr.responseBody !== 'undefined') {
-                return responseBodyLength(xhr.responseBody);
-            }
-            return xhr.responseText.length;
         };
 
         /*************** start XHR **************/
@@ -473,8 +473,7 @@
                 }
             }
             try {
-                xhr.responseType = outputType === 'bytearray' ? 'arraybuffer' : outputType;
-                responseTypeSupported = xhr.response !== 'undefined' && xhr.responseType === (outputType === 'bytearray' ? 'arraybuffer' : outputType);
+                xhr.responseType = outputType === 'bytearray' ? 'arraybuffer' : 'text';
             } catch(err) {
             }
             try {
@@ -511,7 +510,7 @@
                 return;
             }
 
-            if(responseTypeSupported && xhr.response === null) {
+            if(typeof xhr.response !== 'undefined' && xhr.response === null) {
                 return noData();
             }
 
@@ -526,6 +525,12 @@
 
             updateDownload(outputLength);
             if(cb === null) {
+                return;
+            }
+
+            if(outputLength === 0) {
+                cb();
+                cb = null;
                 return;
             }
 
