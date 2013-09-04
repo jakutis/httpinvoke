@@ -171,9 +171,12 @@ describe('"output" argument of "finished" option', function() {
             });
         });
     }
-    it('is undefined when httpinvoke results in an error', function(done) {
+    it('is undefined when server does not send anything', function(done) {
         httpinvoke(cfg.url + 'error', {
             finished: function(err, output) {
+                if(err) {
+                    return done(err);
+                }
                 if(typeof output !== 'undefined') {
                     return done(new Error('Output is not undefined'));
                 }
