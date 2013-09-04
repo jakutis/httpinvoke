@@ -73,12 +73,16 @@ http.createServer(function (req, res) {
             bigslowHello(res);
         } else if(endsWith(req.url, '/text/utf8')) {
             output(200, new Buffer(cfg.textTest(), 'utf8'), false, 'text/plain; charset=UTF-8');
+        } else if(endsWith(req.url, '/text/utf8/empty')) {
+            output(200, new Buffer('', 'utf8'), false, 'text/plain; charset=UTF-8');
         } else if(endsWith(req.url, '/json')) {
             output(200, new Buffer(JSON.stringify(cfg.jsonTest()), 'utf8'), false, 'application/json');
         } else if(endsWith(req.url, '/json/null')) {
             output(200, new Buffer('null', 'utf8'), false, 'application/json');
         } else if(endsWith(req.url, '/bytearray')) {
             output(200, new Buffer(cfg.bytearrayTest()), false, 'application/octet-stream');
+        } else if(endsWith(req.url, '/bytearray/empty')) {
+            output(200, new Buffer([]), false, 'application/octet-stream');
         } else if(endsWith(req.url, '/error')) {
             res.end();
         } else {
