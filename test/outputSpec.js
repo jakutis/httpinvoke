@@ -210,4 +210,32 @@ describe('"output" argument of "finished" option', function() {
             }
         });
     });
+    it('is undefined when response is empty bytearray', function(done) {
+        httpinvoke(cfg.url + 'bytearray/empty', {
+            outputType: 'bytearray',
+            finished: function(err, output) {
+                if(err) {
+                    return done(err);
+                }
+                if(typeof output !== 'undefined') {
+                    return done(new Error('Output is not undefined'));
+                }
+                done();
+            }
+        });
+    });
+    it('is undefined when response is empty string', function(done) {
+        httpinvoke(cfg.url + 'text/utf8/empty', {
+            outputType: 'text',
+            finished: function(err, output) {
+                if(err) {
+                    return done(err);
+                }
+                if(typeof output !== 'undefined') {
+                    return done(new Error('Output is not undefined'));
+                }
+                done();
+            }
+        });
+    });
 });
