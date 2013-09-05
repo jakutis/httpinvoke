@@ -16,18 +16,6 @@ var makeTextFinished = function(done) {
     };
 };
 
-var makeJSONFinished = function(done) {
-    return function(err, output) {
-        if(err) {
-            return done(err);
-        }
-        if(!cfg.jsonTestPasses(output)) {
-            return done(new Error('Received output ' + JSON.stringify(output) + ' is not equal to expected output ' + JSON.stringify(cfg.jsonTest())));
-        }
-        done();
-    };
-};
-
 var makeByteArrayFinished = function(done) {
     return function(err, output) {
         if(err) {
@@ -54,7 +42,8 @@ var makeByteArrayFinished = function(done) {
 };
 
 describe('"output" argument of "finished" option', function() {
-    it('finishes with error, if "outputType" option is not one of: "text", "auto", "json", "bytearray"', function(done) {
+    this.timeout(10000);
+    it('finishes with error, if "outputType" option is not one of: "text", "bytearray"', function(done) {
         httpinvoke(cfg.url, {
             outputType: "string",
             finished: function(err, output) {
@@ -72,58 +61,14 @@ describe('"output" argument of "finished" option', function() {
             finished: makeTextFinished(done)
         });
     });
-    it('matches an expected JSON value when outputType is json', function(done) {
-        httpinvoke(cfg.url + 'json', {
-            outputType: 'json',
-            finished: makeJSONFinished(done)
-        });
-    });
-    it('supports null JSON document', function(done) {
-        httpinvoke(cfg.url + 'json/null', {
-            outputType: 'json',
-            finished: function(err, output) {
-                if(err) {
-                    return done(err);
-                }
-                if(output !== null) {
-                    return done(new Error('Received output ' + JSON.stringify(output) + ' is not equal to expected output null'));
-                }
-                done();
-            }
-        });
-    });
     it('matches an expected bytearray when outputType is bytearray', function(done) {
         httpinvoke(cfg.url + 'bytearray', {
             outputType: 'bytearray',
             finished: makeByteArrayFinished(done)
         });
     });
-    it('matches an expected string when outputType is auto and Content-Type is text/*', function(done) {
-        httpinvoke(cfg.url + 'text/utf8', {
-            outputType: 'auto',
-            finished: makeTextFinished(done)
-        });
-    });
-    it('matches an expected JSON value when outputType is auto and Content-Type is application/json', function(done) {
-        httpinvoke(cfg.url + 'json', {
-            outputType: 'auto',
-            finished: makeJSONFinished(done)
-        });
-    });
-    it('matches an expected bytearray when outputType is auto and Content-Type is application/octet-stream', function(done) {
-        httpinvoke(cfg.url + 'bytearray', {
-            outputType: 'auto',
-            finished: makeByteArrayFinished(done)
-        });
-    });
     it('matches an expected string when outputType is not defined and Content-Type is text/*', function(done) {
         httpinvoke(cfg.url + 'text/utf8', makeTextFinished(done));
-    });
-    it('matches an expected JSON value when outputType is not defined and Content-Type is application/json', function(done) {
-        httpinvoke(cfg.url + 'json', makeJSONFinished(done));
-    });
-    it('matches an expected bytearray when outputType is not defined and Content-Type is application/octet-stream', function(done) {
-        httpinvoke(cfg.url + 'bytearray', makeByteArrayFinished(done));
     });
     if(typeof Buffer !== 'undefined') {
         it('is a Buffer when runtime supports Buffer and outputType is bytearray', function(done) {
