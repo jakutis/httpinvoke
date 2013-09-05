@@ -57,8 +57,8 @@ http.createServer(function (req, res) {
     if(req.method === 'OPTIONS') {
         output(200, hello, false, 'text/plain; charset=UTF-8');
     } else if(req.method === 'POST') {
-        if(endsWith(req.url, '/204')) {
-            output(204, null, false);
+        if(endsWith(req.url, '/noentity')) {
+            output(200, null, false);
         } else {
             output(200, hello, false, 'text/plain; charset=UTF-8');
         }

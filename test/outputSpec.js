@@ -143,16 +143,14 @@ describe('"output" argument of "finished" option', function() {
         });
     });
     it('is undefined when response does not include an entity', function(done) {
-        httpinvoke(cfg.url + '204', 'POST', {
-            finished: function(err, output) {
-                if(err) {
-                    return done(err);
-                }
-                if(typeof output !== 'undefined') {
-                    return done(new Error('Output is not undefined'));
-                }
-                done();
+        httpinvoke(cfg.url + 'noentity', 'POST', function(err, output) {
+            if(err) {
+                return done(err);
             }
+            if(typeof output !== 'undefined') {
+                return done(new Error('Output is not undefined'));
+            }
+            done();
         });
     });
     it('is undefined when response is empty bytearray', function(done) {
