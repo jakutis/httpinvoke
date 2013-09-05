@@ -21,7 +21,7 @@ test-node:
 test:
 	node ./dummyserver.js &
 	DPID=$$!
-	./node_modules/.bin/mocha
+	./node_modules/.bin/mocha --reporter spec
 	kill $$DPID
 
 .ONESHELL:
