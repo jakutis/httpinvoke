@@ -16,4 +16,12 @@ describe('calling', function() {
     it('allows to specify just "finished" callback instead of "options" object', function(done) {
         httpinvoke(cfg.url, done);
     });
+    it('immediately errors-out when url is not reachable', function(done) {
+        httpinvoke('http://non-existant.url/foobar', 'GET', function(err) {
+            if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
+                return done(new Error('error was not received'));
+            }
+            done();
+        });
+    });
 });
