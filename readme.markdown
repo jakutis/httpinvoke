@@ -37,9 +37,9 @@ Load using your package manager, or use directly in web browser by adding `<scri
     });
 
     httpinvoke('http://updates.html5rocks.com', 'POST', {
-        inputType: 'json',
+        inputType: 'bytearray',
         outputType: 'text',
-        input: {foo:'bar'},
+        input: [0, 1, 2, 253, 254, 255],
         headers: {
             'X-SomeHeader': 'ehlo'
         },
@@ -88,15 +88,13 @@ All options are optional.
   0. **output** is:
       * undefined, if err is not null or no response entity has been received (e.g. when **method** is `"HEAD"`)
       * a string, if **outputType** is `"text"` or `"auto"` and response **headers** has `Content-Type` with `text/*`
-      * a byte-array (instance of [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) or instance of [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/Uint8Array) or instance of [Buffer](http://nodejs.org/api/buffer.html) - depending on the platform) that has property "length" of type "number" and properties "0".."length-1" of type "number" with values ranging from `0` to `255`, if **outputType** is `"bytearray"` or `"auto"` and response **headers** has `Content-Type` with neither `text/*`, nor `application/json`
-      * any valid JSON value, if **outputType** is `"json"` or `"auto"` and response **headers** has Content-Type with `application/json`
-* **outputType** is a string for the type of the **output** argument of the **finished** option, one of `"auto"` (default), `"bytearray"`, `"json"`, `"text"`.
-* **inputType** is a string for the type of the **input** option, one of `"auto"`(default), `"bytearray"`, `"json"`, `"text"`. If `"auto"`, the request Content-Type must be specified. If not `"auto"`, **input** must be not be undefined.
+      * a byte-array (instance of [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) or instance of [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/Uint8Array) or instance of [Buffer](http://nodejs.org/api/buffer.html) - depending on the platform) that has property "length" of type "number" and properties "0".."length-1" of type "number" with values ranging from `0` to `255`, if **outputType** is `"bytearray"` or `"auto"` and response **headers** has `Content-Type` with `text/*`
+* **outputType** is a string for the type of the **output** argument of the **finished** option, one of `"auto"` (default), `"bytearray"`, `"text"`.
+* **inputType** is a string for the type of the **input** option, one of `"auto"`(default), `"bytearray"`, `"text"`. If `"auto"`, the request Content-Type must be specified. If not `"auto"`, **input** must be not be undefined.
 * **input** must be either one of:
   * undefined (default), if **inputType** is `"auto"` and request **headers** does not have `Content-Type`
   * a string, if **inputType** is `"text"` or `"auto"` and request **headers** has `Content-Type` with `text/*`
-  * a byte-array (instance of [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) or instance of [ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/ArrayBuffer) or instance of [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/Uint8Array) or instance of [Buffer](http://nodejs.org/api/buffer.html) - depending on the platform) that has property "length" of type "number" and properties "0".."length-1" of type "number" with values ranging from `0` to `255`, if **inputType** is `"bytearray"` or `"auto"` and request **headers** has `Content-Type` with neither `text/*`, nor `application/json`
-  * any valid JSON value, if **outputType** is `"json"` or `"auto"` and response **headers** has `Content-Type` with `application/json`
+  * a byte-array (instance of [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) or instance of [ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/ArrayBuffer) or instance of [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/Uint8Array) or instance of [Buffer](http://nodejs.org/api/buffer.html) - depending on the platform) that has property "length" of type "number" and properties "0".."length-1" of type "number" with values ranging from `0` to `255`, if **inputType** is `"bytearray"` or `"auto"` and request **headers** has `Content-Type` with neither `text/*`
 * **headers** is an object for HTTP request headers. Keys are header names, values are strings. If **input** is not undefined, omitting the Content-Type requires **inputType** be not equal to `"auto"`.
 * **corsHeaders** is an array of HTTP response headers to be extracted in **gotStatus** call. Default simple headers like "Content-Type" are always extracted. Applicable only for cross-origin requests.
 * **corsCredentials** is a boolean for requesting to send credentials. Applicable only for a cross-origin request. See Feature Flags section.
