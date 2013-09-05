@@ -1,4 +1,4 @@
-.PHONY: compile test-node test-node-singlerun test-browser
+.PHONY: compile test-node test test-browser
 
 # TODO minification
 compile: httpinvoke-generated-commonjs.js
@@ -18,7 +18,7 @@ test-node:
 	kill $$DPID
 
 .ONESHELL:
-test-node-singlerun:
+test:
 	node ./dummyserver.js &
 	DPID=$$!
 	./node_modules/.bin/mocha

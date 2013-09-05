@@ -32,7 +32,7 @@
   },
   "scripts": {
     "install": "make",
-    "test": "make test-node-singlerun"
+    "test": "make test"
   },
   "repository": {
     "type": "git",
