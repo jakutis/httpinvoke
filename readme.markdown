@@ -79,7 +79,7 @@ All options are optional.
   0. **total** is a number for the total number of bytes to be sent.
 * **downloading** is a function that is called when HTTP response download progress event happens. It is called with these arguments:
   0. **current** is a number for the number of bytes currently received.
-  0. **total** is a number for the total number of bytes to be received.
+  0. **total** is a number for the total number of bytes to be received, or undefined if not known.
 * **gotStatus** is a function that is called when HTTP response headers are received. It is called with these arguments:
   0. **status** is a number for an HTTP response status code.
   0. **headers** is an object for HTTP response headers. Keys are lower-cased header names, values are strings.
