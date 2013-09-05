@@ -40,7 +40,6 @@ http.createServer(function (req, res) {
         if(body !== null) {
             headers['Content-Type'] = mimeType;
             headers['Content-Length'] = String(body.length);
-            headers['Content-Range'] = 'bytes 0-' + (body.length - 1) + '/' + body.length;
         }
         if(typeof req.headers.origin === 'string') {
             headers['Access-Control-Allow-Origin'] = req.headers.origin;
