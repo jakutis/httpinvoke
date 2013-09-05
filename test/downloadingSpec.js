@@ -3,6 +3,10 @@ var httpinvoke = require('../httpinvoke-node');
 
 describe('"downloading" option', function() {
     this.timeout(10000);
+    // TODO after receiving first defined total - no undefined can be received
+    // TODO total can be undefined
+    // TODO the last total is always defined, and if there is no entity body - it is 0
+    // TODO check if current is correct when Content-Encoding is gzip
     // TODO do all of these tests for various binary and variously encoded text responses
     it('is called at least twice', function(done) {
         var count = 0;
@@ -35,6 +39,9 @@ describe('"downloading" option', function() {
         };
         httpinvoke(cfg.url, {
             downloading: function(current, total) {
+                if(typeof total === 'undefined') {
+                    return;
+                }
                 if(done === null) {
                     return;
                 }
@@ -126,6 +133,9 @@ describe('"downloading" option', function() {
         var total = null;
         httpinvoke(cfg.url, {
             downloading: function(current, _total) {
+                if(typeof _total === 'undefined') {
+                    return;
+                }
                 if(done === null) {
                     return;
                 }
@@ -149,9 +159,10 @@ describe('"downloading" option', function() {
             }
         });
     });
-    it('has "total" be equal to output length', function(done) {
+    it('has the last "total" be equal to output length, when outputType="bytearray"', function(done) {
         var total = null;
         httpinvoke(cfg.url, {
+            outputType: 'bytearray',
             downloading: function(_, _total) {
                 total = _total;
             },
@@ -160,7 +171,7 @@ describe('"downloading" option', function() {
                     return done(err);
                 }
                 if(output.length !== total) {
-                    done(new Error('"total"=' + total + ' was not equal to output length = ' + output.length));
+                    done(new Error('The last "total"=' + total + ' was not equal to output length = ' + output.length));
                 } else {
                     done();
                 }
