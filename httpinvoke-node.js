@@ -71,7 +71,6 @@ var httpinvoke = function(uri, method, options) {
     options = typeof options === 'function' ? {
         finished: options
     } : options;
-    // TODO is it possible to support progress events when size is not known - make second argument to "downloading" optional?
     var safeCallback = function(name) {
         if(typeof options[name] === 'undefined') {
             return noop;
