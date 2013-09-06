@@ -87,7 +87,6 @@ var httpinvoke = function(uri, method, options) {
     var statusCb = safeCallback('gotStatus');
     var cb = safeCallback('finished');
     var timeout = options.timeout || 0;
-    // TODO make sure the undefined output and input cases are thoroughly handled
     var input, inputLength, inputHeaders = options.headers || {};
     var inputType;
     var outputType = options.outputType || "text";

@@ -209,7 +209,6 @@
         var statusCb = safeCallback('gotStatus');
         var cb = safeCallback('finished');
         var timeout = options.timeout || 0;
-        // TODO make sure the undefined output and input cases are thoroughly handled
         var input, inputLength, inputHeaders = options.headers || {};
         var inputType;
         var outputType = options.outputType || "text";
@@ -577,8 +576,6 @@
                 return noData();
             }
 
-            // TODO check whether there is output at all, if no - make output undefined
-            // TODO also, any output vs. outputType validation/conversion?
             output = getOutput[outputType](xhr);
 
             updateDownload(outputLength);
