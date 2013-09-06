@@ -23,6 +23,16 @@ var bigslowHello = function(res) {
     }, 1000);
 };
 
+var readEntityBody = function(req, cb) {
+    var chunks = [];
+    req.on('data', function(chunk) {
+        chunks.push(chunk);
+    });
+    req.on('end', function() {
+        cb(null, Buffer.concat(chunks));
+    });
+};
+
 var endsWith = function(str, substr) {
     return str.substr(str.length - substr.length) === substr;
 };
@@ -68,13 +78,18 @@ http.createServer(function (req, res) {
             res.end(body);
         }
     };
-    var hello = 'Hello World\n';
+    var hello = new Buffer('Hello World\n', 'utf8');
 
     if(req.method === 'OPTIONS') {
         output(200, new Buffer([]), false, 'text/plain; charset=UTF-8');
     } else if(req.method === 'POST') {
         if(endsWith(req.url, '/noentity')) {
             output(204, null, false);
+        } else if(endsWith(req.url, '/text/utf8')) {
+            readEntityBody(req, function(err, body) {
+                body = body.toString('utf8');
+                output(200, new Buffer(body === cfg.textTest() ? 'OK' : 'Received body "' + body + '" does not match the expected "' + cfg.textTest() + '"', 'utf8'), false, 'text/plain; charset=UTF-8');
+            });
         } else {
             output(200, hello, false, 'text/plain; charset=UTF-8');
         }

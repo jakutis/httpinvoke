@@ -63,6 +63,22 @@ describe('"input" option', function() {
                 finished: makeErrorFinished(done)
             });
         });
+        it('correctly sends the input when inputType is text', function(done) {
+            httpinvoke(url + 'text/utf8', 'POST', {
+                input: cfg.textTest(),
+                inputType: 'text',
+                outputType: 'text',
+                finished: function(err, output) {
+                    if(err) {
+                        return done(err);
+                    }
+                    if(output === 'OK') {
+                        return done();
+                    }
+                    done(new Error('Server response about the input is: ' + output));
+                }
+            });
+        });
         // TODO test all inputTypes (json, text, bytearray, auto) on server
         // TODO test all input types (Array, ArrayBuffer, Uint8Array, Buffer) on server
         // TODO test that server receives content-type header, when it is generated from inputType
