@@ -261,25 +261,8 @@
                     inputHeaders['Content-Type'] = 'text/plain; charset=UTF-8';
                 }
             } else if(inputType === 'bytearray') {
-                if(typeof options.input === 'object' && options.input !== null) {
-                    if(typeof Uint8Array !== 'undefined' && options.input instanceof Uint8Array) {
-                        options.input = options.input.buffer;
-                    }
-
-                    if(typeof ArrayBuffer !== 'undefined' && options.input instanceof ArrayBuffer) {
-                        input = options.input;
-                        inputLength = input.byteLength;
-                    } else if(typeof Buffer !== 'undefined' && options.input instanceof Buffer) {
-                        input = options.input;
-                        inputLength = input.length;
-                    } else if(Object.prototype.toString.call(options.input) !== '[object Array]') {
-                        input = convertByteArrayToBinaryString(options.input);
-                        inputLength = input.length;
-                    } else {
-                        return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither Uint8Array, nor ArrayBuffer, nor Buffer, nor Array'));
-                    }
-                } else {
-                    return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither Uint8Array, nor ArrayBuffer, nor Buffer, nor Array'));
+                if(typeof options.input !== 'object' || options.input === null) {
+                    return failWithoutRequest(cb, new Error('inputType is bytearray, but input is not a non-null object'));
                 }
                 if(typeof inputHeaders['Content-Type'] === 'undefined') {
                     inputHeaders['Content-Type'] = 'application/octet-stream';
@@ -323,6 +306,26 @@
             cb = null;
         };
         /*************** initialize helper variables **************/
+        if(inputType === 'bytearray') {
+            if(typeof ArrayBuffer !== 'undefined') {
+                if(options.input instanceof ArrayBuffer) {
+                    input = options.input;
+                } else if(Object.prototype.toString.call(options.input) === '[object Array]') {
+                    input = new Uint8Array(options.input).buffer;
+                } else {
+                    return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither an instance of ArrayBuffer, nor Array'));
+                }
+                inputLength = input.byteLength;
+            } else {
+                if(Object.prototype.toString.call(options.input) === '[object Array]') {
+                    input = convertByteArrayToBinaryString(options.input);
+                } else {
+                    return failWithoutRequest(cb, new Error('inputType is bytearray, but input is not an Array'));
+                }
+                inputLength = input.length;
+            }
+        }
+
         var uploadProgressCbCalled = false;
         var output;
         var i;

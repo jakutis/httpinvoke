@@ -88,7 +88,7 @@ var httpinvoke = function(uri, method, options) {
     var cb = safeCallback('finished');
     var timeout = options.timeout || 0;
     var input, inputLength, inputHeaders = options.headers || {};
-    var inputType;
+    var inputType, inputIsArray;
     var outputType = options.outputType || "text";
     var exposedHeaders = options.corsHeaders || [];
     var corsOriginHeader = options.corsOriginHeader || 'X-Httpinvoke-Origin';
@@ -139,25 +139,8 @@ var httpinvoke = function(uri, method, options) {
                 inputHeaders['Content-Type'] = 'text/plain; charset=UTF-8';
             }
         } else if(inputType === 'bytearray') {
-            if(typeof options.input === 'object' && options.input !== null) {
-                if(typeof Uint8Array !== 'undefined' && options.input instanceof Uint8Array) {
-                    options.input = options.input.buffer;
-                }
-
-                if(typeof ArrayBuffer !== 'undefined' && options.input instanceof ArrayBuffer) {
-                    input = options.input;
-                    inputLength = input.byteLength;
-                } else if(typeof Buffer !== 'undefined' && options.input instanceof Buffer) {
-                    input = options.input;
-                    inputLength = input.length;
-                } else if(Object.prototype.toString.call(options.input) !== '[object Array]') {
-                    input = convertByteArrayToBinaryString(options.input);
-                    inputLength = input.length;
-                } else {
-                    return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither Uint8Array, nor ArrayBuffer, nor Buffer, nor Array'));
-                }
-            } else {
-                return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither Uint8Array, nor ArrayBuffer, nor Buffer, nor Array'));
+            if(typeof options.input !== 'object' || options.input === null) {
+                return failWithoutRequest(cb, new Error('inputType is bytearray, but input is not a non-null object'));
             }
             if(typeof inputHeaders['Content-Type'] === 'undefined') {
                 inputHeaders['Content-Type'] = 'application/octet-stream';
@@ -201,6 +184,16 @@ var httpinvoke = function(uri, method, options) {
         cb = null;
     };
     /*************** initialize helper variables **************/
+    if(inputType === 'bytearray') {
+        if(options.input instanceof Buffer) {
+            input = options.input;
+        } else if(Object.prototype.toString.call(options.input) === '[object Array]') {
+            input = new Buffer(options.input);
+        } else {
+            return failWithoutRequest(cb, new Error('inputType is text, but input is not a string'));
+        }
+        inputLength = input.length;
+    }
     var ignoringlyConsume = function(res) {
         res.on('data', noop);
         res.on('end', noop);
