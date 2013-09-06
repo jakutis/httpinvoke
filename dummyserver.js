@@ -32,17 +32,34 @@ http.createServer(function (req, res) {
     res.useChunkedEncodingByDefault = false;
 
     var output = function(status, body, head, mimeType) {
+        // on some Android devices CORS implementations are buggy
+        // that is why there needs to be two workarounds:
+        // 1. custom header with origin has to be passed, because they do not send Origin header on the actual request
+        // 2. caching must be disabled on serverside, because of unknown reasons, and when developing, you should clear cache on device, after disabling the cache on serverside
+        // read more: http://www.kinvey.com/blog/107/how-to-build-a-service-that-supports-every-android-browser
+
         var headers = {
+            'Access-Control-Allow-Credentials': 'true',
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'OPTIONS, POST, HEAD, PUT, DELETE, GET',
-            'Access-Control-Allow-Headers': ''
+            // workaround for #1: the server-side part: need X-Httpinvoke-Origin header
+            // workaround for Safari 4.0: need Content-Type header
+            'Access-Control-Allow-Headers': 'Content-Type, X-Httpinvoke-Origin',
+            // workaround for #2: avoiding cache
+            'Pragma': 'no-cache',
+            'Expires': 'Thu, 01 Jan 1970 00:00:00 GMT',
+            'Last-Modified': new Date().toGMTString(),
+            'Cache-Control': 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
         };
         if(body !== null) {
             headers['Content-Type'] = mimeType;
             headers['Content-Length'] = String(body.length);
         }
-        if(typeof req.headers.origin === 'string') {
+        if(typeof req.headers.origin !== 'undefined') {
             headers['Access-Control-Allow-Origin'] = req.headers.origin;
+        } else if(typeof req.headers['x-httpinvoke-origin'] !== 'undefined') {
+            // workaround for #1: the server-side part
+            headers['Access-Control-Allow-Origin'] = req.headers['x-httpinvoke-origin'];
         }
         res.writeHead(status, headers);
         if(body === null || head) {
