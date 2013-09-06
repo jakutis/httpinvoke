@@ -99,8 +99,10 @@ http.createServer(function (req, res) {
             output(200, new Buffer(cfg.bytearrayTest()), false, 'application/octet-stream');
         } else if(endsWith(req.url, '/bytearray/empty')) {
             output(200, new Buffer([]), false, 'application/octet-stream');
-        } else if(endsWith(req.url, '/error')) {
-            res.end();
+        } else if(endsWith(req.url, '/tenseconds')) {
+            setTimeout(function() {
+                output(200, hello, false, 'text/plain; charset=UTF-8');
+            }, 10000);
         } else {
             output(200, hello, false, 'text/plain; charset=UTF-8');
         }
