@@ -13,6 +13,46 @@ window._cfg = {
     host: location.hostname,
     port: location.port || (location.protocol === 'https:' ? 443 : 80),
     path: '/dummyserver/',
+    makeTextFinished: function(done) {
+        var cfg = require('./dummyserver-config');
+        return function(err, output) {
+            if(err) {
+                return done(err);
+            }
+            if(typeof output !== 'string') {
+                return done(new Error('Received output is not a string'));
+            }
+            if(output !== cfg.textTest()) {
+                return done(new Error('Received output ' + output + ' is not equal to expected output ' + cfg.textTest()));
+            }
+            done();
+        };
+    },
+    makeByteArrayFinished: function(done) {
+        var cfg = require('./dummyserver-config');
+        return function(err, output) {
+            if(err) {
+                return done(err);
+            }
+            var expected = cfg.bytearrayTest();
+            if(typeof output !== 'object' || output === null) {
+                return done(new Error('Received output is not a non-null object'));
+            }
+            if(output.length !== expected.length) {
+                return done(new Error('Received output length ' + output.length + ' is not equal to expected output length ' + expected.length));
+            }
+            var failures = [];
+            for(var i = 0; i < output.length; i += 1) {
+                if(output[i] !== expected[i]) {
+                    failures.push(i + 'th byte: ' + output[i] + ' !== ' + expected[i]);
+                }
+            }
+            if(failures.length > 0) {
+                return done(new Error('Some received bytes differ from expected: ' + failures.join(',')));
+            }
+            done();
+        };
+    },
     eachBase: function(fn) {
         var httpinvoke = require('./httpinvoke-node');
         if(httpinvoke.cors) {
@@ -83,7 +123,7 @@ window._cfg.corsURL = 'http://' + window._cfg.host + ':' + window._cfg.dummyserv
 window._cfg.url = 'http://' + window._cfg.host + ':' + window._cfg.port + window._cfg.path;
 
 window.require = function(module) {
-    if(module === '../dummyserver-config') {
+    if(module === '../dummyserver-config' || module === './dummyserver-config') {
         return window._cfg;
     }
     return window._httpinvoke;

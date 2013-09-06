@@ -1,46 +1,6 @@
 var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
-var makeTextFinished = function(done) {
-    return function(err, output) {
-        if(err) {
-            return done(err);
-        }
-        if(typeof output !== 'string') {
-            return done(new Error('Received output is not a string'));
-        }
-        if(output !== cfg.textTest()) {
-            return done(new Error('Received output ' + output + ' is not equal to expected output ' + cfg.textTest()));
-        }
-        done();
-    };
-};
-
-var makeByteArrayFinished = function(done) {
-    return function(err, output) {
-        if(err) {
-            return done(err);
-        }
-        var expected = cfg.bytearrayTest();
-        if(typeof output !== 'object' || output === null) {
-            return done(new Error('Received output is not a non-null object'));
-        }
-        if(output.length !== expected.length) {
-            return done(new Error('Received output length ' + output.length + ' is not equal to expected output length ' + expected.length));
-        }
-        var failures = [];
-        for(var i = 0; i < output.length; i += 1) {
-            if(output[i] !== expected[i]) {
-                failures.push(i + 'th byte: ' + output[i] + ' !== ' + expected[i]);
-            }
-        }
-        if(failures.length > 0) {
-            return done(new Error('Some received bytes differ from expected: ' + failures.join(',')));
-        }
-        done();
-    };
-};
-
 describe('"output" argument of "finished" option', function() {
     this.timeout(10000);
     cfg.eachBase(function(postfix, url, crossDomain) {
@@ -59,19 +19,19 @@ describe('"output" argument of "finished" option', function() {
         it('matches an expected string when outputType is text' + postfix, function(done) {
             httpinvoke(url + 'text/utf8', {
                 outputType: 'text',
-                finished: makeTextFinished(done)
+                finished: cfg.makeTextFinished(done)
             });
         });
         if(!crossDomain || !httpinvoke.corsResponseTextOnly) {
             it('matches an expected bytearray when outputType is bytearray' + postfix, function(done) {
                 httpinvoke(url + 'bytearray', {
                     outputType: 'bytearray',
-                    finished: makeByteArrayFinished(done)
+                    finished: cfg.makeByteArrayFinished(done)
                 });
             });
         }
         it('matches an expected string when outputType is not defined and Content-Type is text/*' + postfix, function(done) {
-            httpinvoke(url + 'text/utf8', makeTextFinished(done));
+            httpinvoke(url + 'text/utf8', cfg.makeTextFinished(done));
         });
         if(typeof Buffer !== 'undefined') {
             it('is a Buffer when runtime supports Buffer and outputType is bytearray' + postfix, function(done) {
