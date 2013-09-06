@@ -1,7 +1,7 @@
 var cfg = require('./karma-mocha-requireHack');
 
 // overridding basic
-cfg.host = '127.0.0.1';
+cfg.host = '0.0.0.0';
 cfg.port = cfg.dummyserverPort;
 cfg.path = '/';
 // generated
