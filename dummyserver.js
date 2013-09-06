@@ -71,7 +71,7 @@ http.createServer(function (req, res) {
     var hello = 'Hello World\n';
 
     if(req.method === 'OPTIONS') {
-        output(200, hello, false, 'text/plain; charset=UTF-8');
+        output(200, new Buffer([]), false, 'text/plain; charset=UTF-8');
     } else if(req.method === 'POST') {
         if(endsWith(req.url, '/noentity')) {
             output(200, null, false);
