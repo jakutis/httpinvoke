@@ -11,7 +11,7 @@ HTTP client for JavaScript. [Check out the demo.](http://jakut.is:1337/)
 * Available on [npm](https://npmjs.org/package/httpinvoke) and [GitHub](https://github.com/jakutis/httpinvoke).
 * Supports [npm](https://npmjs.org/), [Bower](http://bower.io/) and [Component](http://component.io/) package managers.
 * Tested on:
-  * Opera 9.50.0 (Windows XP) and later
+  * Opera 10.50.0 (Windows XP) and later
   * Firefox 3.0.0 (Windows XP) and later
   * IE 7.0.0 (Windows XP) and later
   * Mobile Safari 6.0.0 (iOS 6.1.3)
@@ -74,6 +74,7 @@ Load using your package manager, or use directly in web browser by adding `<scri
 See the Examples section for all the options being used.
 All options are optional.
 
+* **timeout** is a number of milliseconds that specifies when **finished** has to be called with an Error if it was not yet called, default is `0`, which means timeout errors are disabled (network stack timeouts result in network errors).
 * **uploading** is a function that is called when HTTP request upload progress event happens. It is called with these arguments:
   0. **current** is a number for the number of bytes currently sent.
   0. **total** is a number for the total number of bytes to be sent.
@@ -98,6 +99,7 @@ All options are optional.
 * **headers** is an object for HTTP request headers. Keys are header names, values are strings. If **input** is not undefined, omitting the Content-Type requires **inputType** be not equal to `"auto"`.
 * **corsHeaders** is an array of HTTP response headers to be extracted in **gotStatus** call. Default simple headers like "Content-Type" are always extracted. Applicable only for cross-origin requests.
 * **corsCredentials** is a boolean for requesting to send credentials. Applicable only for a cross-origin request. See Feature Flags section.
+* **corsOriginHeader** is a string for the request header name for browsers with buggy CORS implementations (e.g. Android Browser 2.3.7) - which do not send the Origin request header in actual request, defaults to `"X-Httpinvoke-Origin"`, see `dummyserver.js` for an example of server-side part of the workaround implementation.
 
 The callbacks are called in this strict sequence: **uploading** (two or more times), **gotStatus** (one time), **downloading** (two or more times), **finished** (one time), except the case that **finished** can be called with Error any time, and then no callbacks will be called.
 
@@ -111,6 +113,13 @@ There are feature flags to be queried for platform-specific features.
 
 * **cors** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) is available
 * **corsCredentials** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports sending cookies and HTTP authentication credentials
+* **corsResponseContentTypeOnly** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports only Content-Type response header
+* **corsRequestHeaders** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports setting request headers
+* **corsDELETE** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports `"DELETE"` **method**
+* **corsHEAD** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports `"HEAD"` **method**
+* **corsPUT** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports `"PUT"` **method**
+* **corsStatus** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports **status** argument in **gotStatus** option
+* **corsResponseTextOnly** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports only **outputType** `"text"`
 
 # Development
 

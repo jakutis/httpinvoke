@@ -3,9 +3,6 @@ var url = require('url');
 
 var noop = function() {};
 var supportedMethods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'];
-// TODO add datatype "document"
-// TODO add feature flags for json, document
-var supportedDataTypes = ["auto", "bytearray", "json", "text"];
 var failWithoutRequest = function(cb, err) {
     process.nextTick(function() {
         if(cb === null) {
@@ -32,6 +29,13 @@ var countStringBytes = function(string) {
     }
     return n;
 };
+var convertByteArrayToBinaryString = function(bytearray) {
+    var str = '';
+    for(var i = 0; i < bytearray.length; i += 1) {
+        str += String.fromCharCode(bytearray[i]);
+    }
+    return str;
+};
 // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
 var forbiddenInputHeaders = ['accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'content-transfer-encoding', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
 var validateInputHeaders = function(headers) {
@@ -52,7 +56,7 @@ var validateInputHeaders = function(headers) {
 };
 
 var httpinvoke = function(uri, method, options) {
-    /*************** initialize parameters **************/
+    /*************** COMMON initialize parameters **************/
     if(typeof method === 'undefined') {
         method = 'GET';
         options = {};
@@ -71,19 +75,27 @@ var httpinvoke = function(uri, method, options) {
     var uploadProgressCb = options.uploading || noop;
     var downloadProgressCb = options.downloading || noop;
     var statusCb = options.gotStatus || noop;
-    var cb = options.finished || noop;
+    var timeout = options.timeout || 0;
+    var _cb = options.finished || noop;
+    var cb = function(err, out) {
+        try {
+            _cb(err, out);
+        } catch(_) {
+        }
+    };
     // TODO make sure the undefined output and input cases are thoroughly handled
     var input, inputLength, inputHeaders = options.headers || {};
     var inputType;
-    var outputType = options.outputType || "auto";
+    var outputType = options.outputType || "text";
     var exposedHeaders = options.corsHeaders || [];
+    var corsOriginHeader = options.corsOriginHeader || 'X-Httpinvoke-Origin';
     exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Expires', 'Last-Modified', 'Pragma']);
 
-    /*************** convert and validate parameters **************/
+    /*************** COMMON convert and validate parameters **************/
     if(indexOf(supportedMethods, method) < 0) {
         return failWithoutRequest(cb, new Error('Unsupported method ' + method));
     }
-    if(indexOf(supportedDataTypes, outputType) < 0) {
+    if(outputType !== 'text' && outputType !== 'bytearray') {
         return failWithoutRequest(cb, new Error('Unsupported outputType ' + outputType));
     }
     if(typeof options.input === 'undefined') {
@@ -98,7 +110,7 @@ var httpinvoke = function(uri, method, options) {
             inputType = 'auto';
         } else {
             inputType = options.inputType;
-            if(indexOf(supportedDataTypes, inputType) < 0) {
+            if(inputType !== 'auto' && inputType !== 'text' && inputType !== 'bytearray') {
                 return failWithoutRequest(cb, new Error('Unsupported inputType ' + inputType));
             }
         }
@@ -108,8 +120,6 @@ var httpinvoke = function(uri, method, options) {
             }
             if(typeof inputHeaders['Content-Type'] === 'undefined') {
                 inputType = 'bytearray';
-            } else if(inputHeaders['Content-Type'] === 'application/json') {
-                inputType = 'json';
             } else if(inputHeaders['Content-Type'].substr(0, 'text/'.length) === 'text/') {
                 inputType = 'text';
             } else {
@@ -125,16 +135,6 @@ var httpinvoke = function(uri, method, options) {
             if(typeof inputHeaders['Content-Type'] === 'undefined') {
                 inputHeaders['Content-Type'] = 'text/plain; charset=UTF-8';
             }
-        } else if(inputType === 'json') {
-            try {
-                input = JSON.stringify(options.input);
-            } catch(err) {
-                return failWithoutRequest(cb, err);
-            }
-            inputLength = input.length;
-            if(typeof inputHeaders['Content-Type'] === 'undefined') {
-                inputHeaders['Content-Type'] = 'application/json';
-            }
         } else if(inputType === 'bytearray') {
             if(typeof options.input === 'object' && options.input !== null) {
                 if(typeof Uint8Array !== 'undefined' && options.input instanceof Uint8Array) {
@@ -147,8 +147,8 @@ var httpinvoke = function(uri, method, options) {
                 } else if(typeof Buffer !== 'undefined' && options.input instanceof Buffer) {
                     input = options.input;
                     inputLength = input.length;
-                } else if(typeof Array !== 'undefined' && options.input instanceof Array) {
-                    input = options.input;
+                } else if(Object.prototype.toString.call(options.input) !== '[object Array]') {
+                    input = convertByteArrayToBinaryString(options.input);
                     inputLength = input.length;
                 } else {
                     return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither Uint8Array, nor ArrayBuffer, nor Buffer, nor Array'));
@@ -167,9 +167,48 @@ var httpinvoke = function(uri, method, options) {
     } catch(err) {
         return failWithoutRequest(cb, err);
     }
+    /*************** COMMON initialize helper variables **************/
+    var downloaded, outputHeaders, outputLength;
+    var initDownload = function(total) {
+        if(typeof outputLength !== 'undefined') {
+            return;
+        }
+        outputLength = total;
 
+        downloadProgressCb(downloaded, outputLength);
+    };
+    var updateDownload = function(value) {
+        if(value === downloaded) {
+            return;
+        }
+        downloaded = value;
+
+        downloadProgressCb(downloaded, outputLength);
+    };
+    var noData = function() {
+        initDownload(0);
+        if(cb === null) {
+            return;
+        }
+        updateDownload(0);
+        if(cb === null) {
+            return;
+        }
+        cb();
+        cb = null;
+    };
     /*************** initialize helper variables **************/
+    var ignoringlyConsume = function(res) {
+        res.on('data', noop);
+        res.on('end', noop);
+    };
     uri = url.parse(uri);
+    if(timeout > 0) {
+        setTimeout(function() {
+            cb(new Error('Timeout of ' + timeout + 'ms exceeded'));
+            cb = null;
+        }, timeout);
+    }
     var req = http.request({
         hostname: uri.hostname,
         port: Number(uri.port),
@@ -177,47 +216,48 @@ var httpinvoke = function(uri, method, options) {
         method: method
     }, function(res) {
         if(cb === null) {
+            ignoringlyConsume(res);
             return;
         }
+        outputHeaders = res.headers;
 
         uploadProgressCb(inputLength, inputLength);
         if(cb === null) {
+            ignoringlyConsume(res);
             return;
         }
 
-        statusCb(res.statusCode, res.headers);
+        statusCb(res.statusCode, outputHeaders);
         if(cb === null) {
+            ignoringlyConsume(res);
             return;
         }
 
-        if(typeof res.headers['content-length'] === 'undefined') {
-            downloadProgressCb(0, 0);
-            if(cb === null) {
-                return;
-            }
-            downloadProgressCb(0, 0);
-            if(cb === null) {
-                return;
-            }
-            cb();
-            return;
+        updateDownload(0);
+        // BEGIN COMMON
+        if(typeof outputHeaders['content-length'] === 'string') {
+            initDownload(Number(outputHeaders['content-length']));
+        } else {
+            initDownload();
         }
-        var outputLength = Number(res.headers['content-length']);
-        downloadProgressCb(0, outputLength);
         if(cb === null) {
+            ignoringlyConsume(res);
             return;
         }
+        if(method === 'HEAD' || typeof outputHeaders['content-type'] === 'undefined' || outputLength === 0) {
+            ignoringlyConsume(res);
+            return noData();
+        }
+        // END COMMON
+
         var output = [], downloaded = 0;
-        var nodata = method === 'HEAD' || typeof res.headers['content-type'] === 'undefined';
         res.on('data', function(chunk) {
             if(cb === null) {
                 return;
             }
-            nodata = false;
             downloaded += chunk.length;
             output.push(chunk);
-
-            downloadProgressCb(downloaded, outputLength);
+            updateDownload(downloaded);
             if(cb === null) {
                 return;
             }
@@ -226,37 +266,39 @@ var httpinvoke = function(uri, method, options) {
             if(cb === null) {
                 return;
             }
-
-            downloadProgressCb(downloaded, outputLength);
+            updateDownload(downloaded);
             if(cb === null) {
                 return;
             }
 
-            if(nodata) {
-                cb();
-            } else {
-                if(outputType === 'auto') {
-                    if(res.headers['content-type'] === 'application/json') {
-                        outputType = 'json';
-                    } else if(res.headers['content-type'].substr(0, 'text/'.length) === 'text/') {
-                        outputType = 'text';
-                    } else {
-                        outputType = 'bytearray';
-                    }
-                }
+            if(typeof outputLength === 'undefined') {
+                outputLength = downloaded;
+            }
+            if(outputLength === 0) {
+                return noData();
+            }
 
-                output = Buffer.concat(output, downloaded);
-                if(outputType === 'bytearray') {
-                    cb(null, output);
-                } else if(outputType === 'text') {
-                    // TODO check charset in Content-Type response header?
-                    cb(null, output.toString('utf8'));
-                } else if(outputType === 'json') {
-                    try {
-                        cb(null, JSON.parse(output.toString('utf8')));
-                    } catch(err) {
-                        cb(err);
-                    }
+            if(outputType === 'auto') {
+                if(outputHeaders['content-type'] === 'application/json') {
+                    outputType = 'json';
+                } else if(outputHeaders['content-type'].substr(0, 'text/'.length) === 'text/') {
+                    outputType = 'text';
+                } else {
+                    outputType = 'bytearray';
+                }
+            }
+
+            output = Buffer.concat(output, downloaded);
+            if(outputType === 'bytearray') {
+                cb(null, output);
+            } else if(outputType === 'text') {
+                // TODO check charset in Content-Type response header?
+                cb(null, output.toString('utf8'));
+            } else if(outputType === 'json') {
+                try {
+                    cb(null, JSON.parse(output.toString('utf8')));
+                } catch(err) {
+                    cb(err);
                 }
             }
             cb = null;
