@@ -13,6 +13,19 @@ window._cfg = {
     host: location.hostname,
     port: location.port || (location.protocol === 'https:' ? 443 : 80),
     path: '/dummyserver/',
+    eachBase: function(fn) {
+        var httpinvoke = require('./httpinvoke-node');
+        if(httpinvoke.cors) {
+            try {
+                fn(' (cross-origin)', window._cfg.corsURL, true);
+            } catch(_) {
+            }
+        }
+        try {
+            fn(' (same-origin)', window._cfg.url, false);
+        } catch(_) {
+        }
+    },
     jsonTest: function() {
         return [{
             a: 0,
