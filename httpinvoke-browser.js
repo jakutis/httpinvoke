@@ -194,17 +194,22 @@
             finished: options
         } : options;
         // TODO is it possible to support progress events when size is not known - make second argument to "downloading" optional?
-        var uploadProgressCb = options.uploading || noop;
-        var downloadProgressCb = options.downloading || noop;
-        var statusCb = options.gotStatus || noop;
-        var timeout = options.timeout || 0;
-        var _cb = options.finished || noop;
-        var cb = function(err, out) {
-            try {
-                _cb(err, out);
-            } catch(_) {
+        var safeCallback = function(name) {
+            if(typeof options[name] === 'undefined') {
+                return noop;
             }
+            return function() {
+                try {
+                    options[name].apply(null, arguments);
+                } catch(_) {
+                }
+            };
         };
+        var uploadProgressCb = safeCallback('uploading');
+        var downloadProgressCb = safeCallback('downloading');
+        var statusCb = safeCallback('gotStatus');
+        var cb = safeCallback('finished');
+        var timeout = options.timeout || 0;
         // TODO make sure the undefined output and input cases are thoroughly handled
         var input, inputLength, inputHeaders = options.headers || {};
         var inputType;
