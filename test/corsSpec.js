@@ -12,12 +12,6 @@ describe('"cors" feature flag', function() {
         }
         done();
     });
-    it('works as advertised', function(done) {
-        if(!httpinvoke.cors) {
-            return done();
-        }
-        httpinvoke(cfg.corsURL, done);
-    });
     it('ensures, when being false and making cross-origin request, that no callbacks are called, except "finished" with Error', function(done) {
         if(httpinvoke.cors) {
             return done();

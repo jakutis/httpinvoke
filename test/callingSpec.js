@@ -3,18 +3,21 @@ var httpinvoke = require('../httpinvoke-node');
 
 describe('calling', function() {
     this.timeout(10000);
-    it('basically works', function(done) {
-        httpinvoke(cfg.url, 'GET', {
-            finished: done
+    cfg.eachBase(function(postfix, url) {
+        it('basically works' + postfix, function(done) {
+            httpinvoke(url, 'GET', {
+                finished: done
+            });
         });
-    });
-    it('allows to skip method', function(done) {
-        httpinvoke(cfg.url, {
-            finished: done
+        it('allows to skip method' + postfix, function(done) {
+            httpinvoke(url, {
+                finished: done
+            });
         });
-    });
-    it('allows to specify just "finished" callback instead of "options" object', function(done) {
-        httpinvoke(cfg.url, done);
+        it('allows to specify just "finished" callback instead of "options" object' + postfix, function(done) {
+            httpinvoke(url, done);
+        });
+        // TODO add headersSpec and test correct request and response Content-Type header sending
     });
     it('immediately errors-out when url is not reachable', function(done) {
         httpinvoke('http://non-existant.url/foobar', 'GET', function(err) {

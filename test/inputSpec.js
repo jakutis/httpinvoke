@@ -11,58 +11,60 @@ var makeErrorFinished = function(done) {
 };
 
 describe('"input" option', function() {
-    it('finishes with error, if "inputType" option is not one of: "text", "auto", "json", "bytearray"', function(done) {
-        httpinvoke(cfg.url, 'POST', {
-            inputType: "string",
-            finished: makeErrorFinished(done)
+    cfg.eachBase(function(postfix, url) {
+        it('finishes with error, if "inputType" option is not one of: "text", "auto", "json", "bytearray"' + postfix, function(done) {
+            httpinvoke(url, 'POST', {
+                inputType: "string",
+                finished: makeErrorFinished(done)
+            });
         });
-    });
-    it('finishes with error, if "inputType" option is "text" and "input" option is undefined', function(done) {
-        httpinvoke(cfg.url, 'POST', {
-            inputType: "text",
-            finished: makeErrorFinished(done)
+        it('finishes with error, if "inputType" option is "text" and "input" option is undefined' + postfix, function(done) {
+            httpinvoke(url, 'POST', {
+                inputType: "text",
+                finished: makeErrorFinished(done)
+            });
         });
-    });
-    it('finishes with error, if "inputType" option is "json" and "input" option is undefined', function(done) {
-        httpinvoke(cfg.url, 'POST', {
-            inputType: "json",
-            finished: makeErrorFinished(done)
+        it('finishes with error, if "inputType" option is "json" and "input" option is undefined' + postfix, function(done) {
+            httpinvoke(url, 'POST', {
+                inputType: "json",
+                finished: makeErrorFinished(done)
+            });
         });
-    });
-    it('finishes with error, if "inputType" option is "auto" and "input" option is undefined', function(done) {
-        httpinvoke(cfg.url, 'POST', {
-            inputType: "auto",
-            finished: makeErrorFinished(done)
+        it('finishes with error, if "inputType" option is "auto" and "input" option is undefined' + postfix, function(done) {
+            httpinvoke(url, 'POST', {
+                inputType: "auto",
+                finished: makeErrorFinished(done)
+            });
         });
-    });
-    it('finishes with error, if "inputType" option is "bytearray" and "input" option is undefined', function(done) {
-        httpinvoke(cfg.url, 'POST', {
-            inputType: "bytearray",
-            finished: makeErrorFinished(done)
+        it('finishes with error, if "inputType" option is "bytearray" and "input" option is undefined' + postfix, function(done) {
+            httpinvoke(url, 'POST', {
+                inputType: "bytearray",
+                finished: makeErrorFinished(done)
+            });
         });
-    });
-    it('finishes with error, if Content-Type header is defined and "input" option is undefined', function(done) {
-        httpinvoke(cfg.url, 'POST', {
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            finished: makeErrorFinished(done)
+        it('finishes with error, if Content-Type header is defined and "input" option is undefined' + postfix, function(done) {
+            httpinvoke(url, 'POST', {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                finished: makeErrorFinished(done)
+            });
         });
-    });
-    it('finishes with error, if Content-Type header is not defined, "input" option is defined and "inputType" option is "auto"', function(done) {
-        httpinvoke(cfg.url, 'POST', {
-            inputType: "auto",
-            input: 'foobar',
-            finished: makeErrorFinished(done)
+        it('finishes with error, if Content-Type header is not defined, "input" option is defined and "inputType" option is "auto"' + postfix, function(done) {
+            httpinvoke(url, 'POST', {
+                inputType: "auto",
+                input: 'foobar',
+                finished: makeErrorFinished(done)
+            });
         });
-    });
-    it('finishes with error, if Content-Type header is not defined, "input" option is defined and "inputType" option is undefined', function(done) {
-        httpinvoke(cfg.url, 'POST', {
-            input: 'foobar',
-            finished: makeErrorFinished(done)
+        it('finishes with error, if Content-Type header is not defined, "input" option is defined and "inputType" option is undefined' + postfix, function(done) {
+            httpinvoke(url, 'POST', {
+                input: 'foobar',
+                finished: makeErrorFinished(done)
+            });
         });
+        // TODO test all inputTypes (json, text, bytearray, auto) on server
+        // TODO test all input types (Array, ArrayBuffer, Uint8Array, Buffer) on server
+        // TODO test that server receives content-type header, when it is generated from inputType
     });
-    // TODO test all inputTypes (json, text, bytearray, auto) on server
-    // TODO test all input types (Array, ArrayBuffer, Uint8Array, Buffer) on server
-    // TODO test that server receives content-type header, when it is generated from inputType
 });
