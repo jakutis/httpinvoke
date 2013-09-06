@@ -63,10 +63,26 @@ describe('"input" option', function() {
                 finished: makeErrorFinished(done)
             });
         });
-        it('correctly sends the input when inputType is text', function(done) {
+        it('correctly sends the input when inputType is text' + postfix, function(done) {
             httpinvoke(url + 'text/utf8', 'POST', {
                 input: cfg.textTest(),
                 inputType: 'text',
+                outputType: 'text',
+                finished: function(err, output) {
+                    if(err) {
+                        return done(err);
+                    }
+                    if(output === 'OK') {
+                        return done();
+                    }
+                    done(new Error('Server response about the input is: ' + output));
+                }
+            });
+        });
+        it('correctly sends the input when inputType is bytearray' + postfix, function(done) {
+            httpinvoke(url + 'bytearray', 'POST', {
+                input: cfg.bytearrayTest(),
+                inputType: 'bytearray',
                 outputType: 'text',
                 finished: function(err, output) {
                     if(err) {
