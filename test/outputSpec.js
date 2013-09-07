@@ -15,7 +15,6 @@ describe('"output" argument of "finished" option', function() {
                 }
             });
         });
-        // TODO test various encodings
         it('matches an expected string when outputType is text' + postfix, function(done) {
             httpinvoke(url + 'text/utf8', {
                 outputType: 'text',
