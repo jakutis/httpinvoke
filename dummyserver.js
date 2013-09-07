@@ -95,6 +95,8 @@ http.createServer(function (req, res) {
     } else if(req.method === 'POST') {
         if(endsWith(req.url, '/noentity')) {
             output(204, null, false);
+        } else if(endsWith(req.url, '/headers/contentType')) {
+            output(200, new Buffer(typeof req.headers['content-type'] === 'undefined' ? 'undefined' : req.headers['content-type'], 'utf8'), false, 'text/plain; charset=UTF-8');
         } else if(endsWith(req.url, '/bytearray')) {
             readEntityBody(req, false, cfg.makeByteArrayFinished(reportTest));
         } else if(endsWith(req.url, '/text/utf8')) {
