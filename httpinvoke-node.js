@@ -211,7 +211,8 @@ var httpinvoke = function(uri, method, options) {
         hostname: uri.hostname,
         port: Number(uri.port),
         path: uri.path,
-        method: method
+        method: method,
+        headers: inputHeaders
     }, function(res) {
         if(cb === null) {
             ignoringlyConsume(res);
