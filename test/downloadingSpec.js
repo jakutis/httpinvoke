@@ -3,11 +3,6 @@ var httpinvoke = require('../httpinvoke-node');
 
 describe('"downloading" option', function() {
     this.timeout(10000);
-    // TODO after receiving first defined total - no undefined can be received
-    // TODO total can be undefined
-    // TODO the last total is always defined, and if there is no entity body - it is 0
-    // TODO check if current is correct when Content-Encoding is gzip
-    // TODO do all of these tests for various binary and variously encoded text responses
     cfg.eachBase(function(postfix, url, crossDomain) {
         it('is called at least twice' + postfix, function(done) {
             var count = 0;
@@ -30,6 +25,73 @@ describe('"downloading" option', function() {
                         done(new Error('It was called ' + count + ' times'));
                     }
                     abort();
+                }
+            });
+        });
+        it('has total be 0, if there is no entity body' + postfix, function(done) {
+            httpinvoke(url + 'noentity', 'POST', {
+                downloading: function(_, total) {
+                    if(done === null) {
+                        return;
+                    }
+                    if(typeof total === 'undefined') {
+                        return;
+                    }
+                    if(total !== 0) {
+                        done(new Error('total is not 0'));
+                        done = null;
+                    }
+                },
+                finished: function(err, output) {
+                    if(done === null) {
+                        return;
+                    }
+                    if(err) {
+                        return done(err);
+                    }
+                    if(typeof output !== 'undefined') {
+                        return done(new Error('Output is not undefined'));
+                    }
+                    done();
+                }
+            });
+        });
+        it('has the last total be always defined' + postfix, function(done) {
+            var defined = false;
+            var abort = httpinvoke(url, {
+                downloading: function(_, total) {
+                    defined = typeof total !== 'undefined';
+                },
+                finished: function(err) {
+                    if(err) {
+                        return done(err);
+                    }
+                    if(!defined) {
+                        return done(new Error('Last total is not defined'));
+                    }
+                    done();
+                }
+            });
+        });
+        it('has total be always defined, after first time' + postfix, function(done) {
+            var defined = false;
+            var abort = httpinvoke(url, {
+                downloading: function(_, total) {
+                    if(typeof total !== 'undefined') {
+                        defined = true;
+                    } else if(defined) {
+                        done(new Error('became undefined after was defined'));
+                        done = null;
+                    }
+                },
+                finished: function(err) {
+                    if(done === null) {
+                        return;
+                    }
+                    if(err) {
+                        return done(err);
+                    }
+                    done();
                 }
             });
         });
@@ -206,6 +268,5 @@ describe('"downloading" option', function() {
                 }
             });
         });
-        // TODO test total downloading length for outputType=text and various strings and characters, e.g. character '𝌆'
     });
 });
