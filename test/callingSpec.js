@@ -31,7 +31,6 @@ describe('calling', function() {
                 finished: done
             });
         });
-        // TODO add headersSpec and test correct request and response Content-Type header sending
     });
     it('immediately errors-out when url is not reachable', function(done) {
         httpinvoke('http://non-existant.url/foobar', 'GET', function(err) {
