@@ -291,7 +291,6 @@ var httpinvoke = function(uri, method, options) {
             if(outputType === 'bytearray') {
                 cb(null, output);
             } else if(outputType === 'text') {
-                // TODO check charset in Content-Type response header?
                 cb(null, output.toString('utf8'));
             } else if(outputType === 'json') {
                 try {
