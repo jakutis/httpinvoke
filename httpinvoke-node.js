@@ -187,10 +187,12 @@ var httpinvoke = function(uri, method, options) {
     if(inputType === 'bytearray') {
         if(options.input instanceof Buffer) {
             input = options.input;
+        } else if(options.input instanceof ArrayBuffer) {
+            input = new Buffer(new Uint8Array(options.input));
         } else if(Object.prototype.toString.call(options.input) === '[object Array]') {
             input = new Buffer(options.input);
         } else {
-            return failWithoutRequest(cb, new Error('inputType is text, but input is not a string'));
+            return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither a Buffer, nor Array, nor ArrayBuffer'));
         }
         inputLength = input.length;
     }
