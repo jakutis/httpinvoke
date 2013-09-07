@@ -11,6 +11,7 @@ var makeErrorFinished = function(done) {
 };
 
 describe('"input" option', function() {
+    this.timeout(10000);
     cfg.eachBase(function(postfix, url) {
         it('finishes with error, if "inputType" option is not one of: "text", "auto", "json", "bytearray"' + postfix, function(done) {
             httpinvoke(url, 'POST', {
@@ -79,24 +80,85 @@ describe('"input" option', function() {
                 }
             });
         });
-        it('correctly sends the input when inputType is bytearray' + postfix, function(done) {
-            httpinvoke(url + 'bytearray', 'POST', {
-                input: cfg.bytearrayTest(),
-                inputType: 'bytearray',
-                outputType: 'text',
-                finished: function(err, output) {
-                    if(err) {
-                        return done(err);
+        if(!httpinvoke.requestTextOnly) {
+            it('correctly sends the input when inputType is bytearray and input is Array' + postfix, function(done) {
+                httpinvoke(url + 'bytearray', 'POST', {
+                    input: cfg.bytearrayTest(),
+                    inputType: 'bytearray',
+                    outputType: 'text',
+                    finished: function(err, output) {
+                        if(err) {
+                            return done(err);
+                        }
+                        if(output === 'OK') {
+                            return done();
+                        }
+                        done(new Error('Server response about the input is: ' + output));
                     }
-                    if(output === 'OK') {
-                        return done();
-                    }
-                    done(new Error('Server response about the input is: ' + output));
-                }
+                });
             });
-        });
-        // TODO test all inputTypes (json, text, bytearray, auto) on server
-        // TODO test all input types (Array, ArrayBuffer, Uint8Array, Buffer) on server
-        // TODO test that server receives content-type header, when it is generated from inputType
+            if(typeof Uint8Array !== 'undefined') {
+                it('correctly sends the input when inputType is bytearray and input is ArrayBuffer' + postfix, function(done) {
+                    httpinvoke(url + 'bytearray', 'POST', {
+                        input: new Uint8Array(cfg.bytearrayTest()).buffer,
+                        inputType: 'bytearray',
+                        outputType: 'text',
+                        finished: function(err, output) {
+                            if(err) {
+                                return done(err);
+                            }
+                            if(output === 'OK') {
+                                return done();
+                            }
+                            done(new Error('Server response about the input is: ' + output));
+                        }
+                    });
+                });
+            }
+            var convertByteArrayToBlob = function(bytearray) {
+                var str;
+                if(typeof Uint8Array === 'undefined') {
+                    str = '';
+                    for(var i = 0; i < bytearray.length; i += 1) {
+                        str += String.fromCharCode(bytearray[i]);
+                    }
+                } else {
+                    str = new Uint8Array(bytearray).buffer;
+                }
+                var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder;
+                if(typeof BlobBuilder === 'undefined') {
+                    try {
+                        return new Blob([str], {
+                            type: 'application/octet-stream'
+                        });
+                    } catch(_) {
+                        return null;
+                    }
+                } else {
+                    var bb = new BlobBuilder();
+                    bb.append(str);
+                    return bb.getBlob('application/octet-stream');
+                }
+            };
+            var blob = convertByteArrayToBlob(cfg.bytearrayTest());
+            if(blob !== null) {
+                it('correctly sends the input when inputType is bytearray and input is Blob' + postfix, function(done) {
+                    httpinvoke(url + 'bytearray', 'POST', {
+                        input: blob,
+                        inputType: 'bytearray',
+                        outputType: 'text',
+                        finished: function(err, output) {
+                            if(err) {
+                                return done(err);
+                            }
+                            if(output === 'OK') {
+                                return done();
+                            }
+                            done(new Error('Server response about the input is: ' + output));
+                        }
+                    });
+                });
+            }
+        }
     });
 });
