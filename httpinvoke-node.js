@@ -332,7 +332,15 @@ var httpinvoke = function(uri, method, options) {
         _cb(new Error('abort'));
     };
 };
-httpinvoke.cors = true;
+httpinvoke.corsResponseContentTypeOnly = false;
+httpinvoke.corsRequestHeaders = true;
 httpinvoke.corsCredentials = true;
+httpinvoke.cors = true;
+httpinvoke.corsDELETE = true;
+httpinvoke.corsHEAD = true;
+httpinvoke.corsPUT = true;
+httpinvoke.corsStatus = true;
+httpinvoke.corsResponseTextOnly = false;
+httpinvoke.requestTextOnly = false;
 
 module.exports = httpinvoke;

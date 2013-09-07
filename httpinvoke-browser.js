@@ -209,7 +209,7 @@
         var statusCb = safeCallback('gotStatus');
         var cb = safeCallback('finished');
         var timeout = options.timeout || 0;
-        var input, inputLength, inputHeaders = options.headers || {};
+        var inputLength, inputHeaders = options.headers || {};
         var inputType;
         var outputType = options.outputType || "text";
         var exposedHeaders = options.corsHeaders || [];
@@ -255,14 +255,15 @@
                 if(typeof options.input !== 'string') {
                     return failWithoutRequest(cb, new Error('inputType is text, but input is not a string'));
                 }
-                input = options.input;
-                inputLength = countStringBytes(input);
                 if(typeof inputHeaders['Content-Type'] === 'undefined') {
                     inputHeaders['Content-Type'] = 'text/plain; charset=UTF-8';
                 }
             } else if(inputType === 'bytearray') {
-                if(typeof options.input !== 'object' || options.input === null) {
-                    return failWithoutRequest(cb, new Error('inputType is bytearray, but input is not a non-null object'));
+                if(httpinvoke.requestTextOnly) {
+                    return failWithoutRequest(cb, new Error('bytearray inputType is not supported on this platform, please always test using requestTextOnly feature flag'));
+                }
+                if(typeof options.input !== 'object' || options.input === null || !((typeof Blob !== 'undefined' && options.input instanceof Blob) || (typeof ArrayBuffer !== 'undefined' && options.input instanceof ArrayBuffer) || Object.prototype.toString.call(options.input) === '[object Array]')) {
+                    return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither an instance of ArrayBuffer, nor Array, nor Blob'));
                 }
                 if(typeof inputHeaders['Content-Type'] === 'undefined') {
                     inputHeaders['Content-Type'] = 'application/octet-stream';
@@ -306,26 +307,6 @@
             cb = null;
         };
         /*************** initialize helper variables **************/
-        if(inputType === 'bytearray') {
-            if(typeof ArrayBuffer !== 'undefined') {
-                if(options.input instanceof ArrayBuffer) {
-                    input = options.input;
-                } else if(Object.prototype.toString.call(options.input) === '[object Array]') {
-                    input = new Uint8Array(options.input).buffer;
-                } else {
-                    return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither an instance of ArrayBuffer, nor Array'));
-                }
-                inputLength = input.byteLength;
-            } else {
-                if(Object.prototype.toString.call(options.input) === '[object Array]') {
-                    input = convertByteArrayToBinaryString(options.input);
-                } else {
-                    return failWithoutRequest(cb, new Error('inputType is bytearray, but input is not an Array'));
-                }
-                inputLength = input.length;
-            }
-        }
-
         var uploadProgressCbCalled = false;
         var output;
         var i;
@@ -620,7 +601,6 @@
                 }
             }
         }
-
         /*************** invoke XHR request process **************/
         setTimeout(function() {
             if(cb === null) {
@@ -642,7 +622,146 @@
             } catch(err) {
             }
             // Content-Length header is set automatically
-            xhr.send(input);
+            if(inputType === 'bytearray') {
+                var triedSendArrayBuffer = typeof ArrayBuffer === 'undefined';
+                var triedSendBlob = typeof Blob === 'undefined';
+                var triedSendBinaryString = false;
+
+                var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder;
+                if(Object.prototype.toString.call(options.input) === '[object Array]') {
+                    if(typeof Uint8Array === 'undefined') {
+                        options.input = convertByteArrayToBinaryString(options.input);
+                    } else {
+                        options.input = new Uint8Array(options.input).buffer;
+                    }
+                }
+                var go = function() {
+                    if(triedSendBlob && triedSendArrayBuffer && triedSendBinaryString) {
+                        return failWithoutRequest(cb, new Error('Unable to send'));
+                    }
+                    if(typeof ArrayBuffer !== 'undefined' && options.input instanceof ArrayBuffer) {
+                        if(triedSendArrayBuffer) {
+                            if(!triedSendBinaryString) {
+                                try {
+                                    options.input = convertByteArrayToBinaryString(new Uint8Array(options.input));
+                                } catch(_) {
+                                    triedSendBinaryString = true;
+                                }
+                            } else if(!triedSendBlob) {
+                                if(typeof BlobBuilder === 'undefined') {
+                                    try {
+                                        options.input = new Blob([options.input], {
+                                            type: inputHeaders['Content-Type']
+                                        });
+                                    } catch(_) {
+                                        triedSendBlob = true;
+                                    }
+                                } else {
+                                    var bb = new BlobBuilder();
+                                    bb.append(options.input);
+                                    options.input = bb.getBlob(inputHeaders['Content-Type']);
+                                }
+                            }
+                        } else {
+                            try {
+                                xhr.send(options.input);
+                                outputLength = options.input.byteLength;
+                                return;
+                            } catch(_) {
+                                triedSendArrayBuffer = true;
+                            }
+                        }
+                    } else if(typeof Blob !== 'undefined' && options.input instanceof Blob) {
+                        if(triedSendBlob) {
+                            if(!triedSendArrayBuffer) {
+                                try {
+                                    var reader = new FileReader();
+                                    reader.onerror = function() {
+                                        triedSendArrayBuffer = true;
+                                        go();
+                                    };
+                                    reader.onload = function() {
+                                        options.input = reader.result;
+                                        go();
+                                    };
+                                    reader.readAsArrayBuffer(options.input);
+                                    return;
+                                } catch(_) {
+                                    triedSendArrayBuffer = true;
+                                }
+                            } else if(!triedSendBinaryString) {
+                                try {
+                                    var reader = new FileReader();
+                                    reader.onerror = function() {
+                                        triedSendBinaryString = true;
+                                        go();
+                                    };
+                                    reader.onload = function() {
+                                        options.input = reader.result;
+                                        go();
+                                    };
+                                    reader.readAsBinaryString(options.input);
+                                    return;
+                                } catch(_) {
+                                    triedSendBinaryString = true;
+                                }
+                            }
+                        } else {
+                            try {
+                                xhr.send(options.input);
+                                outputLength = options.input.size;
+                                return;
+                            } catch(_) {
+                                triedSendBlob = true;
+                            }
+                        }
+                    } else {
+                        if(triedSendBinaryString) {
+                            if(!triedSendArrayBuffer) {
+                                try {
+                                    var a = new ArrayBuffer(options.input.length);
+                                    var b = new Uint8Array(a);
+                                    for(var i = 0; i < options.input.length; i += 1) {
+                                        b[i] = options.input[i] & 0xFF;
+                                    }
+                                    options.input = a;
+                                } catch(_) {
+                                    triedSendArrayBuffer = true;
+                                }
+                            } else if(!triedSendBlob) {
+                                if(typeof BlobBuilder === 'undefined') {
+                                    try {
+                                        options.input = new Blob([options.input], {
+                                            type: inputHeaders['Content-Type']
+                                        });
+                                    } catch(_) {
+                                        triedSendBlob = true;
+                                    }
+                                } else {
+                                    var bb = new BlobBuilder();
+                                    bb.append(options.input);
+                                    options.input = bb.getBlob(inputHeaders['Content-Type']);
+                                }
+                            }
+                        } else {
+                            try {
+                                xhr.sendAsBinary(options.input);
+                                outputLength = options.input.length;
+                                return;
+                            } catch(_) {
+                                triedSendBinaryString = true;
+                            }
+                        }
+                    }
+                    setTimeout(go, 0);
+                };
+                go();
+            } else if(inputType === 'text') {
+                inputLength = countStringBytes(options.input);
+                xhr.send(options.input);
+            } else {
+                xhr.send(null);
+            }
             if(!uploadProgressCbCalled) {
                 uploadProgressCbCalled = true;
                 uploadProgressCb(0, inputLength);
@@ -675,12 +794,14 @@
     httpinvoke.corsPUT = false;
     httpinvoke.corsStatus = false;
     httpinvoke.corsResponseTextOnly = false;
+    httpinvoke.requestTextOnly = false;
     (function() {
         try {
             createXHR = function() {
                 return new window.XMLHttpRequest();
             };
             var tmpxhr = createXHR();
+            httpinvoke.requestTextOnly = typeof Uint8Array === 'undefined' && typeof tmpxhr.sendAsBinary === 'undefined';
             httpinvoke.cors = 'withCredentials' in tmpxhr;
             if(!httpinvoke.cors) {
                 throw '';
