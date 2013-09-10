@@ -176,6 +176,9 @@
         return noop;
     };
     var noop = function() {};
+    var pass = function(value) {
+        return value;
+    };
     var createXHR;
     var httpinvoke = function(uri, method, options) {
         /*************** COMMON initialize parameters **************/
@@ -209,9 +212,9 @@
         var statusCb = safeCallback('gotStatus');
         var cb = safeCallback('finished');
         var timeout = options.timeout || 0;
-        var inputLength, inputHeaders = options.headers || {};
-        var inputType;
-        var outputType = options.outputType || "text";
+        var converters = options.converters || {};
+        var inputConverter, inputType, inputLength, inputHeaders = options.headers || {};
+        var outputConverter, outputType = options.outputType || "text";
         var exposedHeaders = options.corsHeaders || [];
         var corsOriginHeader = options.corsOriginHeader || 'X-Httpinvoke-Origin';
         exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Expires', 'Last-Modified', 'Pragma']);
@@ -220,7 +223,15 @@
         if(indexOf(supportedMethods, method) < 0) {
             return failWithoutRequest(cb, new Error('Unsupported method ' + method));
         }
-        if(outputType !== 'text' && outputType !== 'bytearray') {
+        if(outputType === 'text' || outputType === 'bytearray') {
+            outputConverter = pass;
+        } else if(typeof converters['text ' + outputType] !== 'undefined') {
+            outputConverter = converters['text ' + outputType];
+            outputType = 'text';
+        } else if(typeof converters['bytearray ' + outputType] !== 'undefined') {
+            outputConverter = converters['bytearray ' + outputType];
+            outputType = 'bytearray';
+        } else {
             return failWithoutRequest(cb, new Error('Unsupported outputType ' + outputType));
         }
         if(typeof options.input === 'undefined') {
@@ -231,25 +242,15 @@
                 return failWithoutRequest(cb, new Error('"input" is undefined, but Content-Type request header is defined'));
             }
         } else {
-            if(typeof options.inputType === 'undefined') {
-                inputType = 'auto';
-            } else {
-                inputType = options.inputType;
-                if(inputType !== 'auto' && inputType !== 'text' && inputType !== 'bytearray') {
-                    return failWithoutRequest(cb, new Error('Unsupported inputType ' + inputType));
-                }
+            if(typeof options.inputType === 'undefined' || options.inputType === 'auto') {
+                inputType = typeof options.input === 'string' ? 'text' : 'bytearray';
             }
-            if(inputType === 'auto') {
-                if(typeof inputHeaders['Content-Type'] === 'undefined') {
-                    return failWithoutRequest(cb, new Error('inputType is auto and Content-Type request header is not specified'));
-                }
-                if(typeof inputHeaders['Content-Type'] === 'undefined') {
-                    inputType = 'bytearray';
-                } else if(inputHeaders['Content-Type'].substr(0, 'text/'.length) === 'text/') {
-                    inputType = 'text';
-                } else {
-                    inputType = 'bytearray';
-                }
+            if(typeof converters[inputType + ' text'] !== 'undefined') {
+                inputConverter = converters[inputType + ' text'];
+                inputType = 'text';
+            } else if(typeof converters[inputType + ' bytearray'] !== 'undefined') {
+                inputConverter = converters[inputType + ' bytearray'];
+                inputType = 'bytearray';
             }
             if(inputType === 'text') {
                 if(typeof options.input !== 'string') {
@@ -258,6 +259,7 @@
                 if(typeof inputHeaders['Content-Type'] === 'undefined') {
                     inputHeaders['Content-Type'] = 'text/plain; charset=UTF-8';
                 }
+                inputConverter = inputConverter || pass;
             } else if(inputType === 'bytearray') {
                 if(httpinvoke.requestTextOnly) {
                     return failWithoutRequest(cb, new Error('bytearray inputType is not supported on this platform, please always test using requestTextOnly feature flag'));
@@ -268,6 +270,14 @@
                 if(typeof inputHeaders['Content-Type'] === 'undefined') {
                     inputHeaders['Content-Type'] = 'application/octet-stream';
                 }
+                inputConverter = inputConverter || pass;
+            } else {
+                return failWithoutRequest(cb, new Error('Unsupported outputType ' + outputType));
+            }
+            try {
+                options.input = inputConverter(options.input);
+            } catch(err) {
+                return failWithoutRequest(cb, err);
             }
         }
 
@@ -560,14 +570,16 @@
                 return noData();
             }
 
-            output = getOutput[outputType](xhr);
-
             updateDownload(outputLength);
             if(cb === null) {
                 return;
             }
 
-            cb(null, output);
+            try {
+                cb(null, outputConverter(getOutput[outputType](xhr)));
+            } catch(err) {
+                cb(err);
+            }
             cb = null;
         };
         if(typeof xhr.onreadystatechange !== 'undefined') {
