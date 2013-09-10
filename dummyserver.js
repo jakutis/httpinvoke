@@ -101,6 +101,10 @@ http.createServer(function (req, res) {
             readEntityBody(req, false, cfg.makeByteArrayFinished(reportTest));
         } else if(endsWith(req.url, '/text/utf8')) {
             readEntityBody(req, true, cfg.makeTextFinished(reportTest));
+        } else if(endsWith(req.url, '/boolean')) {
+            readEntityBody(req, false, function(err, input) {
+                output(200, input, false, 'text/plain; charset=UTF-8');
+            });
         } else {
             output(200, hello, false, 'text/plain; charset=UTF-8');
         }
