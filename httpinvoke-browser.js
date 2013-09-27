@@ -181,9 +181,9 @@
     };
     var createXHR;
     var isByteArray = function(input) {
-        return typeof input === 'object' && input !== null && ((typeof Blob !== 'undefined' && input instanceof Blob) || (typeof ArrayBuffer !== 'undefined' && input instanceof ArrayBuffer) || Object.prototype.toString.call(input) === '[object Array]');
+        return typeof input === 'object' && input !== null && ((typeof Blob !== 'undefined' && input instanceof Blob) || (typeof ArrayBufferView !== 'undefined' && input instanceof ArrayBufferView) || Object.prototype.toString.call(input) === '[object Array]');
     };
-    var bytearrayMessage = 'an instance of ArrayBuffer, nor Array, nor Blob';
+    var bytearrayMessage = 'an instance of ArrayBufferView, nor Array, nor Blob';
     var httpinvoke = function(uri, method, options) {
         /*************** COMMON initialize parameters **************/
         if(typeof method === 'undefined') {
@@ -651,7 +651,7 @@
             }
             // Content-Length header is set automatically
             if(inputType === 'bytearray') {
-                var triedSendArrayBuffer = typeof ArrayBuffer === 'undefined';
+                var triedSendArrayBufferView = typeof ArrayBufferView === 'undefined';
                 var triedSendBlob = typeof Blob === 'undefined';
                 var triedSendBinaryString = false;
 
@@ -664,11 +664,11 @@
                     }
                 }
                 var go = function() {
-                    if(triedSendBlob && triedSendArrayBuffer && triedSendBinaryString) {
+                    if(triedSendBlob && triedSendArrayBufferView && triedSendBinaryString) {
                         return failWithoutRequest(cb, new Error('Unable to send'));
                     }
-                    if(typeof ArrayBuffer !== 'undefined' && input instanceof ArrayBuffer) {
-                        if(triedSendArrayBuffer) {
+                    if(typeof ArrayBufferView !== 'undefined' && input instanceof ArrayBufferView) {
+                        if(triedSendArrayBufferView) {
                             if(!triedSendBinaryString) {
                                 try {
                                     input = convertByteArrayToBinaryString(new Uint8Array(input));
@@ -696,26 +696,26 @@
                                 outputLength = input.byteLength;
                                 return;
                             } catch(_) {
-                                triedSendArrayBuffer = true;
+                                triedSendArrayBufferView = true;
                             }
                         }
                     } else if(typeof Blob !== 'undefined' && input instanceof Blob) {
                         if(triedSendBlob) {
-                            if(!triedSendArrayBuffer) {
+                            if(!triedSendArrayBufferView) {
                                 try {
                                     var reader = new FileReader();
                                     reader.onerror = function() {
-                                        triedSendArrayBuffer = true;
+                                        triedSendArrayBufferView = true;
                                         go();
                                     };
                                     reader.onload = function() {
-                                        input = reader.result;
+                                        input = new Uint8Array(reader.result);
                                         go();
                                     };
-                                    reader.readAsArrayBuffer(input);
+                                    reader.readAsArrayBufferView(input);
                                     return;
                                 } catch(_) {
-                                    triedSendArrayBuffer = true;
+                                    triedSendArrayBufferView = true;
                                 }
                             } else if(!triedSendBinaryString) {
                                 try {
@@ -745,16 +745,16 @@
                         }
                     } else {
                         if(triedSendBinaryString) {
-                            if(!triedSendArrayBuffer) {
+                            if(!triedSendArrayBufferView) {
                                 try {
                                     var a = new ArrayBuffer(input.length);
                                     var b = new Uint8Array(a);
                                     for(var i = 0; i < input.length; i += 1) {
                                         b[i] = input[i] & 0xFF;
                                     }
-                                    input = a;
+                                    input = b;
                                 } catch(_) {
-                                    triedSendArrayBuffer = true;
+                                    triedSendArrayBufferView = true;
                                 }
                             } else if(!triedSendBlob) {
                                 if(typeof BlobBuilder === 'undefined') {

@@ -93,9 +93,9 @@ describe('"input" option', function() {
                 });
             });
             if(typeof Uint8Array !== 'undefined') {
-                it('correctly sends the input when inputType is bytearray and input is ArrayBuffer' + postfix, function(done) {
+                it('correctly sends the input when inputType is bytearray and input is ArrayBufferView' + postfix, function(done) {
                     httpinvoke(url + 'bytearray', 'POST', {
-                        input: new Uint8Array(cfg.bytearrayTest()).buffer,
+                        input: new Uint8Array(cfg.bytearrayTest()),
                         inputType: 'bytearray',
                         outputType: 'text',
                         finished: function(err, output) {
