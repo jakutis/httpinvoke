@@ -58,6 +58,11 @@ var validateInputHeaders = function(headers) {
     }
 };
 
+var isByteArray = function(input) {
+    return typeof input === 'object' && input !== null && (input instanceof Buffer || input instanceof ArrayBuffer || Object.prototype.toString.call(input) === '[object Array]');
+};
+var bytearrayMessage = 'an instance of Buffer, nor ArrayBuffer, nor Array';
+
 var httpinvoke = function(uri, method, options) {
     /*************** COMMON initialize parameters **************/
     if(typeof method === 'undefined') {
@@ -91,7 +96,7 @@ var httpinvoke = function(uri, method, options) {
     var cb = safeCallback('finished');
     var timeout = options.timeout || 0;
     var converters = options.converters || {};
-    var inputConverter, inputType, inputLength, inputHeaders = options.headers || {};
+    var input, inputConverter, inputType, inputLength = 0, inputHeaders = options.headers || {};
     var outputConverter, outputType = options.outputType || "text";
     var exposedHeaders = options.corsHeaders || [];
     var corsOriginHeader = options.corsOriginHeader || 'X-Httpinvoke-Origin';
@@ -121,7 +126,24 @@ var httpinvoke = function(uri, method, options) {
         }
     } else {
         if(typeof options.inputType === 'undefined' || options.inputType === 'auto') {
-            inputType = typeof options.input === 'string' ? 'text' : 'bytearray';
+            if(typeof options.input === 'string') {
+                inputType = 'text';
+            } else if(isByteArray(options.input)) {
+                inputType = 'bytearray';
+            } else {
+                return failWithoutRequest(cb, new Error('inputType is undefined or auto and input is neither string, nor ' + bytearrayMessage));
+            }
+        } else {
+            inputType = options.inputType;
+            if(inputType === 'text') {
+                if(typeof options.input !== 'string') {
+                    return failWithoutRequest(cb, new Error('inputType is text, but input is not a string'));
+                }
+            } else if (inputType === 'bytearray') {
+                if(!isByteArray(options.input)) {
+                    return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither ' + bytearrayMessage));
+                }
+            }
         }
         if(typeof converters[inputType + ' text'] !== 'undefined') {
             inputConverter = converters[inputType + ' text'];
@@ -129,31 +151,25 @@ var httpinvoke = function(uri, method, options) {
         } else if(typeof converters[inputType + ' bytearray'] !== 'undefined') {
             inputConverter = converters[inputType + ' bytearray'];
             inputType = 'bytearray';
+        } else if(inputType === 'text' || inputType === 'bytearray') {
+            inputConverter = pass;
+        } else {
+            return failWithoutRequest(cb, new Error('There is no converter for specified inputType'));
         }
         if(inputType === 'text') {
-            if(typeof options.input !== 'string') {
-                return failWithoutRequest(cb, new Error('inputType is text, but input is not a string'));
-            }
             if(typeof inputHeaders['Content-Type'] === 'undefined') {
                 inputHeaders['Content-Type'] = 'text/plain; charset=UTF-8';
             }
-            inputConverter = inputConverter || pass;
         } else if(inputType === 'bytearray') {
             if(httpinvoke.requestTextOnly) {
                 return failWithoutRequest(cb, new Error('bytearray inputType is not supported on this platform, please always test using requestTextOnly feature flag'));
             }
-            if(typeof options.input !== 'object' || options.input === null || !((typeof Blob !== 'undefined' && options.input instanceof Blob) || (typeof ArrayBuffer !== 'undefined' && options.input instanceof ArrayBuffer) || Object.prototype.toString.call(options.input) === '[object Array]')) {
-                return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither an instance of ArrayBuffer, nor Array, nor Blob'));
-            }
             if(typeof inputHeaders['Content-Type'] === 'undefined') {
                 inputHeaders['Content-Type'] = 'application/octet-stream';
             }
-            inputConverter = inputConverter || pass;
-        } else {
-            return failWithoutRequest(cb, new Error('Unsupported outputType ' + outputType));
         }
         try {
-            options.input = inputConverter(options.input);
+            input = inputConverter(options.input);
         } catch(err) {
             return failWithoutRequest(cb, err);
         }
@@ -191,22 +207,12 @@ var httpinvoke = function(uri, method, options) {
         if(cb === null) {
             return;
         }
-        cb();
+        var _undefined;
+        cb(_undefined, _undefined, status, outputHeaders);
         cb = null;
     };
     /*************** initialize helper variables **************/
-    if(inputType === 'bytearray') {
-        if(options.input instanceof Buffer) {
-            input = options.input;
-        } else if(options.input instanceof ArrayBuffer) {
-            input = new Buffer(new Uint8Array(options.input));
-        } else if(Object.prototype.toString.call(options.input) === '[object Array]') {
-            input = new Buffer(options.input);
-        } else {
-            return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither a Buffer, nor Array, nor ArrayBuffer'));
-        }
-        inputLength = input.length;
-    }
+    var status;
     var ignoringlyConsume = function(res) {
         res.on('data', noop);
         res.on('end', noop);
@@ -230,6 +236,7 @@ var httpinvoke = function(uri, method, options) {
             return;
         }
         outputHeaders = res.headers;
+        status = res.statusCode;
 
         uploadProgressCb(inputLength, inputLength);
         if(cb === null) {
@@ -237,7 +244,7 @@ var httpinvoke = function(uri, method, options) {
             return;
         }
 
-        statusCb(res.statusCode, outputHeaders);
+        statusCb(status, outputHeaders);
         if(cb === null) {
             ignoringlyConsume(res);
             return;
@@ -303,7 +310,7 @@ var httpinvoke = function(uri, method, options) {
                 output = output.toString('utf8');
             }
             try {
-                cb(null, outputConverter(output));
+                cb(null, outputConverter(output), status, outputHeaders);
             } catch(err) {
                 cb(err);
             }
@@ -317,10 +324,18 @@ var httpinvoke = function(uri, method, options) {
         }
         uploadProgressCb(0, inputLength);
     });
-    if(typeof options.input !== 'undefined') {
-        if(input instanceof Array) {
+    if(typeof input !== 'undefined') {
+        if(inputType === 'text') {
+            inputType = 'bytearray';
             input = new Buffer(input);
+        } else if (inputType === 'bytearray' && !(input instanceof Buffer)) {
+            if(input instanceof ArrayBuffer) {
+                input = new Buffer(new Uint8Array(input));
+            } else if(Object.prototype.toString.call(input) === '[object Array]') {
+                input = new Buffer(input);
+            }
         }
+        inputLength = input.length;
         req.write(input);
     }
     req.on('error', function(e) {
