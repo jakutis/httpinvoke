@@ -11,6 +11,13 @@ describe('"gotStatus" option', function() {
                 }
             });
         });
+        it('receives status 200' + postfix, function(done) {
+            httpinvoke(url, {
+                gotStatus: function(status, _) {
+                    done(status === 200 ? null : new Error('status is not 200'));
+                }
+            });
+        });
         it('is called exactly once' + postfix, function(done) {
             var count = 0;
             httpinvoke(url, {

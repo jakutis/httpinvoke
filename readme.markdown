@@ -90,6 +90,12 @@ All options are optional.
       * undefined, if err is not null or no response entity has been received (e.g. when **method** is `"HEAD"`)
       * a string, if **outputType** is `"text"` or `"auto"` and response **headers** has `Content-Type` with `text/*`
       * a byte-array (instance of [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) or instance of [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/Uint8Array) or instance of [Buffer](http://nodejs.org/api/buffer.html) - depending on the platform) that has property "length" of type "number" and properties "0".."length-1" of type "number" with values ranging from `0` to `255`, if **outputType** is `"bytearray"` or `"auto"` and response **headers** has `Content-Type` with `text/*`
+  0. **status** is:
+      * undefined, if err is not null
+      * otherwise, a number for an HTTP response status code.
+  0. **headers** is:
+      * undefined, if err is not null
+      * otherwise, an object for HTTP response headers. Keys are lower-cased header names, values are strings.
 * **outputType** is a string for the type of the **output** argument of the **finished** option, one of `"auto"` (default), `"bytearray"`, `"text"`.
 * **inputType** is a string for the type of the **input** option, one of `"auto"`(default), `"bytearray"`, `"text"`. If not `"auto"`, **input** must be not be undefined.
 * **input** must be either one of:
