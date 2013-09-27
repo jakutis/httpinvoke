@@ -59,6 +59,8 @@ http.createServer(function (req, res) {
             // workaround for #1: the server-side part: need X-Httpinvoke-Origin header
             // workaround for Safari 4.0: need Content-Type header
             'Access-Control-Allow-Headers': 'Content-Type, X-Httpinvoke-Origin',
+            // needed for httpinvoke to function properly
+            'Access-Control-Expose-Headers': 'Content-Length',
             // workaround for #2: avoiding cache
             'Pragma': 'no-cache',
             'Expires': 'Thu, 01 Jan 1970 00:00:00 GMT',

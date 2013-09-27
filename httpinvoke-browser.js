@@ -51,7 +51,7 @@
         },
         'bytearray' : function(xhr) {
             if(typeof xhr.response !== 'undefined') {
-                return new Uint8Array(xhr.response);
+                return new Uint8Array(xhr.response === null ? [] : xhr.response);
             }
             if(typeof xhr.responseBody !== 'undefined') {
                 return responseBodyToBytes(xhr.responseBody);
@@ -181,7 +181,7 @@
     };
     var createXHR;
     var isByteArray = function(input) {
-        return typeof input === 'object' && input !== null && ((typeof Blob !== 'undefined' && input instanceof Blob) || (typeof ArrayBufferView !== 'undefined' && input instanceof ArrayBufferView) || Object.prototype.toString.call(input) === '[object Array]');
+        return typeof input === 'object' && input !== null && ((typeof Blob !== 'undefined' && input instanceof Blob) || (typeof ArrayBuffer !== 'undefined' && input instanceof ArrayBuffer) || (typeof ArrayBufferView !== 'undefined' && input instanceof ArrayBufferView) || Object.prototype.toString.call(input) === '[object Array]');
     };
     var bytearrayMessage = 'an instance of ArrayBufferView, nor Array, nor Blob';
     var httpinvoke = function(uri, method, options) {
@@ -221,7 +221,7 @@
         var outputConverter, outputType = options.outputType || "text";
         var exposedHeaders = options.corsHeaders || [];
         var corsOriginHeader = options.corsOriginHeader || 'X-Httpinvoke-Origin';
-        exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Expires', 'Last-Modified', 'Pragma']);
+        exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma']);
 
         /*************** COMMON convert and validate parameters **************/
         if(indexOf(supportedMethods, method) < 0) {
@@ -553,6 +553,10 @@
             }
 
             // BEGIN COMMON
+            updateDownload(0);
+            if(cb === null) {
+                return;
+            }
             if(typeof outputHeaders['content-length'] !== 'undefined') {
                 initDownload(Number(outputHeaders['content-length']));
                 if(cb === null) {
@@ -562,7 +566,6 @@
             if(method === 'HEAD' || typeof outputHeaders['content-type'] === 'undefined') {
                 return noData();
             }
-            updateDownload(0);
             // END COMMON
         };
         var onLoad = function() {
@@ -581,19 +584,15 @@
                 return;
             }
 
-            if(typeof xhr.response !== 'undefined' && xhr.response === null) {
-                return noData();
-            }
-            try {
-                initDownload(getOutputLength[outputType](xhr));
-                if(cb === null) {
-                    return;
+            if(typeof outputLength === 'undefined') {
+                try {
+                    initDownload(getOutputLength[outputType](xhr));
+                    if(cb === null) {
+                        return;
+                    }
+                } catch(_) {
+                    return noData();
                 }
-            } catch(_) {
-                return noData();
-            }
-            if(outputLength === 0) {
-                return noData();
             }
 
             updateDownload(outputLength);
@@ -670,7 +669,7 @@
                     if(typeof Uint8Array === 'undefined') {
                         input = convertByteArrayToBinaryString(input);
                     } else {
-                        input = new Uint8Array(input).buffer;
+                        input = new Uint8Array(input);
                     }
                 }
                 var go = function() {
@@ -703,7 +702,7 @@
                         } else {
                             try {
                                 xhr.send(input);
-                                outputLength = input.byteLength;
+                                inputLength = input.byteLength;
                                 return;
                             } catch(_) {
                                 triedSendArrayBufferView = true;
@@ -747,7 +746,7 @@
                         } else {
                             try {
                                 xhr.send(input);
-                                outputLength = input.size;
+                                inputLength = input.size;
                                 return;
                             } catch(_) {
                                 triedSendBlob = true;
@@ -784,7 +783,7 @@
                         } else {
                             try {
                                 xhr.sendAsBinary(input);
-                                outputLength = input.length;
+                                inputLength = input.length;
                                 return;
                             } catch(_) {
                                 triedSendBinaryString = true;

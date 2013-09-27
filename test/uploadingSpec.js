@@ -18,8 +18,9 @@ describe('"uploading" option', function() {
             fn(inputs[input].inputType, inputs[input].input);
         }
     };
-    cfg.eachBase(function(postfix, url) {
+    cfg.eachBase(function(_postfix, url, crossDomain) {
         eachInput(function(inputType, input) {
+            var postfix = _postfix + ' (' + inputType + ')';
             it('is called at least twice' + postfix, function(done) {
                 var count = 0;
                 httpinvoke(url, 'POST', {

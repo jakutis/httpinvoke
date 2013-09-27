@@ -223,7 +223,7 @@ var httpinvoke = function(uri, method, options) {
     };
     /*************** initialize helper variables **************/
     var status;
-    var ignoringlyConsume = function(res) {
+    var ignorantlyConsume = function(res) {
         res.on('data', noop);
         res.on('end', noop);
     };
@@ -242,7 +242,7 @@ var httpinvoke = function(uri, method, options) {
         headers: inputHeaders
     }, function(res) {
         if(cb === null) {
-            ignoringlyConsume(res);
+            ignorantlyConsume(res);
             return;
         }
         outputHeaders = res.headers;
@@ -250,29 +250,31 @@ var httpinvoke = function(uri, method, options) {
 
         uploadProgressCb(inputLength, inputLength);
         if(cb === null) {
-            ignoringlyConsume(res);
+            ignorantlyConsume(res);
             return;
         }
 
         statusCb(status, outputHeaders);
         if(cb === null) {
-            ignoringlyConsume(res);
+            ignorantlyConsume(res);
             return;
         }
 
-        updateDownload(0);
         // BEGIN COMMON
-        if(typeof outputHeaders['content-length'] === 'string') {
-            initDownload(Number(outputHeaders['content-length']));
-        } else {
-            initDownload();
-        }
+        updateDownload(0);
         if(cb === null) {
-            ignoringlyConsume(res);
+            ignorantlyConsume(res);
             return;
         }
+        if(typeof outputHeaders['content-length'] !== 'undefined') {
+            initDownload(Number(outputHeaders['content-length']));
+            if(cb === null) {
+                ignorantlyConsume(res);
+                return;
+            }
+        }
         if(method === 'HEAD' || typeof outputHeaders['content-type'] === 'undefined') {
-            ignoringlyConsume(res);
+            ignorantlyConsume(res);
             return noData();
         }
         // END COMMON
