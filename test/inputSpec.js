@@ -13,9 +13,10 @@ var makeErrorFinished = function(done) {
 describe('"input" option', function() {
     this.timeout(10000);
     cfg.eachBase(function(postfix, url) {
-        it('finishes with error, if "inputType" option is not one of: "text", "auto", "json", "bytearray"' + postfix, function(done) {
+        it('finishes with error, if "inputType" option is not one of: "text", "auto", "bytearray"' + postfix, function(done) {
             httpinvoke(url, 'POST', {
                 inputType: "string",
+                input: "test",
                 finished: makeErrorFinished(done)
             });
         });
@@ -45,17 +46,17 @@ describe('"input" option', function() {
                 finished: makeErrorFinished(done)
             });
         });
-        it('finishes with error, if Content-Type header is not defined, "input" option is defined and "inputType" option is "auto"' + postfix, function(done) {
+        it('finishes with success, if Content-Type header is not defined, "input" option is defined and "inputType" option is "auto"' + postfix, function(done) {
             httpinvoke(url, 'POST', {
                 inputType: "auto",
                 input: 'foobar',
-                finished: makeErrorFinished(done)
+                finished: done
             });
         });
-        it('finishes with error, if Content-Type header is not defined, "input" option is defined and "inputType" option is undefined' + postfix, function(done) {
+        it('finishes with success, if Content-Type header is not defined, "input" option is defined and "inputType" option is undefined' + postfix, function(done) {
             httpinvoke(url, 'POST', {
                 input: 'foobar',
-                finished: makeErrorFinished(done)
+                finished: done
             });
         });
         it('correctly sends the input when inputType is text' + postfix, function(done) {
