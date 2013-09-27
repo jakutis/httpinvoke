@@ -199,7 +199,7 @@ var httpinvoke = function(uri, method, options) {
         downloadProgressCb(downloaded, outputLength);
     };
     var noData = function() {
-        if(typeof outputHeaders['content-type'] !== 'undefined') {
+        if(method !== 'HEAD' && typeof outputHeaders['content-type'] !== 'undefined') {
             cb(new Error('Received Content-Type header, but no entity body'));
             cb = null;
             return;
@@ -266,7 +266,7 @@ var httpinvoke = function(uri, method, options) {
             ignoringlyConsume(res);
             return;
         }
-        if(method === 'HEAD' || typeof outputHeaders['content-type'] === 'undefined' || outputLength === 0) {
+        if(method === 'HEAD' || typeof outputHeaders['content-type'] === 'undefined') {
             ignoringlyConsume(res);
             return noData();
         }
@@ -295,9 +295,6 @@ var httpinvoke = function(uri, method, options) {
 
             if(typeof outputLength === 'undefined') {
                 outputLength = downloaded;
-            }
-            if(outputLength === 0) {
-                return noData();
             }
 
             if(outputType === 'auto') {

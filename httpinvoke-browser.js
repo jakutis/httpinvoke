@@ -320,7 +320,7 @@
             downloadProgressCb(downloaded, outputLength);
         };
         var noData = function() {
-            if(typeof outputHeaders['content-type'] !== 'undefined') {
+            if(method !== 'HEAD' && typeof outputHeaders['content-type'] !== 'undefined') {
                 cb(new Error('Received Content-Type header, but no entity body'));
                 cb = null;
                 return;
@@ -554,7 +554,7 @@
                     return;
                 }
             }
-            if(method === 'HEAD' || typeof outputHeaders['content-type'] === 'undefined' || outputLength === 0) {
+            if(method === 'HEAD' || typeof outputHeaders['content-type'] === 'undefined') {
                 return noData();
             }
             updateDownload(0);

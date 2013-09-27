@@ -106,29 +106,35 @@ describe('"output" argument of "finished" option', function() {
                 done();
             });
         });
-        it('is undefined when response is empty bytearray' + postfix, function(done) {
+        it('is zero-length when response is empty bytearray' + postfix, function(done) {
             httpinvoke(url + 'bytearray/empty', {
                 outputType: 'bytearray',
                 finished: function(err, output) {
                     if(err) {
                         return done(err);
                     }
-                    if(typeof output !== 'undefined') {
-                        return done(new Error('Output is not undefined'));
+                    if(typeof output === 'undefined') {
+                        return done(new Error('Output is undefined'));
+                    }
+                    if(output.length !== 0) {
+                        return done(new Error('Output is length is not zero'));
                     }
                     done();
                 }
             });
         });
-        it('is undefined when response is empty string' + postfix, function(done) {
+        it('is zero-length when response is empty string' + postfix, function(done) {
             httpinvoke(url + 'text/utf8/empty', {
                 outputType: 'text',
                 finished: function(err, output) {
                     if(err) {
                         return done(err);
                     }
-                    if(typeof output !== 'undefined') {
-                        return done(new Error('Output is not undefined'));
+                    if(typeof output === 'undefined') {
+                        return done(new Error('Output is undefined'));
+                    }
+                    if(output.length !== 0) {
+                        return done(new Error('Output is length is not zero'));
                     }
                     done();
                 }
