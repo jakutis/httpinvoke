@@ -25,12 +25,6 @@ describe('"input" option', function() {
                 finished: makeErrorFinished(done)
             });
         });
-        it('finishes with error, if "inputType" option is "json" and "input" option is undefined' + postfix, function(done) {
-            httpinvoke(url, 'POST', {
-                inputType: "json",
-                finished: makeErrorFinished(done)
-            });
-        });
         it('finishes with error, if "inputType" option is "auto" and "input" option is undefined' + postfix, function(done) {
             httpinvoke(url, 'POST', {
                 inputType: "auto",
