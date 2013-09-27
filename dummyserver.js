@@ -84,7 +84,7 @@ http.createServer(function (req, res) {
     };
     var reportTest = function(err) {
         if(err) {
-            return output(200, new Buffer(String([err, err.message, err.stack]), 'utf8'), false, 'text/plain; charset=UTF-8');
+            return output(200, new Buffer(err.stack, 'utf8'), false, 'text/plain; charset=UTF-8');
         }
         output(200, new Buffer('OK', 'utf8'), false, 'text/plain; charset=UTF-8');
     };
