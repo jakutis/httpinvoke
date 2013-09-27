@@ -26,13 +26,21 @@
   "private": false,
   "dependencies": {},
   "devDependencies": {
-    "mocha": "1.12.x",
-    "karma": "0.10.x",
+    "grunt": "0.4.x",
+    "grunt-cli": "0.1.x",
+    "grunt-contrib-uglify": "0.2.x",
+    "grunt-contrib-concat": "0.3.x",
+    "grunt-mocha-test": "0.7.x",
+    "daemon": "1.1.x",
+    "mocha": "1.13.x",
+    "karma": "0.11.x",
     "karma-mocha": "0.1.x"
   },
   "scripts": {
-    "install": "make",
-    "test": "make test"
+    "install": "./node_modules/.bin/grunt install",
+    "test": "node ./dummyserver.js;./node_modules/.bin/grunt test;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid",
+    "test-browser": "node ./dummyserver.js;./node_modules/.bin/karma start;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid",
+    "test-node": "node ./dummyserver.js;./node_modules/.bin/mocha --watch;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid"
   },
   "repository": {
     "type": "git",

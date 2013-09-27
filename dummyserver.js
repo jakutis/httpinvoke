@@ -1,5 +1,7 @@
 var http = require('http');
 var cfg = require('./dummyserver-config');
+var daemon = require('daemon');
+var fs = require('fs');
 
 var bigslowHello = function(res) {
     var entity = 'This School Is Not Falling Apart.\n';
@@ -42,7 +44,7 @@ var endsWith = function(str, substr) {
     return str.substr(str.length - substr.length) === substr;
 };
 
-http.createServer(function (req, res) {
+var listen = function (req, res) {
     res.useChunkedEncodingByDefault = false;
 
     var output = function(status, body, head, mimeType) {
@@ -141,4 +143,13 @@ http.createServer(function (req, res) {
     } else {
         output(406, hello, false, 'text/plain; charset=UTF-8');
     }
-}).listen(cfg.port, cfg.host);
+};
+
+if(fs.existsSync('./dummyserver.pid')) {
+    console.log('Error: file ./dummyserver.pid already exists');
+    process.exit(1);
+} else {
+    daemon();
+    fs.writeFileSync('./dummyserver.pid', String(process.pid));
+    http.createServer(listen).listen(cfg.port, cfg.host);
+}
