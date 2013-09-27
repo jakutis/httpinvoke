@@ -109,7 +109,7 @@ window._cfg = {
         for(i = 0; i < 64; i += 1) {
             bytes.push(0);
         }
-        for(i = 255; i > 0; i -= 1) {
+        for(i = 255; i >= 0; i -= 1) {
             bytes.push(i);
         }
         for(i = 0; i <= 255; i += 1) {
