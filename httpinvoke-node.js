@@ -199,6 +199,11 @@ var httpinvoke = function(uri, method, options) {
         downloadProgressCb(downloaded, outputLength);
     };
     var noData = function() {
+        if(typeof outputHeaders['content-type'] !== 'undefined') {
+            cb(new Error('Received Content-Type header, but no entity body'));
+            cb = null;
+            return;
+        }
         initDownload(0);
         if(cb === null) {
             return;
