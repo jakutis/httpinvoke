@@ -59,9 +59,9 @@ var validateInputHeaders = function(headers) {
 };
 
 var isByteArray = function(input) {
-    return typeof input === 'object' && input !== null && (input instanceof Buffer || input instanceof ArrayBuffer || Object.prototype.toString.call(input) === '[object Array]');
+    return typeof input === 'object' && input !== null && (input instanceof Buffer || input instanceof ArrayBuffer || input instanceof Int8Array || input instanceof Uint8Array || input instanceof Uint8ClampedArray || input instanceof Int16Array || input instanceof Uint16Array || input instanceof Int32Array || input instanceof Uint32Array || input instanceof Float32Array || input instanceof Float64Array || Object.prototype.toString.call(input) === '[object Array]');
 };
-var bytearrayMessage = 'an instance of Buffer, nor ArrayBuffer, nor Array';
+var bytearrayMessage = 'an instance of Buffer, nor ArrayBuffer, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array';
 
 var httpinvoke = function(uri, method, options) {
     /*************** COMMON initialize parameters **************/
@@ -166,6 +166,11 @@ var httpinvoke = function(uri, method, options) {
             }
             if(typeof inputHeaders['Content-Type'] === 'undefined') {
                 inputHeaders['Content-Type'] = 'application/octet-stream';
+            }
+            if(typeof ArrayBuffer !== 'undefined' && options.input instanceof ArrayBuffer) {
+                options.input = new Uint8Array(options.input);
+            } else if((typeof Int16Array !== 'undefined' && options.input instanceof Int16Array) || (typeof Uint16Array !== 'undefined' && options.input instanceof Uint16Array) || (typeof Int32Array !== 'undefined' && options.input instanceof Int32Array) || (typeof Uint32Array !== 'undefined' && options.input instanceof Uint32Array) || (typeof Float32Array !== 'undefined' && options.input instanceof Float32Array) || (typeof Float64Array !== 'undefined' && options.input instanceof Float64Array)) {
+                options.input = new Uint8Array(options.input.buffer, options.input.byteOffset, options.input.byteLength);
             }
         }
         try {
@@ -327,16 +332,8 @@ var httpinvoke = function(uri, method, options) {
         uploadProgressCb(0, inputLength);
     });
     if(typeof input !== 'undefined') {
-        if(inputType === 'text') {
-            inputType = 'bytearray';
-            input = new Buffer(input);
-        } else if (inputType === 'bytearray' && !(input instanceof Buffer)) {
-            if(input instanceof ArrayBuffer) {
-                input = new Buffer(new Uint8Array(input));
-            } else if(Object.prototype.toString.call(input) === '[object Array]') {
-                input = new Buffer(input);
-            }
-        }
+        input = new Buffer(input);
+        inputType = 'bytearray';
         inputLength = input.length;
         req.write(input);
     }

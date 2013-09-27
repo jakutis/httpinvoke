@@ -9,6 +9,7 @@ var makeErrorFinished = function(done) {
         done(new Error('Did not finish with an error'));
     };
 };
+var g = global || window;
 
 describe('"input" option', function() {
     this.timeout(10000);
@@ -93,9 +94,12 @@ describe('"input" option', function() {
                 });
             });
             if(typeof Uint8Array !== 'undefined') {
-                it('correctly sends the input when inputType is bytearray and input is ArrayBufferView' + postfix, function(done) {
+                var buffer = new Uint8Array(cfg.bytearrayTest()).buffer;
+                var classes = ['Int8Array', 'Uint8Array', 'Uint8ClampedArray', 'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array', 'Float32Array', 'Float64Array'];
+
+                it('correctly sends the input when inputType is bytearray and input is ArrayBuffer' + postfix, function(done) {
                     httpinvoke(url + 'bytearray', 'POST', {
-                        input: new Uint8Array(cfg.bytearrayTest()),
+                        input: buffer,
                         inputType: 'bytearray',
                         outputType: 'text',
                         finished: function(err, output) {
@@ -107,6 +111,29 @@ describe('"input" option', function() {
                             }
                             done(new Error('Server response about the input is: ' + output));
                         }
+                    });
+                });
+                var eachClass = function(fn) {
+                    for(var i = 0; i < classes.length; i += 1) {
+                        fn(classes[i]);
+                    }
+                };
+                eachClass(function(className) {
+                    it('correctly sends the input when inputType is bytearray and input is ' + className + postfix, function(done) {
+                        httpinvoke(url + 'bytearray', 'POST', {
+                            input: new g[className](buffer),
+                            inputType: 'bytearray',
+                            outputType: 'text',
+                            finished: function(err, output) {
+                                if(err) {
+                                    return done(err);
+                                }
+                                if(output === 'OK') {
+                                    return done();
+                                }
+                                done(new Error('Server response about the input is: ' + output));
+                            }
+                        });
                     });
                 });
             }

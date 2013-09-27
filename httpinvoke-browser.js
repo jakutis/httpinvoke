@@ -288,6 +288,11 @@
                 if(typeof inputHeaders['Content-Type'] === 'undefined') {
                     inputHeaders['Content-Type'] = 'application/octet-stream';
                 }
+                if(typeof ArrayBuffer !== 'undefined' && options.input instanceof ArrayBuffer) {
+                    options.input = new Uint8Array(options.input);
+                } else if((typeof Int16Array !== 'undefined' && options.input instanceof Int16Array) || (typeof Uint16Array !== 'undefined' && options.input instanceof Uint16Array) || (typeof Int32Array !== 'undefined' && options.input instanceof Int32Array) || (typeof Uint32Array !== 'undefined' && options.input instanceof Uint32Array) || (typeof Float32Array !== 'undefined' && options.input instanceof Float32Array) || (typeof Float64Array !== 'undefined' && options.input instanceof Float64Array)) {
+                    options.input = new Uint8Array(options.input.buffer, options.input.byteOffset, options.input.byteLength);
+                }
             }
             try {
                 input = inputConverter(options.input);
