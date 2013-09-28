@@ -84,7 +84,7 @@
         },
         'bytearray': function(xhr) {
             if(typeof xhr.response !== 'undefined') {
-                return xhr.response.byteLength;
+                return xhr.response === null ? 0 : xhr.response.byteLength;
             }
             if(typeof xhr.responseBody !== 'undefined') {
                 return responseBodyLength(xhr.responseBody);
