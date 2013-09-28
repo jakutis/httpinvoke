@@ -1,10 +1,6 @@
 var common = function(global) {
-    var isByteArray = function(input) {
+    var isArrayBufferView = function(input) {
         return typeof input === 'object' && input !== null && (
-            (typeof global.Buffer !== 'undefined' && input instanceof global.Buffer) ||
-            (typeof global.Blob !== 'undefined' && input instanceof global.Blob) ||
-            (typeof global.File !== 'undefined' && input instanceof global.File) ||
-            (typeof global.ArrayBuffer !== 'undefined' && input instanceof global.ArrayBuffer) ||
             (typeof global.ArrayBufferView !== 'undefined' && input instanceof global.ArrayBufferView) ||
             (typeof global.Int8Array !== 'undefined' && input instanceof global.Int8Array) ||
             (typeof global.Uint8Array !== 'undefined' && input instanceof global.Uint8Array) ||
@@ -14,7 +10,16 @@ var common = function(global) {
             (typeof global.Int32Array !== 'undefined' && input instanceof global.Int32Array) ||
             (typeof global.Uint32Array !== 'undefined' && input instanceof global.Uint32Array) ||
             (typeof global.Float32Array !== 'undefined' && input instanceof global.Float32Array) ||
-            (typeof global.Float64Array !== 'undefined' && input instanceof global.Float64Array) ||
+            (typeof global.Float64Array !== 'undefined' && input instanceof global.Float64Array)
+        );
+    };
+    var isByteArray = function(input) {
+        return typeof input === 'object' && input !== null && (
+            (typeof global.Buffer !== 'undefined' && input instanceof global.Buffer) ||
+            (typeof global.Blob !== 'undefined' && input instanceof global.Blob) ||
+            (typeof global.File !== 'undefined' && input instanceof global.File) ||
+            (typeof global.ArrayBuffer !== 'undefined' && input instanceof global.ArrayBuffer) ||
+            isArrayBufferView(input) ||
             Object.prototype.toString.call(input) === '[object Array]'
         );
     };
@@ -231,6 +236,7 @@ var common = function(global) {
         return c;
     };
     return {
+        isArrayBufferView: isArrayBufferView,
         failWithoutRequest: failWithoutRequest,
         initialize: initialize,
         noop: noop

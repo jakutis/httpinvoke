@@ -8,6 +8,16 @@
   }
 }(this, function () {
     var common;
+    var bufferSlice = function(buffer, begin, end) {
+        if(begin === 0 && end === buffer.byteLength) {
+            return buffer;
+        }
+        if(typeof buffer.slice === 'undefined') {
+            return new Uint8Array(Array.prototype.slice.call(new Uint8Array(buffer), begin, end)).buffer;
+        } else {
+            return buffer.slice(begin, end);
+        }
+    };
     var responseBodyToBytes, responseBodyLength;
     (function() {
         try {
@@ -462,8 +472,8 @@
             }
             // Content-Length header is set automatically
             if(c.inputType === 'bytearray') {
-                var triedSendArrayBufferView = typeof ArrayBufferView === 'undefined';
-                var triedSendBlob = typeof Blob === 'undefined';
+                var triedSendArrayBufferView = false;
+                var triedSendBlob = false;
                 var triedSendBinaryString = false;
 
                 var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder;
@@ -479,7 +489,7 @@
                     if(triedSendBlob && triedSendArrayBufferView && triedSendBinaryString) {
                         return common.failWithoutRequest(c.cb, new Error('Unable to send'));
                     }
-                    if(typeof ArrayBufferView !== 'undefined' && c.input instanceof ArrayBufferView) {
+                    if(common.isArrayBufferView(c.input)) {
                         if(triedSendArrayBufferView) {
                             if(!triedSendBinaryString) {
                                 try {
@@ -505,7 +515,11 @@
                         } else {
                             try {
                                 c.inputLength = c.input.byteLength;
-                                xhr.send(c.input);
+                                if(typeof window.ArrayBufferView === 'undefined') {
+                                    xhr.send(bufferSlice(c.input.buffer, c.input.byteOffset, c.input.byteOffset + c.input.byteLength));
+                                } else {
+                                    xhr.send(c.input);
+                                }
                                 return;
                             } catch(_) {
                                 triedSendArrayBufferView = true;
@@ -524,7 +538,7 @@
                                         c.input = new Uint8Array(reader.result);
                                         go();
                                     };
-                                    reader.readAsArrayBufferView(c.input);
+                                    reader.readAsArrayBuffer(c.input);
                                     return;
                                 } catch(_) {
                                     triedSendArrayBufferView = true;
