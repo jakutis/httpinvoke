@@ -119,6 +119,9 @@ describe('"input" option', function() {
                     }
                 };
                 eachClass(function(className) {
+                    if(typeof g[className] === 'undefined') {
+                        return;
+                    }
                     it('correctly sends the input when inputType is bytearray and input is ' + className + postfix, function(done) {
                         httpinvoke(url + 'bytearray', 'POST', {
                             input: new g[className](buffer),
