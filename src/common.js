@@ -54,7 +54,7 @@ var common = function(global) {
     var pass = function(value) {
         return value;
     };
-    var nextTick = setImmediate || setTimeout;
+    var nextTick = global.setImmediate || global.setTimeout;
     var failWithoutRequest = function(cb, err) {
         nextTick(function() {
             if(cb === null) {
@@ -80,6 +80,8 @@ var common = function(global) {
                 c.method = 'GET';
                 options = method;
             }
+        } else {
+            c.method = method;
         }
         options = typeof options === 'function' ? {
             finished: options

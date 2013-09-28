@@ -5,6 +5,9 @@ var common;
 
 var httpinvoke = function() {
     var c = common.initialize.apply(null, arguments);
+    if(typeof c === 'function') {
+        return c;
+    }
     /*************** initialize helper variables **************/
     var ignorantlyConsume = function(res) {
         res.on('data', common.noop);

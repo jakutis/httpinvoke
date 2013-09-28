@@ -141,6 +141,9 @@
     var createXHR;
     var httpinvoke = function() {
         var c = common.initialize.apply(null, arguments);
+        if(typeof c === 'function') {
+            return c;
+        }
         /*************** initialize helper variables **************/
         var uploadProgressCbCalled = false;
         var output;
