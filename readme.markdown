@@ -131,9 +131,9 @@ There are feature flags to be queried for platform-specific features.
 
 # Development
 
-To test for NodeJS functionality run `make test-node`.
+To test for NodeJS functionality run `npm run test-node`.
 
-To test for web browser functionality run `make test-browser`, copy the URL link that is displayed in console and open it in any web browser.
+To test for web browser functionality run `npm run test-browser`, copy the URL link that is displayed in console and open it in any web browser.
 
 # License
 
