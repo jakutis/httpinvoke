@@ -1,5 +1,13 @@
-var util = require('util');
+var fs = require('fs');
+
 module.exports = function(grunt) {
+    var common = fs.readFileSync('./src/common.js').toString();
+    var processCommon = function(globalVar) {
+        return function(contents) {
+            contents = contents.split('var common;');
+            return contents[0] + ';' + common + ';common = common(' + globalVar + ');' + contents[1];
+        };
+    };
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         mochaTest: {
@@ -20,26 +28,44 @@ module.exports = function(grunt) {
             }
         },
         concat: {
-            dist: {
+            browser: {
                 options: {
-                    process: function(contents, path) {
-                        if(path === './httpinvoke-node.js') {
-                            return "if(typeof process !== 'undefined' && typeof process.versions !== 'undefined' && typeof process.versions.node !== 'undefined') {" + contents + '} else {';
-                        }
-                        if(path === './httpinvoke-browser.js') {
-                            return contents + '}';
-                        }
+                    process: processCommon('window')
+                },
+                src: ['./src/browser.js'],
+                dest: './httpinvoke-browser.js'
+            },
+            node: {
+                options: {
+                    process: processCommon('global')
+                },
+                src: ['./src/node.js'],
+                dest: './httpinvoke-node.js'
+            },
+            commonjs: {
+                options: {
+                    process: function(contents) {
+                        var include;
+
+                        include = fs.readFileSync('./httpinvoke-node.js').toString();
+                        contents = contents.split('var node;');
+                        contents = contents[0] + ';' + include + ';' + contents[1];
+
+                        include = fs.readFileSync('./httpinvoke-browser.js').toString();
+                        contents = contents.split('var browser;');
+                        contents = contents[0] + ';' + include + ';' + contents[1];
+
                         return contents;
                     }
                 },
-                src: ['./httpinvoke-node.js', './httpinvoke-browser.js'],
-                dest: './httpinvoke-generated-commonjs.js'
+                src: ['./src/commonjs.js'],
+                dest: './httpinvoke-commonjs.js'
             }
         }
     });
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-mocha-test');
-    grunt.registerTask('install', ['uglify', 'concat']);
+    grunt.registerTask('install', ['concat', 'uglify']);
     grunt.registerTask('test', ['mochaTest']);
 };

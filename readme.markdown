@@ -88,15 +88,15 @@ All options are optional.
   0. **err** is null or an object that is an instance of Error;
   0. **output** is:
       * undefined, if err is not null or no response entity has been received (e.g. when **method** is `"HEAD"`),
-      * a string, if **outputType** is `"text"` or `"auto"` and response **headers** has `Content-Type` with `text/*`,
-      * a bytearray - instance of [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/Uint8Array) or instance of [Buffer](http://nodejs.org/api/buffer.html) or instance of [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) that has elements of type "number" with values ranging from `0` to `255` - if **outputType** is `"bytearray"` or `"auto"` and response **headers** has `Content-Type` with `text/*`;
+      * a string, if **outputType** is `"text"` and response **headers** has `Content-Type` with `text/*`,
+      * a bytearray - instance of [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/Uint8Array) or instance of [Buffer](http://nodejs.org/api/buffer.html) or instance of [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) that has elements of type "number" with values ranging from `0` to `255` - if **outputType** is `"bytearray"` and response **headers** has `Content-Type` with `text/*`;
   0. **status** is:
       * undefined, if err is not null,
       * otherwise, a number for an HTTP response status code;
   0. **headers** is:
       * undefined, if err is not null,
       * otherwise, an object for HTTP response headers. Keys are lower-cased header names, values are strings.
-* **outputType** is a string for the type of the **output** argument of the **finished** option, one of `"auto"` (default), `"bytearray"`, `"text"` or a custom value that has corresponding **converters**.
+* **outputType** is a string for the type of the **output** argument of the **finished** option, one of `"text"` (default), `"bytearray"` or a custom value that has corresponding **converters**.
 * **inputType** is a string for the type of the **input** option, one of `"auto"`(default), `"bytearray"`, `"text"` or a custom value that has corresponding **converters**. If not `"auto"`, **input** must be not be undefined.
 * **input** must be either one of:
   * undefined (default), if **inputType** is `"auto"` and request **headers** does not have `Content-Type`,
@@ -105,7 +105,7 @@ All options are optional.
 * **headers** is an object for HTTP request headers. Keys are header names, values are strings. If **input** is not undefined, omitting the Content-Type requires **inputType** be not equal to `"auto"`.
 * **converters** is an object to convert custom **inputType** and **outputType** values to `"bytearray"` or `"text"`. Example: `{"json text": JSON.stringify, "text json": JSON.parse}`. If you use custom **inputType**, then there must be at least one converter from that type to `"text"` or `"bytearray"`, and the other way around for **outputType**.
 * **corsHeaders** is an array of HTTP response headers to be extracted in **gotStatus** call. Default simple headers like "Content-Type" are always extracted. Applicable only for cross-origin requests.
-* **corsCredentials** is a boolean for requesting to send credentials. Applicable only for a cross-origin request. See Feature Flags section.
+* **corsCredentials** is a boolean for requesting to send credentials. Applicable only for a cross-origin request. See Feature Flags section. Defaults to `false`.
 * **corsOriginHeader** is a string for the request header name for browsers with buggy CORS implementations (e.g. Android Browser 2.3.7) - which do not send the Origin request header in actual request, defaults to `"X-Httpinvoke-Origin"`, see `dummyserver.js` for an example of server-side part of the workaround implementation.
 
 The callbacks are called in this strict sequence: **uploading** (two or more times), **gotStatus** (one time), **downloading** (two or more times), **finished** (one time), except the case that **finished** can be called with Error any time, and then no callbacks will be called.

@@ -7,6 +7,7 @@
         root.httpinvoke = factory();
   }
 }(this, function () {
+    var common;
     var responseBodyToBytes, responseBodyLength;
     (function() {
         try {
@@ -87,16 +88,6 @@
     } : function(string) {
         return string.trim();
     };
-    var indexOf = typeof [].indexOf === 'undefined' ? function(array, item) {
-        for(var i = 0; i < array.length; i += 1) {
-            if(array[i] === item) {
-                return i;
-            }
-        }
-        return -1;
-    } : function(array, item) {
-        return array.indexOf(item);
-    };
     var countStringBytes = function(string) {
         var n = 0;
         for(var i = 0; i < string.length; i += 1) {
@@ -118,7 +109,6 @@
         }
         return str;
     };
-    var supportedMethods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'];
 
     var parseHeader = function(header) {
         var colon = header.indexOf(':');
@@ -128,24 +118,6 @@
         };
     };
 
-    // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
-    var forbiddenInputHeaders = ['accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'content-transfer-encoding', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
-    var validateInputHeaders = function(headers) {
-        for(var header in headers) {
-            if(headers.hasOwnProperty(header)) {
-                var headerl = header.toLowerCase();
-                if(indexOf(forbiddenInputHeaders, headerl) >= 0) {
-                    throw new Error('Input header ' + header + ' is forbidden to be set programmatically');
-                }
-                if(headerl.substr(0, 'proxy-'.length) === 'proxy-') {
-                    throw new Error('Input header ' + header + ' (to be precise, all Proxy-*) is forbidden to be set programmatically');
-                }
-                if(headerl.substr(0, 'sec-'.length) === 'sec-') {
-                    throw new Error('Input header ' + header + ' (to be precise, all Sec-*) is forbidden to be set programmatically');
-                }
-            }
-        }
-    };
     var fillOutputHeaders = function(xhr, outputHeaders) {
         var headers = xhr.getAllResponseHeaders().split(/\r?\n/);
         var i = headers.length - 1;
@@ -166,182 +138,9 @@
         location = urlPartitioningRegExp.exec(location.toLowerCase()) || [];
         return !!(uri && (uri[1] !== location[1] || uri[2] !== location[2] || (uri[3] || (uri[1] === 'http:' ? '80' : '443')) !== (location[3] || (location[1] === 'http:' ? '80' : '443'))));
     };
-    var failWithoutRequest = function(cb, err) {
-        setTimeout(function() {
-            if(cb === null) {
-                return;
-            }
-            cb(err);
-        }, 0);
-        return noop;
-    };
-    var noop = function() {};
-    var pass = function(value) {
-        return value;
-    };
     var createXHR;
-    var isByteArray = function(input) {
-        return typeof input === 'object' && input !== null && ((typeof Blob !== 'undefined' && input instanceof Blob) || (typeof ArrayBuffer !== 'undefined' && input instanceof ArrayBuffer) || (typeof ArrayBufferView !== 'undefined' && input instanceof ArrayBufferView) || Object.prototype.toString.call(input) === '[object Array]');
-    };
-    var bytearrayMessage = 'an instance of ArrayBufferView, nor Array, nor Blob';
-    var httpinvoke = function(uri, method, options) {
-        /*************** COMMON initialize parameters **************/
-        if(typeof method === 'undefined') {
-            method = 'GET';
-            options = {};
-        } else if(typeof options === 'undefined') {
-            if(typeof method === 'string') {
-                options = {};
-            } else {
-                options = method;
-                method = 'GET';
-            }
-        }
-        options = typeof options === 'function' ? {
-            finished: options
-        } : options;
-        var safeCallback = function(name) {
-            if(typeof options[name] === 'undefined') {
-                return noop;
-            }
-            return function() {
-                try {
-                    options[name].apply(null, arguments);
-                } catch(_) {
-                }
-            };
-        };
-        var uploadProgressCb = safeCallback('uploading');
-        var downloadProgressCb = safeCallback('downloading');
-        var statusCb = safeCallback('gotStatus');
-        var cb = safeCallback('finished');
-        var timeout = options.timeout || 0;
-        var converters = options.converters || {};
-        var input, inputConverter, inputType, inputLength = 0, inputHeaders = options.headers || {};
-        var outputConverter, outputType = options.outputType || "text";
-        var exposedHeaders = options.corsHeaders || [];
-        var corsOriginHeader = options.corsOriginHeader || 'X-Httpinvoke-Origin';
-        exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma']);
-
-        /*************** COMMON convert and validate parameters **************/
-        if(indexOf(supportedMethods, method) < 0) {
-            return failWithoutRequest(cb, new Error('Unsupported method ' + method));
-        }
-        if(outputType === 'text' || outputType === 'bytearray') {
-            outputConverter = pass;
-        } else if(typeof converters['text ' + outputType] !== 'undefined') {
-            outputConverter = converters['text ' + outputType];
-            outputType = 'text';
-        } else if(typeof converters['bytearray ' + outputType] !== 'undefined') {
-            outputConverter = converters['bytearray ' + outputType];
-            outputType = 'bytearray';
-        } else {
-            return failWithoutRequest(cb, new Error('Unsupported outputType ' + outputType));
-        }
-        if(typeof options.input === 'undefined') {
-            if(typeof options.inputType !== 'undefined') {
-                return failWithoutRequest(cb, new Error('"input" is undefined, but inputType is defined'));
-            }
-            if(typeof inputHeaders['Content-Type'] !== 'undefined') {
-                return failWithoutRequest(cb, new Error('"input" is undefined, but Content-Type request header is defined'));
-            }
-        } else {
-            if(typeof options.inputType === 'undefined' || options.inputType === 'auto') {
-                if(typeof options.input === 'string') {
-                    inputType = 'text';
-                } else if(isByteArray(options.input)) {
-                    inputType = 'bytearray';
-                } else {
-                    return failWithoutRequest(cb, new Error('inputType is undefined or auto and input is neither string, nor ' + bytearrayMessage));
-                }
-            } else {
-                inputType = options.inputType;
-                if(inputType === 'text') {
-                    if(typeof options.input !== 'string') {
-                        return failWithoutRequest(cb, new Error('inputType is text, but input is not a string'));
-                    }
-                } else if (inputType === 'bytearray') {
-                    if(!isByteArray(options.input)) {
-                        return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither ' + bytearrayMessage));
-                    }
-                }
-            }
-            if(typeof converters[inputType + ' text'] !== 'undefined') {
-                inputConverter = converters[inputType + ' text'];
-                inputType = 'text';
-            } else if(typeof converters[inputType + ' bytearray'] !== 'undefined') {
-                inputConverter = converters[inputType + ' bytearray'];
-                inputType = 'bytearray';
-            } else if(inputType === 'text' || inputType === 'bytearray') {
-                inputConverter = pass;
-            } else {
-                return failWithoutRequest(cb, new Error('There is no converter for specified inputType'));
-            }
-            if(inputType === 'text') {
-                if(typeof inputHeaders['Content-Type'] === 'undefined') {
-                    inputHeaders['Content-Type'] = 'text/plain; charset=UTF-8';
-                }
-            } else if(inputType === 'bytearray') {
-                if(httpinvoke.requestTextOnly) {
-                    return failWithoutRequest(cb, new Error('bytearray inputType is not supported on this platform, please always test using requestTextOnly feature flag'));
-                }
-                if(typeof inputHeaders['Content-Type'] === 'undefined') {
-                    inputHeaders['Content-Type'] = 'application/octet-stream';
-                }
-                if(typeof ArrayBuffer !== 'undefined' && options.input instanceof ArrayBuffer) {
-                    options.input = new Uint8Array(options.input);
-                } else if((typeof Int16Array !== 'undefined' && options.input instanceof Int16Array) || (typeof Uint16Array !== 'undefined' && options.input instanceof Uint16Array) || (typeof Int32Array !== 'undefined' && options.input instanceof Int32Array) || (typeof Uint32Array !== 'undefined' && options.input instanceof Uint32Array) || (typeof Float32Array !== 'undefined' && options.input instanceof Float32Array) || (typeof Float64Array !== 'undefined' && options.input instanceof Float64Array)) {
-                    options.input = new Uint8Array(options.input.buffer, options.input.byteOffset, options.input.byteLength);
-                }
-            }
-            try {
-                input = inputConverter(options.input);
-            } catch(err) {
-                return failWithoutRequest(cb, err);
-            }
-        }
-
-        try {
-            validateInputHeaders(inputHeaders);
-        } catch(err) {
-            return failWithoutRequest(cb, err);
-        }
-        /*************** COMMON initialize helper variables **************/
-        var downloaded, outputHeaders, outputLength;
-        var initDownload = function(total) {
-            if(typeof outputLength !== 'undefined') {
-                return;
-            }
-            outputLength = total;
-
-            downloadProgressCb(downloaded, outputLength);
-        };
-        var updateDownload = function(value) {
-            if(value === downloaded) {
-                return;
-            }
-            downloaded = value;
-
-            downloadProgressCb(downloaded, outputLength);
-        };
-        var noData = function() {
-            if(method !== 'HEAD' && typeof outputHeaders['content-type'] !== 'undefined') {
-                cb(new Error('Received Content-Type header, but no entity body'));
-                cb = null;
-                return;
-            }
-            initDownload(0);
-            if(cb === null) {
-                return;
-            }
-            updateDownload(0);
-            if(cb === null) {
-                return;
-            }
-            var _undefined;
-            cb(_undefined, _undefined, status, outputHeaders);
-            cb = null;
-        };
+    var httpinvoke = function() {
+        var c = common.initialize.apply(null, arguments);
         /*************** initialize helper variables **************/
         var uploadProgressCbCalled = false;
         var output;
@@ -358,33 +157,36 @@
             currentLocation.href = '';
             currentLocation = currentLocation.href;
         }
-        var crossDomain = isCrossDomain(currentLocation, uri);
+        var crossDomain = isCrossDomain(currentLocation, c.uri);
         /*************** start XHR **************/
+        if(c.inputType === 'bytearray' && httpinvoke.requestTextOnly) {
+            return common.failWithoutRequest(c.cb, new Error('bytearray inputType is not supported on this platform, please always test using requestTextOnly feature flag'));
+        }
         if(crossDomain && !httpinvoke.cors) {
-            return failWithoutRequest(cb, new Error('Cross-origin requests are not supported'));
+            return common.failWithoutRequest(c.cb, new Error('Cross-origin requests are not supported'));
         }
-        if(crossDomain && method === 'DELETE' && !httpinvoke.corsDELETE) {
-            return failWithoutRequest(cb, new Error('DELETE method in cross-origin requests is not supported in this browser'));
+        if(crossDomain && c.method === 'DELETE' && !httpinvoke.corsDELETE) {
+            return common.failWithoutRequest(c.cb, new Error('DELETE method in cross-origin requests is not supported in this browser'));
         }
-        if(crossDomain && method === 'PUT' && !httpinvoke.corsPUT) {
-            return failWithoutRequest(cb, new Error('PUT method in cross-origin requests is not supported in this browser'));
+        if(crossDomain && c.method === 'PUT' && !httpinvoke.corsPUT) {
+            return common.failWithoutRequest(c.cb, new Error('PUT method in cross-origin requests is not supported in this browser'));
         }
-        if(crossDomain && method === 'HEAD' && !httpinvoke.corsHEAD) {
-            return failWithoutRequest(cb, new Error('HEAD method in cross-origin requests is not supported in this browser'));
+        if(crossDomain && c.method === 'HEAD' && !httpinvoke.corsHEAD) {
+            return common.failWithoutRequest(c.cb, new Error('HEAD method in cross-origin requests is not supported in this browser'));
         }
         var xhr = createXHR(crossDomain);
-        xhr.open(method, uri, true);
-        if(timeout > 0) {
+        xhr.open(c.method, c.uri, true);
+        if(c.timeout > 0) {
             if(typeof xhr.timeout === 'undefined') {
                 setTimeout(function() {
-                    cb(new Error('Timeout of ' + timeout + 'ms exceeded'));
-                    cb = null;
-                }, timeout);
+                    c.cb(new Error('Timeout of ' + c.timeout + 'ms exceeded'));
+                    c.cb = null;
+                }, c.timeout);
             } else {
-                xhr.timeout = timeout;
+                xhr.timeout = c.timeout;
             }
         }
-        if(options.corsCredentials && httpinvoke.corsCredentials && typeof xhr.withCredentials === 'boolean') {
+        if(c.corsCredentials && httpinvoke.corsCredentials && typeof xhr.withCredentials === 'boolean') {
             xhr.withCredentials = true;
         }
         if(crossDomain) {
@@ -395,55 +197,55 @@
             // read more: http://www.kinvey.com/blog/107/how-to-build-a-service-that-supports-every-android-browser
 
             // workaraound for #1: sending origin in custom header, also see the server-side part of the workaround in dummyserver.js
-            inputHeaders[corsOriginHeader] = window.location.protocol + '//' + window.location.host;
+            c.inputHeaders[c.corsOriginHeader] = window.location.protocol + '//' + window.location.host;
         }
 
         /*************** bind XHR event listeners **************/
         if(typeof xhr.upload !== 'undefined') {
             xhr.upload.ontimeout = function(progressEvent) {
-                if(cb === null) {
+                if(c.cb === null) {
                     return;
                 }
-                cb(new Error('upload timeout'));
-                cb = null;
+                c.cb(new Error('upload timeout'));
+                c.cb = null;
             };
             xhr.upload.onerror = function(progressEvent) {
-                if(cb === null) {
+                if(c.cb === null) {
                     return;
                 }
-                cb(new Error('upload error'));
-                cb = null;
+                c.cb(new Error('upload error'));
+                c.cb = null;
             };
             xhr.upload.onprogress = function(progressEvent) {
-                if(cb === null) {
+                if(c.cb === null) {
                     return;
                 }
                 if(progressEvent.lengthComputable) {
                     if(!uploadProgressCbCalled) {
                         uploadProgressCbCalled = true;
-                        uploadProgressCb(0, inputLength);
+                        c.uploadProgressCb(0, c.inputLength);
                     }
-                    uploadProgressCb(progressEvent.loaded, inputLength);
+                    c.uploadProgressCb(progressEvent.loaded, c.inputLength);
                 }
             };
         }
 
         if(typeof xhr.ontimeout !== 'undefined') {
             xhr.ontimeout = function(progressEvent) {
-                if(cb === null) {
+                if(c.cb === null) {
                     return;
                 }
-                cb(new Error('download timeout'));
-                cb = null;
+                c.cb(new Error('download timeout'));
+                c.cb = null;
             };
         }
         if(typeof xhr.onerror !== 'undefined') {
             xhr.onerror = function() {
-                if(cb === null) {
+                if(c.cb === null) {
                     return;
                 }
-                cb(new Error('download error'));
-                cb = null;
+                c.cb(new Error('download error'));
+                c.cb = null;
             };
         }
         if(typeof xhr.onloadstart !== 'undefined') {
@@ -458,20 +260,20 @@
         }
         if(typeof xhr.onprogress !== 'undefined') {
             xhr.onprogress = function(progressEvent) {
-                if(cb === null) {
+                if(c.cb === null) {
                     return;
                 }
                 onHeadersReceived(false);
-                if(statusCb !== null) {
+                if(c.statusCb !== null) {
                     return;
                 }
                 if(typeof progressEvent !== 'undefined') {
                     var total = progressEvent.total || progressEvent.totalSize || 0;
                     var current = progressEvent.loaded || progressEvent.position || 0;
                     if(progressEvent.lengthComputable) {
-                        initDownload(total);
+                        c.initDownload(total);
                     }
-                    if(cb === null) {
+                    if(c.cb === null) {
                         return;
                     }
                     if(current > total) {
@@ -479,17 +281,16 @@
                         // see http://dev.opera.com/articles/view/xhr2/#comment-96081222
                         return;
                     }
-                    updateDownload(current);
+                    c.updateDownload(current);
                 }
             };
         }
-        var status;
         var onHeadersReceived = function(lastTry) {
-            if(cb === null) {
+            if(c.cb === null) {
                 return;
             }
 
-            if(statusCb === null) {
+            if(c.statusCb === null) {
                 return;
             }
             if(!crossDomain || httpinvoke.corsStatus) {
@@ -497,28 +298,28 @@
                     if(typeof xhr.status === 'undefined' || xhr.status === 0) {
                         return;
                     }
-                    status = xhr.status;
+                    c.status = xhr.status;
                 } catch(_) {
                     return;
                 }
                 // sometimes IE returns 1223 when it should be 204
-                if(status === 1223) {
-                    status = 204;
+                if(c.status === 1223) {
+                    c.status = 204;
                 }
             }
 
-            outputHeaders = {};
+            c.outputHeaders = {};
             if(crossDomain) {
                 if(httpinvoke.corsResponseContentTypeOnly) {
                     if(typeof xhr.contentType === 'string') {
-                        outputHeaders['content-type'] = xhr.contentType;
+                        c.outputHeaders['content-type'] = xhr.contentType;
                     }
                 } else {
-                    for(var i = 0; i < exposedHeaders.length; i += 1) {
+                    for(var i = 0; i < c.exposedHeaders.length; i += 1) {
                         try {
-                            var header = xhr.getResponseHeader(exposedHeaders[i]);
+                            var header = xhr.getResponseHeader(c.exposedHeaders[i]);
                             if(header !== null) {
-                                outputHeaders[exposedHeaders[i].toLowerCase()] = header;
+                                c.outputHeaders[c.exposedHeaders[i].toLowerCase()] = header;
                             }
                         } catch(err) {
                             if(!lastTry) {
@@ -529,7 +330,7 @@
                 }
             } else {
                 try {
-                    fillOutputHeaders(xhr, outputHeaders);
+                    fillOutputHeaders(xhr, c.outputHeaders);
                 } catch(_) {
                     if(!lastTry) {
                         return;
@@ -539,73 +340,71 @@
 
             if(!uploadProgressCbCalled) {
                 uploadProgressCbCalled = true;
-                uploadProgressCb(0, inputLength);
+                c.uploadProgressCb(0, c.inputLength);
             }
-            uploadProgressCb(inputLength, inputLength);
-            if(cb === null) {
+            c.uploadProgressCb(c.inputLength, c.inputLength);
+            if(c.cb === null) {
                 return;
             }
 
-            statusCb(status, outputHeaders);
-            statusCb = null;
-            if(cb === null) {
+            c.statusCb(c.status, c.outputHeaders);
+            c.statusCb = null;
+            if(c.cb === null) {
                 return;
             }
 
-            // BEGIN COMMON
-            updateDownload(0);
-            if(cb === null) {
+            c.updateDownload(0);
+            if(c.cb === null) {
                 return;
             }
-            if(typeof outputHeaders['content-length'] !== 'undefined') {
-                initDownload(Number(outputHeaders['content-length']));
-                if(cb === null) {
+            if(typeof c.outputHeaders['content-length'] !== 'undefined') {
+                c.initDownload(Number(c.outputHeaders['content-length']));
+                if(c.cb === null) {
                     return;
                 }
             }
-            if(method === 'HEAD' || typeof outputHeaders['content-type'] === 'undefined') {
-                return noData();
+            if(c.method === 'HEAD' || typeof c.outputHeaders['content-type'] === 'undefined') {
+                return c.noData();
             }
-            // END COMMON
         };
         var onLoad = function() {
-            if(cb === null) {
+            if(c.cb === null) {
                 return;
             }
 
             if((!crossDomain || httpinvoke.corsStatus) && xhr.status === 0) {
-                cb(new Error('"some type" of network error'));
-                cb = null;
+                c.cb(new Error('"some type" of network error'));
+                c.cb = null;
                 return;
             }
 
             onHeadersReceived(true);
-            if(cb === null) {
+            if(c.cb === null) {
                 return;
             }
 
-            if(typeof outputLength === 'undefined') {
+            if(typeof c.outputLength === 'undefined') {
                 try {
-                    initDownload(getOutputLength[outputType](xhr));
-                    if(cb === null) {
+                    c.initDownload(getOutputLength[c.outputType](xhr));
+                    if(c.cb === null) {
                         return;
                     }
                 } catch(_) {
-                    return noData();
+                    return c.noData();
                 }
             }
 
-            updateDownload(outputLength);
-            if(cb === null) {
+            c.updateDownload(c.outputLength);
+            if(c.cb === null) {
                 return;
             }
 
             try {
-                cb(null, outputConverter(getOutput[outputType](xhr)), status, outputHeaders);
+                c.cb(null, c.outputConverter(getOutput[c.outputType](xhr)), c.status, c.outputHeaders);
             } catch(err) {
-                cb(err);
+                c.cb(err);
             }
-            cb = null;
+            c.cb = null;
         };
         if(typeof xhr.onreadystatechange !== 'undefined') {
             xhr.onreadystatechange = function() {
@@ -615,11 +414,11 @@
                 } else if(xhr.readyState === 3) {
                     // LOADING
                     onHeadersReceived(false);
-                    if(statusCb !== null) {
+                    if(c.statusCb !== null) {
                         return;
                     }
                     try {
-                        updateDownload(getOutputLength[outputType](xhr));
+                        c.updateDownload(getOutputLength[c.outputType](xhr));
                     } catch(err) {
                     }
                 } else if(xhr.readyState === 4) {
@@ -632,112 +431,113 @@
 
         /*************** set XHR request headers **************/
         if(!crossDomain || httpinvoke.corsRequestHeaders) {
-            for(var inputHeaderName in inputHeaders) {
-                if(inputHeaders.hasOwnProperty(inputHeaderName)) {
-                    xhr.setRequestHeader(inputHeaderName, inputHeaders[inputHeaderName]);
+            for(var inputHeaderName in c.inputHeaders) {
+                if(c.inputHeaders.hasOwnProperty(inputHeaderName)) {
+                    xhr.setRequestHeader(inputHeaderName, c.inputHeaders[inputHeaderName]);
                 }
             }
         }
         /*************** invoke XHR request process **************/
         setTimeout(function() {
-            if(cb === null) {
+            if(c.cb === null) {
                 return;
             }
             try {
-                xhr.responseType = outputType === 'bytearray' ? 'arraybuffer' : 'text';
+                xhr.responseType = c.outputType === 'bytearray' ? 'arraybuffer' : 'text';
             } catch(err) {
             }
             try {
                 // must override mime type before receiving headers - at least for Safari 5.0.4
-                if(outputType === 'bytearray') {
+                if(c.outputType === 'bytearray') {
                     xhr.overrideMimeType('text/plain; charset=x-user-defined');
-                } else if(outputType === 'text') {
-                    if(outputHeaders['content-type'].substr(0, 'text/'.length) !== 'text/') {
+                } else if(c.outputType === 'text') {
+                    if(c.outputHeaders['content-type'].substr(0, 'text/'.length) !== 'text/') {
                         xhr.overrideMimeType('text/plain');
                     }
                 }
             } catch(err) {
             }
             // Content-Length header is set automatically
-            if(inputType === 'bytearray') {
+            if(c.inputType === 'bytearray') {
                 var triedSendArrayBufferView = typeof ArrayBufferView === 'undefined';
                 var triedSendBlob = typeof Blob === 'undefined';
                 var triedSendBinaryString = false;
 
                 var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder || window.MSBlobBuilder;
-                if(Object.prototype.toString.call(input) === '[object Array]') {
+                if(Object.prototype.toString.call(c.input) === '[object Array]') {
                     if(typeof Uint8Array === 'undefined') {
-                        input = convertByteArrayToBinaryString(input);
+                        c.input = convertByteArrayToBinaryString(c.input);
                     } else {
-                        input = new Uint8Array(input);
+                        c.input = new Uint8Array(c.input);
                     }
                 }
                 var go = function() {
+                    var reader, bb;
                     if(triedSendBlob && triedSendArrayBufferView && triedSendBinaryString) {
-                        return failWithoutRequest(cb, new Error('Unable to send'));
+                        return common.failWithoutRequest(c.cb, new Error('Unable to send'));
                     }
-                    if(typeof ArrayBufferView !== 'undefined' && input instanceof ArrayBufferView) {
+                    if(typeof ArrayBufferView !== 'undefined' && c.input instanceof ArrayBufferView) {
                         if(triedSendArrayBufferView) {
                             if(!triedSendBinaryString) {
                                 try {
-                                    input = convertByteArrayToBinaryString(new Uint8Array(input));
+                                    c.input = convertByteArrayToBinaryString(new Uint8Array(c.input));
                                 } catch(_) {
                                     triedSendBinaryString = true;
                                 }
                             } else if(!triedSendBlob) {
                                 if(typeof BlobBuilder === 'undefined') {
                                     try {
-                                        input = new Blob([input], {
-                                            type: inputHeaders['Content-Type']
+                                        c.input = new Blob([c.input], {
+                                            type: c.inputHeaders['Content-Type']
                                         });
                                     } catch(_) {
                                         triedSendBlob = true;
                                     }
                                 } else {
-                                    var bb = new BlobBuilder();
-                                    bb.append(input);
-                                    input = bb.getBlob(inputHeaders['Content-Type']);
+                                    bb = new BlobBuilder();
+                                    bb.append(c.input);
+                                    c.input = bb.getBlob(c.inputHeaders['Content-Type']);
                                 }
                             }
                         } else {
                             try {
-                                xhr.send(input);
-                                inputLength = input.byteLength;
+                                xhr.send(c.input);
+                                c.inputLength = c.input.byteLength;
                                 return;
                             } catch(_) {
                                 triedSendArrayBufferView = true;
                             }
                         }
-                    } else if(typeof Blob !== 'undefined' && input instanceof Blob) {
+                    } else if(typeof Blob !== 'undefined' && c.input instanceof Blob) {
                         if(triedSendBlob) {
                             if(!triedSendArrayBufferView) {
                                 try {
-                                    var reader = new FileReader();
+                                    reader = new FileReader();
                                     reader.onerror = function() {
                                         triedSendArrayBufferView = true;
                                         go();
                                     };
                                     reader.onload = function() {
-                                        input = new Uint8Array(reader.result);
+                                        c.input = new Uint8Array(reader.result);
                                         go();
                                     };
-                                    reader.readAsArrayBufferView(input);
+                                    reader.readAsArrayBufferView(c.input);
                                     return;
                                 } catch(_) {
                                     triedSendArrayBufferView = true;
                                 }
                             } else if(!triedSendBinaryString) {
                                 try {
-                                    var reader = new FileReader();
+                                    reader = new FileReader();
                                     reader.onerror = function() {
                                         triedSendBinaryString = true;
                                         go();
                                     };
                                     reader.onload = function() {
-                                        input = reader.result;
+                                        c.input = reader.result;
                                         go();
                                     };
-                                    reader.readAsBinaryString(input);
+                                    reader.readAsBinaryString(c.input);
                                     return;
                                 } catch(_) {
                                     triedSendBinaryString = true;
@@ -745,8 +545,8 @@
                             }
                         } else {
                             try {
-                                xhr.send(input);
-                                inputLength = input.size;
+                                xhr.send(c.input);
+                                c.inputLength = c.input.size;
                                 return;
                             } catch(_) {
                                 triedSendBlob = true;
@@ -756,34 +556,34 @@
                         if(triedSendBinaryString) {
                             if(!triedSendArrayBufferView) {
                                 try {
-                                    var a = new ArrayBuffer(input.length);
+                                    var a = new ArrayBuffer(c.input.length);
                                     var b = new Uint8Array(a);
-                                    for(var i = 0; i < input.length; i += 1) {
-                                        b[i] = input[i] & 0xFF;
+                                    for(var i = 0; i < c.input.length; i += 1) {
+                                        b[i] = c.input[i] & 0xFF;
                                     }
-                                    input = b;
+                                    c.input = b;
                                 } catch(_) {
                                     triedSendArrayBufferView = true;
                                 }
                             } else if(!triedSendBlob) {
                                 if(typeof BlobBuilder === 'undefined') {
                                     try {
-                                        input = new Blob([input], {
-                                            type: inputHeaders['Content-Type']
+                                        c.input = new Blob([c.input], {
+                                            type: c.inputHeaders['Content-Type']
                                         });
                                     } catch(_) {
                                         triedSendBlob = true;
                                     }
                                 } else {
-                                    var bb = new BlobBuilder();
-                                    bb.append(input);
-                                    input = bb.getBlob(inputHeaders['Content-Type']);
+                                    bb = new BlobBuilder();
+                                    bb.append(c.input);
+                                    c.input = bb.getBlob(c.inputHeaders['Content-Type']);
                                 }
                             }
                         } else {
                             try {
-                                xhr.sendAsBinary(input);
-                                inputLength = input.length;
+                                xhr.sendAsBinary(c.input);
+                                c.inputLength = c.input.length;
                                 return;
                             } catch(_) {
                                 triedSendBinaryString = true;
@@ -793,27 +593,27 @@
                     setTimeout(go, 0);
                 };
                 go();
-            } else if(inputType === 'text') {
-                inputLength = countStringBytes(input);
-                xhr.send(input);
+            } else if(c.inputType === 'text') {
+                c.inputLength = countStringBytes(c.input);
+                xhr.send(c.input);
             } else {
                 xhr.send(null);
             }
             if(!uploadProgressCbCalled) {
                 uploadProgressCbCalled = true;
-                uploadProgressCb(0, inputLength);
+                c.uploadProgressCb(0, c.inputLength);
             }
         }, 0);
 
         /*************** return "abort" function **************/
         return function() {
-            if(cb === null) {
+            if(c.cb === null) {
                 return;
             }
 
             // these statements are in case "abort" is called in "finished" callback
-            var _cb = cb;
-            cb = null;
+            var _cb = c.cb;
+            c.cb = null;
             _cb(new Error('abort'));
 
             try {
