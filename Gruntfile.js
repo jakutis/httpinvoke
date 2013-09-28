@@ -67,5 +67,5 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-mocha-test');
     grunt.registerTask('install', ['concat', 'uglify']);
-    grunt.registerTask('test', ['mochaTest']);
+    grunt.registerTask('test', ['concat', 'mochaTest']);
 };
