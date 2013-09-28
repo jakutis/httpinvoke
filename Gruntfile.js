@@ -8,6 +8,7 @@ module.exports = function(grunt) {
             return contents[0] + ';' + common + ';common = common(' + globalVar + ');' + contents[1];
         };
     };
+
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         mochaTest: {
@@ -64,9 +65,11 @@ module.exports = function(grunt) {
             }
         }
     });
+
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-mocha-test');
-    grunt.registerTask('install', ['concat', 'uglify']);
+
+    grunt.registerTask('default', ['concat', 'uglify']);
     grunt.registerTask('test', ['concat', 'mochaTest']);
 };
