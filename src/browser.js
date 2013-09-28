@@ -504,8 +504,8 @@
                             }
                         } else {
                             try {
-                                xhr.send(c.input);
                                 c.inputLength = c.input.byteLength;
+                                xhr.send(c.input);
                                 return;
                             } catch(_) {
                                 triedSendArrayBufferView = true;
@@ -548,8 +548,8 @@
                             }
                         } else {
                             try {
-                                xhr.send(c.input);
                                 c.inputLength = c.input.size;
+                                xhr.send(c.input);
                                 return;
                             } catch(_) {
                                 triedSendBlob = true;
@@ -585,8 +585,8 @@
                             }
                         } else {
                             try {
-                                xhr.sendAsBinary(c.input);
                                 c.inputLength = c.input.length;
+                                xhr.sendAsBinary(c.input);
                                 return;
                             } catch(_) {
                                 triedSendBinaryString = true;
