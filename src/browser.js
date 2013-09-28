@@ -455,20 +455,23 @@
             if(c.cb === null) {
                 return;
             }
-            try {
-                xhr.responseType = c.outputType === 'bytearray' ? 'arraybuffer' : 'text';
-            } catch(err) {
-            }
-            try {
-                // must override mime type before receiving headers - at least for Safari 5.0.4
-                if(c.outputType === 'bytearray') {
-                    xhr.overrideMimeType('text/plain; charset=x-user-defined');
-                } else if(c.outputType === 'text') {
-                    if(c.outputHeaders['content-type'].substr(0, 'text/'.length) !== 'text/') {
-                        xhr.overrideMimeType('text/plain');
+            if(typeof xhr.response === 'undefined') {
+                try {
+                    // mime type override must be done before receiving headers - at least for Safari 5.0.4
+                    if(c.outputType === 'bytearray') {
+                        xhr.overrideMimeType('text/plain; charset=x-user-defined');
+                    } else if(c.outputType === 'text') {
+                        if(c.outputHeaders['content-type'].substr(0, 'text/'.length) !== 'text/') {
+                            xhr.overrideMimeType('text/plain');
+                        }
                     }
+                } catch(err) {
                 }
-            } catch(err) {
+            } else {
+                try {
+                    xhr.responseType = c.outputType === 'bytearray' ? 'arraybuffer' : 'text';
+                } catch(err) {
+                }
             }
             // Content-Length header is set automatically
             if(c.inputType === 'bytearray') {
