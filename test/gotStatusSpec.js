@@ -13,10 +13,7 @@ describe('"gotStatus" option', function() {
         });
         it('has headers argument defined' + postfix, function(done) {
             httpinvoke(url, {
-                gotStatus: function(err, _, __, headers) {
-                    if(err) {
-                        return done(err);
-                    }
+                gotStatus: function(__, headers) {
                     if(typeof headers === 'undefined') {
                         return done(new Error('headers argument is not defined'));
                     }
@@ -27,10 +24,7 @@ describe('"gotStatus" option', function() {
         if(!crossDomain || httpinvoke.corsStatus) {
             it('has status argument defined' + postfix, function(done) {
                 httpinvoke(url, {
-                    gotStatus: function(err, _, status, __) {
-                        if(err) {
-                            return done(err);
-                        }
+                    gotStatus: function(status, __) {
                         if(typeof status === 'undefined') {
                             return done(new Error('status argument is not defined'));
                         }
