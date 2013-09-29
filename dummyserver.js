@@ -3,6 +3,8 @@ var cfg = require('./dummyserver-config');
 var daemon = require('daemon');
 var fs = require('fs');
 
+var hello = new Buffer('Hello World\n', 'utf8');
+
 var bigslowHello = function(res) {
     var entity = 'This School Is Not Falling Apart.\n';
     var n = 100;
@@ -44,41 +46,99 @@ var endsWith = function(str, substr) {
     return str.substr(str.length - substr.length) === substr;
 };
 
+// on some Android devices CORS implementations are buggy
+// that is why there needs to be two workarounds:
+// 1. custom header with origin has to be passed, because they do not send Origin header on the actual request
+// 2. caching must be disabled on serverside, because of unknown reasons, and when developing, you should clear cache on device, after disabling the cache on serverside
+// read more: http://www.kinvey.com/blog/107/how-to-build-a-service-that-supports-every-android-browser
+
+var corsHeaders = function(headers, req) {
+    headers['Access-Control-Allow-Credentials'] = 'true';
+    headers['Access-Control-Allow-Origin'] = '*';
+    headers['Access-Control-Allow-Methods'] = 'OPTIONS, POST, HEAD, PUT, DELETE, GET';
+    // workaround for #1: the server-side part: need X-Httpinvoke-Origin header
+    // workaround for Safari 4.0: need Content-Type header
+    headers['Access-Control-Allow-Headers'] = 'Content-Type, If-Modified-Since, Range, X-Httpinvoke-Origin';
+    // additional optional headers
+    headers['Access-Control-Expose-Headers'] = 'Content-Length, Content-Range, Location';
+    if(typeof req.headers.origin !== 'undefined') {
+        headers['Access-Control-Allow-Origin'] = req.headers.origin;
+    } else if(typeof req.headers['x-httpinvoke-origin'] !== 'undefined') {
+        // workaround for #1: the server-side part
+        headers['Access-Control-Allow-Origin'] = req.headers['x-httpinvoke-origin'];
+    }
+};
+
+var entityHeaders = function(headers) {
+    // workaround for #2: avoiding cache
+    headers.Pragma = 'no-cache';
+    headers.Expires = 'Thu, 01 Jan 1970 00:00:00 GMT';
+    headers['Last-Modified'] = new Date().toGMTString();
+    headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0';
+};
+
+var outputStatus = function(req, res) {
+    var code, i;
+    if(Object.keys(cfg.status).some(function(_code) {
+        code = _code;
+        if(endsWith(req.url, '/status/' + code)) {
+            i = 0;
+            while(true) {
+                if(endsWith(req.url, '/' + i + '/status/' + code)) {
+                    break;
+                }
+                i += 1;
+            }
+            return true;
+        }
+    })) {
+        if(typeof cfg.status[code][req.method] !== 'undefined') {
+            var params = cfg.status[code][req.method][i];
+            var headers = {};
+            corsHeaders(headers, req);
+            if(params.location) {
+                headers.Location = 'http://' + req.headers.host + req.url.substr(0, req.url.length - ('/' + i + '/status/' + code).length);
+                res.writeHead(Number(code), headers);
+                res.end();
+            } else if(params.responseEntity) {
+                entityHeaders(headers);
+                headers['Content-Type'] = 'text/plain';
+                if(params.partialResponse) {
+                    headers['Accept-Ranges'] = 'bytes';
+                    headers['Content-Range'] = 'bytes 0-4/' + hello.length;
+                    headers['Content-Length'] = '5';
+                    res.writeHead(Number(code), headers);
+                    res.end(hello.slice(0, 5));
+                } else {
+                    headers['Content-Length'] = String(hello.length);
+                    res.writeHead(Number(code), headers);
+                    res.end(hello);
+                }
+            } else {
+                if(code === '407') {
+                    headers['Proxy-Authenticate'] = 'Basic realm="httpinvoke"';
+                }
+                res.writeHead(Number(code), headers);
+                res.end();
+            }
+        }
+        return true;
+    }
+    return false;
+};
+
 var listen = function (req, res) {
     res.useChunkedEncodingByDefault = false;
 
     var output = function(status, body, head, mimeType) {
-        // on some Android devices CORS implementations are buggy
-        // that is why there needs to be two workarounds:
-        // 1. custom header with origin has to be passed, because they do not send Origin header on the actual request
-        // 2. caching must be disabled on serverside, because of unknown reasons, and when developing, you should clear cache on device, after disabling the cache on serverside
-        // read more: http://www.kinvey.com/blog/107/how-to-build-a-service-that-supports-every-android-browser
-
         var headers = {
-            'Access-Control-Allow-Credentials': 'true',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'OPTIONS, POST, HEAD, PUT, DELETE, GET',
-            // workaround for #1: the server-side part: need X-Httpinvoke-Origin header
-            // workaround for Safari 4.0: need Content-Type header
-            'Access-Control-Allow-Headers': 'Content-Type, X-Httpinvoke-Origin',
-            // needed for httpinvoke to function properly
-            'Access-Control-Expose-Headers': 'Content-Length',
-            // workaround for #2: avoiding cache
-            'Pragma': 'no-cache',
-            'Expires': 'Thu, 01 Jan 1970 00:00:00 GMT',
-            'Last-Modified': new Date().toGMTString(),
-            'Cache-Control': 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0'
         };
         if(body !== null) {
+            entityHeaders(headers);
             headers['Content-Type'] = mimeType;
             headers['Content-Length'] = String(body.length);
         }
-        if(typeof req.headers.origin !== 'undefined') {
-            headers['Access-Control-Allow-Origin'] = req.headers.origin;
-        } else if(typeof req.headers['x-httpinvoke-origin'] !== 'undefined') {
-            // workaround for #1: the server-side part
-            headers['Access-Control-Allow-Origin'] = req.headers['x-httpinvoke-origin'];
-        }
+        corsHeaders(headers, req);
         res.writeHead(status, headers);
         if(body === null || head) {
             res.end();
@@ -92,11 +152,14 @@ var listen = function (req, res) {
         }
         output(200, new Buffer('OK', 'utf8'), false, 'text/plain; charset=UTF-8');
     };
-    var hello = new Buffer('Hello World\n', 'utf8');
 
     if(req.method === 'OPTIONS') {
-        output(200, new Buffer([]), false, 'text/plain; charset=UTF-8');
-    } else if(req.method === 'POST') {
+        return output(200, new Buffer([]), false, 'text/plain; charset=UTF-8');
+    }
+    if(outputStatus(req, res)) {
+        return;
+    }
+    if(req.method === 'POST') {
         if(endsWith(req.url, '/noentity')) {
             output(204, null, false);
         } else if(endsWith(req.url, '/headers/contentType')) {
