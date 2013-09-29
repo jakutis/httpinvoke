@@ -331,7 +331,7 @@
                     for(var i = 0; i < c.exposedHeaders.length; i += 1) {
                         try {
                             var header = xhr.getResponseHeader(c.exposedHeaders[i]);
-                            if(header !== null) {
+                            if(header !== null && header !== '') {
                                 c.outputHeaders[c.exposedHeaders[i].toLowerCase()] = header;
                             }
                         } catch(err) {
