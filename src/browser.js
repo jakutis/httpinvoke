@@ -360,6 +360,13 @@
                 return;
             }
 
+            if(xhr.contentType === 'text/html' && xhr.responseText === '') {
+                // When no entity body and/or no Content-Type header is sent,
+                // XDomainRequest on IE-8 defaults to text/html xhr.contentType.
+                // Also, empty string is not a valid 'text/html' entity.
+                delete c.outputHeaders['content-type'];
+            }
+
             c.statusCb(c.status, c.outputHeaders);
             c.statusCb = null;
             if(c.cb === null) {
