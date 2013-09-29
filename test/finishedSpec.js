@@ -3,7 +3,7 @@ var httpinvoke = require('../httpinvoke-node');
 
 describe('"finished" option', function() {
     this.timeout(10000);
-    cfg.eachBase(function(postfix, url) {
+    cfg.eachBase(function(postfix, url, crossDomain) {
         it('is called exactly once' + postfix, function(done) {
             var count = 0;
             httpinvoke(url, function(err) {
