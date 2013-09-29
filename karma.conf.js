@@ -17,6 +17,7 @@ module.exports = function(config) {
     files: [
       'httpinvoke-browser.js',
       'karma-mocha-requireHack.js',
+      'node_modules/es5-shim/es5-shim.js',
       'test/*.js'
     ],
 
