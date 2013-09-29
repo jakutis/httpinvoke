@@ -3,7 +3,7 @@ var httpinvoke = require('../httpinvoke-node');
 
 describe('"gotStatus" option', function() {
     this.timeout(10000);
-    cfg.eachBase(function(postfix, url) {
+    cfg.eachBase(function(postfix, url, crossDomain) {
         it('receives Content-Type header' + postfix, function(done) {
             httpinvoke(url, {
                 gotStatus: function(_, headers) {
@@ -11,13 +11,34 @@ describe('"gotStatus" option', function() {
                 }
             });
         });
-        it('receives status 200' + postfix, function(done) {
+        it('has headers argument defined' + postfix, function(done) {
             httpinvoke(url, {
-                gotStatus: function(status, _) {
-                    done(status === 200 ? null : new Error('status is not 200'));
+                gotStatus: function(err, _, __, headers) {
+                    if(err) {
+                        return done(err);
+                    }
+                    if(typeof headers === 'undefined') {
+                        return done(new Error('headers argument is not defined'));
+                    }
+                    done();
                 }
             });
         });
+        if(!crossDomain || httpinvoke.corsStatus) {
+            it('has status argument defined' + postfix, function(done) {
+                httpinvoke(url, {
+                    gotStatus: function(err, _, status, __) {
+                        if(err) {
+                            return done(err);
+                        }
+                        if(typeof status === 'undefined') {
+                            return done(new Error('status argument is not defined'));
+                        }
+                        done();
+                    }
+                });
+            });
+        }
         it('is called exactly once' + postfix, function(done) {
             var count = 0;
             httpinvoke(url, {

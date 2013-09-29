@@ -26,14 +26,30 @@ describe('"finished" option', function() {
                 }
             });
         });
-        it('receives status 200' + postfix, function(done) {
-            httpinvoke(url, function(err, _, status, __) {
+        it('has headers argument defined' + postfix, function(done) {
+            httpinvoke(url, function(err, _, __, headers) {
                 if(err) {
                     return done(err);
                 }
-                done(status === 200 ? null : new Error('status is not 200'));
+                if(typeof headers === 'undefined') {
+                    return done(new Error('headers argument is not defined'));
+                }
+                done();
             });
         });
+        if(!crossDomain || httpinvoke.corsStatus) {
+            it('has status argument defined' + postfix, function(done) {
+                httpinvoke(url, function(err, _, status, __) {
+                    if(err) {
+                        return done(err);
+                    }
+                    if(typeof status === 'undefined') {
+                        return done(new Error('status argument is not defined'));
+                    }
+                    done();
+                });
+            });
+        }
         it('receives Content-Type header' + postfix, function(done) {
             httpinvoke(url, function(err, _, __, headers) {
                 if(err) {
