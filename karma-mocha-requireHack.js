@@ -26,9 +26,6 @@ window._cfg = {
      *
      * ## Statuses that should work, but should not be used, with reasons
      *
-     * 3XX 4XX 5XX:
-     * - Opera <12.00, Firefox <4.0 send "some type" of network error
-     *
      * 408 GET:
      * - Firefox 24.0 sends "some type" of network error
      *

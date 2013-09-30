@@ -687,6 +687,14 @@
     httpinvoke.corsStatus = false;
     httpinvoke.corsResponseTextOnly = false;
     httpinvoke.requestTextOnly = false;
+    httpinvoke.statuses = [200, 201, 202, 203, 305];
+    /*
+     * 3XX 4XX 5XX:
+     * - Opera <12.00 sends "some type" of network error
+     */
+    if(typeof window.opera === 'undefined' || (typeof window.opera.version !== 'undefined' && parseFloat(window.opera.version()) >= 12)) {
+        httpinvoke.statuses.push.apply(httpinvoke.statuses, [204, 205, 206, 300, 304, 400, 402, 403, 404, 405, 406, 409, 410, 416, 500, 501, 502, 503, 504, 505]);
+    }
     (function() {
         try {
             createXHR = function() {

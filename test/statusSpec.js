@@ -1,13 +1,16 @@
 var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
-describe('"status" argument', function() {
+describe.only('"status" argument', function() {
     this.timeout(10000);
     cfg.eachBase(function(postfix, url, crossDomain) {
         if(crossDomain && !httpinvoke.corsStatus) {
             return;
         }
         Object.keys(cfg.status).forEach(function(code) {
+            if(httpinvoke.statuses.indexOf(Number(code)) < 0) {
+                return;
+            }
             Object.keys(cfg.status[code]).forEach(function(method) {
                 cfg.status[code][method].forEach(function(params, i) {
                     var _postfix = postfix;
