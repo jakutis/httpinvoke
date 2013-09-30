@@ -696,7 +696,10 @@
      * - Opera <12.00 sends "some type" of network error
      */
     if(typeof window.opera === 'undefined' || (typeof window.opera.version !== 'undefined' && parseFloat(window.opera.version()) >= 12)) {
-        httpinvoke.statuses.push.apply(httpinvoke.statuses, [204, 205, 206, 300, 304, 400, 402, 403, 404, 405, 406, 409, 410, 416, 500, 501, 502, 503, 504, 505]);
+        httpinvoke.statuses.push.apply(httpinvoke.statuses, [204, 205, 400, 402, 403, 404, 405, 406, 409, 410, 416, 500, 501, 502, 503, 504, 505]);
+    }
+    if(typeof window.opera === 'undefined') {
+        httpinvoke.statuses.push.apply(httpinvoke.statuses, [206, 300, 304]);
     }
     (function() {
         try {
