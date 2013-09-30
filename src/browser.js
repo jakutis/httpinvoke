@@ -234,6 +234,18 @@
         }
 
         /*************** bind XHR event listeners **************/
+        var onuploadprogress = function(progressEvent) {
+            if(c.cb === null) {
+                return;
+            }
+            if(progressEvent && progressEvent.lengthComputable) {
+                if(!uploadProgressCbCalled) {
+                    uploadProgressCbCalled = true;
+                    c.uploadProgressCb(0, c.inputLength);
+                }
+                c.uploadProgressCb(progressEvent.loaded, c.inputLength);
+            }
+        };
         if(typeof xhr.upload !== 'undefined') {
             xhr.upload.ontimeout = function(progressEvent) {
                 if(c.cb === null) {
@@ -249,18 +261,9 @@
                 c.cb(new Error('upload error'));
                 c.cb = null;
             };
-            xhr.upload.onprogress = function(progressEvent) {
-                if(c.cb === null) {
-                    return;
-                }
-                if(progressEvent.lengthComputable) {
-                    if(!uploadProgressCbCalled) {
-                        uploadProgressCbCalled = true;
-                        c.uploadProgressCb(0, c.inputLength);
-                    }
-                    c.uploadProgressCb(progressEvent.loaded, c.inputLength);
-                }
-            };
+            xhr.upload.onprogress = onuploadprogress;
+        } else if(typeof xhr.onuploadprogress !== 'undefined') {
+            xhr.onuploadprogress = onuploadprogress;
         }
 
         if(typeof xhr.ontimeout !== 'undefined') {
