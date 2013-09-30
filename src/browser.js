@@ -8,6 +8,26 @@
   }
 }(this, function () {
     var common;
+    var statusTextToCode = {
+        'Multiple Choices': 300,
+        'Not Modified': 304,
+        'Use Proxy': 305,
+        'Bad Request': 400,
+        'Payment Required': 402,
+        'Forbidden': 403,
+        'Not Found': 404,
+        'Method Not Allowed': 405,
+        'Not Acceptable': 406,
+        'Conflict': 409,
+        'Gone': 410,
+        'Requested Range Not Satisfiable': 416,
+        'Internal Server Error': 500,
+        'Not Implemented': 501,
+        'Bad Gateway': 502,
+        'Service Unavailable': 503,
+        'Gateway Time-out': 504,
+        'HTTP Version Not Supported': 505
+    };
     var bufferSlice = function(buffer, begin, end) {
         if(begin === 0 && end === buffer.byteLength) {
             return buffer;
@@ -308,10 +328,18 @@
             }
             if(!crossDomain || httpinvoke.corsStatus) {
                 try {
-                    if(typeof xhr.status === 'undefined' || xhr.status === 0) {
+                    if(typeof xhr.status === 'undefined') {
                         return;
                     }
-                    c.status = xhr.status;
+                    if(xhr.status === 0) {
+                        if(typeof xhr.statusText !== 'undefined' && typeof statusTextToCode[xhr.statusText] !== 'undefined') {
+                            c.status = statusTextToCode[xhr.statusText];
+                        } else {
+                            return;
+                        }
+                    } else {
+                        c.status = xhr.status;
+                    }
                 } catch(_) {
                     return;
                 }
@@ -392,7 +420,7 @@
                 return;
             }
 
-            if((!crossDomain || httpinvoke.corsStatus) && xhr.status === 0) {
+            if((!crossDomain || httpinvoke.corsStatus) && typeof c.status === 'undefined') {
                 c.cb(new Error('"some type" of network error'));
                 c.cb = null;
                 return;
