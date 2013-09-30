@@ -420,14 +420,14 @@
                 return;
             }
 
-            if((!crossDomain || httpinvoke.corsStatus) && typeof c.status === 'undefined') {
-                c.cb(new Error('"some type" of network error'));
-                c.cb = null;
+            onHeadersReceived(true);
+            if(c.cb === null) {
                 return;
             }
 
-            onHeadersReceived(true);
-            if(c.cb === null) {
+            if((!crossDomain || httpinvoke.corsStatus) && typeof c.status === 'undefined') {
+                c.cb(new Error('"some type" of network error'));
+                c.cb = null;
                 return;
             }
 
