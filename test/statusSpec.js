@@ -1,7 +1,7 @@
 var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
-describe.only('"status" argument', function() {
+describe('"status" argument', function() {
     this.timeout(10000);
     cfg.eachBase(function(postfix, url, crossDomain) {
         if(crossDomain && !httpinvoke.corsStatus) {
