@@ -112,7 +112,7 @@ var common = function(global) {
         c.inputLength = 0;
         c.inputHeaders = options.headers || {};
         c.outputType = options.outputType || "text";
-        c.exposedHeaders = options.corsHeaders || [];
+        c.exposedHeaders = options.corsExposedHeaders || [];
         c.exposedHeaders.push.apply(c.exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma']);
         c.corsOriginHeader = options.corsOriginHeader || 'X-Httpinvoke-Origin';
         c.corsCredentials = !!options.corsCredentials;

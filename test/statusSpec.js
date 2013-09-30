@@ -20,7 +20,7 @@ describe('"status" argument', function() {
                         var hello = 'Hello World\n';
                         var opts = {
                             headers: {},
-                            corsHeaders: [],
+                            corsExposedHeaders: [],
                             finished: function(err, output, status, headers) {
                                 if(err) {
                                     return done(err);
@@ -61,13 +61,13 @@ describe('"status" argument', function() {
                             }
                         };
                         if(params.location) {
-                            opts.corsHeaders.push('Location');
+                            opts.corsExposedHeaders.push('Location');
                         }
                         if(params.requestEntity) {
                             opts.input = 'Hello World\n';
                         }
                         if(params.partialResponse) {
-                            opts.corsHeaders.push('Content-Range');
+                            opts.corsExposedHeaders.push('Content-Range');
                             opts.headers.Range = 'bytes=0-4';
                         }
                         if(params.ifModified) {
