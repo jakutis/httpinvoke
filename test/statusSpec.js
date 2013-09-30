@@ -44,9 +44,6 @@ describe('"status" argument', function() {
                                         if(output !== hello.substr(0, 5)) {
                                             return done(new Error('unexpected output ' + output));
                                         }
-                                        if(headers['content-range'] !== 'bytes 0-4/' + hello.length) {
-                                            return done(new Error('unexpected Content-Range ' + headers['content-range']));
-                                        }
                                     } else {
                                         if(output !== hello) {
                                             return done(new Error('unexpected output'));
