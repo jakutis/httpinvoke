@@ -221,7 +221,7 @@ var common = function(global) {
             if(c.cb === null) {
                 return;
             }
-            c.cb(c._undefined, c._undefined, c.status, c.outputHeaders);
+            c.cb(null, c._undefined, c.status, c.outputHeaders);
             c.cb = null;
         };
         return c;
