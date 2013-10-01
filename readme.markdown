@@ -14,6 +14,7 @@ HTTP client for JavaScript. [Check out the demo.](http://jakut.is:1337/)
 * Available on [npm](https://npmjs.org/package/httpinvoke) and [GitHub](https://github.com/jakutis/httpinvoke).
 * Supports [npm](https://npmjs.org/), [Bower](http://bower.io/) and [Component](http://component.io/) package managers.
 * Tested on:
+  * NodeJS 0.10.20
   * IE 7.0.0 and later
   * Firefox 3.0.0 and later
   * Chrome 1.0.154 and later
