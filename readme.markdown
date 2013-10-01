@@ -3,9 +3,12 @@
 HTTP client for JavaScript. [Check out the demo.](http://jakut.is:1337/)
 
 * Sends requests and receives responses.
+* Tries hard to get the HTTP response status code in all cases.
+* Emits the HTTP response status code and headers as soon as they are available.
 * Gracefully upgrades to latest platform-specific features:
-  * [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
+  * [cross-origin resource sharing](http://www.w3.org/TR/cors/)
   * [progress events](http://www.w3.org/TR/progress-events/)
+  * [binary file uploads and downloads](http://www.w3.org/TR/XMLHttpRequest/)
 * Works on [web browser](http://en.wikipedia.org/wiki/Internet_Explorer_5) and [Node.js](http://nodejs.org) platforms.
 * Detects the presence of [CommonJS](http://www.commonjs.org/) and [AMD](https://www.google.com/search?q=advanced+module+definition) script loaders.
 * Available on [npm](https://npmjs.org/package/httpinvoke) and [GitHub](https://github.com/jakutis/httpinvoke).
