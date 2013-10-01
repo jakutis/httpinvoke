@@ -22,7 +22,7 @@
     "xmlhttprequest",
     "web"
   ],
-  "main": "./httpinvoke-generated-commonjs.js",
+  "main": "./httpinvoke-commonjs.js",
   "private": false,
   "dependencies": {},
   "devDependencies": {
