@@ -38,10 +38,9 @@
     "karma-mocha": "0.1.x"
   },
   "scripts": {
-    "install": "./node_modules/.bin/grunt",
-    "test": "npm install;node ./dummyserver.js;./node_modules/.bin/grunt test;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid",
-    "test-browser": "npm install;node ./dummyserver.js;./node_modules/.bin/karma start;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid",
-    "test-node": "npm install;node ./dummyserver.js;./node_modules/.bin/mocha --watch;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid"
+    "test": "./node_modules/.bin/grunt;node ./dummyserver.js;./node_modules/.bin/grunt test;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid",
+    "test-browser": "./node_modules/.bin/grunt;node ./dummyserver.js;./node_modules/.bin/karma start;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid",
+    "test-node": "./node_modules/.bin/grunt;node ./dummyserver.js;./node_modules/.bin/mocha --watch;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid"
   },
   "repository": {
     "type": "git",
