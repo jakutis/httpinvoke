@@ -30,7 +30,7 @@ http.createServer(function (req, res) {
             serveFile(res, __dirname + '/index.html', 'text/html; charset=UTF-8');
         }
     } else if(req.method === 'POST') {
-        var entity = 'Ši mokykla negriūva.\n';
+        var entity = new Buffer('Ši mokykla negriūva.\n');
         var n = 100;
         res.writeHead(200, {
             'Content-Type': 'text/plain; charset=UTF-8',
