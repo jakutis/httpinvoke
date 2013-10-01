@@ -39,9 +39,9 @@
   },
   "scripts": {
     "install": "./node_modules/.bin/grunt",
-    "test": "node ./dummyserver.js;./node_modules/.bin/grunt test;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid",
-    "test-browser": "./node_modules/.bin/grunt;node ./dummyserver.js;./node_modules/.bin/karma start;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid",
-    "test-node": "./node_modules/.bin/grunt;node ./dummyserver.js;./node_modules/.bin/mocha --watch;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid"
+    "test": "npm install;node ./dummyserver.js;./node_modules/.bin/grunt test;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid",
+    "test-browser": "npm install;./node_modules/.bin/grunt;node ./dummyserver.js;./node_modules/.bin/karma start;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid",
+    "test-node": "npm install;./node_modules/.bin/grunt;node ./dummyserver.js;./node_modules/.bin/mocha --watch;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid"
   },
   "repository": {
     "type": "git",
