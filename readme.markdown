@@ -88,7 +88,8 @@ All options are optional.
   0. **output** is:
       * undefined, if err is not null or no response entity has been received (e.g. when **method** is `"HEAD"`),
       * a string, if **outputType** is `"text"`,
-      * a bytearray - instance of [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/Uint8Array) or instance of [Buffer](http://nodejs.org/api/buffer.html) or instance of [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) that has elements of type "number" with values ranging from `0` to `255` - if **outputType** is `"bytearray"`.
+      * a bytearray - instance of [Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/Uint8Array) or instance of [Buffer](http://nodejs.org/api/buffer.html) or instance of [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) that has elements of type "number" with values ranging from `0` to `255` - if **outputType** is `"bytearray"`,
+      * any value - if **outputType** is neither `"bytearray"`, nor `"text"`, i.e. a converter has been called.
   0. **status** is:
       * undefined, if err is not null or no correct value is available,
       * otherwise, a number for an HTTP response status code, correct value.
