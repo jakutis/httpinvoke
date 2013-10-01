@@ -26,37 +26,30 @@ describe('"finished" option', function() {
                 }
             });
         });
-        it('has headers argument defined' + postfix, function(done) {
-            httpinvoke(url, function(err, _, __, headers) {
-                if(err) {
-                    return done(err);
-                }
-                if(typeof headers === 'undefined') {
-                    return done(new Error('headers argument is not defined'));
-                }
-                done();
-            });
-        });
-        if(!crossDomain || httpinvoke.corsStatus) {
-            it('has status argument defined' + postfix, function(done) {
-                httpinvoke(url, function(err, _, status, __) {
+        it('receives Content-Type header when method=GET results in status 200 on server' + postfix, function(done) {
+            httpinvoke(url, {
+                finished: function(err, _, __, headers) {
                     if(err) {
                         return done(err);
                     }
-                    if(typeof status === 'undefined') {
-                        return done(new Error('status argument is not defined'));
+                    done(typeof headers['content-type'] === 'string' ? null : new Error('Content-Type was not received'));
+                }
+            });
+        });
+        if(!crossDomain || httpinvoke.corsStatus) {
+            it('receives status 200 when method=GET results in status 200 on server' + postfix, function(done) {
+                httpinvoke(url, {
+                    finished: function(err, _, status, __) {
+                        if(err) {
+                            return done(err);
+                        }
+                        if(status !== 200) {
+                            return done(new Error('status argument is not defined'));
+                        }
+                        done();
                     }
-                    done();
                 });
             });
         }
-        it('receives Content-Type header' + postfix, function(done) {
-            httpinvoke(url, function(err, _, __, headers) {
-                if(err) {
-                    return done(err);
-                }
-                done(typeof headers['content-type'] === 'string' ? null : new Error('Content-Type was not received'));
-            });
-        });
     });
 });
