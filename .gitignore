@@ -1,6 +1,2 @@
 /node_modules
-/httpinvoke-browser.js
-/httpinvoke-node.js
-/httpinvoke-commonjs.js
-/httpinvoke-browser.min.js
 /dummyserver.pid
