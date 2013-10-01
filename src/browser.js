@@ -8,19 +8,44 @@
   }
 }(this, function () {
     var common;
+    var isNonEmptyString = function(str) {
+        return typeof str === 'string' && str !== '';
+    };
     var statusTextToCode = {
+        'Continue': 100,
+        'Switching Protocols': 101,
+        'OK': 200,
+        'Created': 201,
+        'Accepted': 202,
+        'Non-Authoritative Information': 203,
+        'No Content': 204,
+        'Reset Content': 205,
+        'Partial Content': 206,
         'Multiple Choices': 300,
+        'Moved Permanently': 301,
+        'Found': 302,
+        'See Other': 303,
         'Not Modified': 304,
         'Use Proxy': 305,
+        'Temporary Redirect': 307,
         'Bad Request': 400,
+        'Unauthorized': 401,
         'Payment Required': 402,
         'Forbidden': 403,
         'Not Found': 404,
         'Method Not Allowed': 405,
         'Not Acceptable': 406,
+        'Proxy Authentication Required': 407,
+        'Request Timeout': 408,
         'Conflict': 409,
         'Gone': 410,
+        'Length Required': 411,
+        'Precondition Failed': 412,
+        'Request Entity Too Large': 413,
+        'Request-URI Too Long': 414,
+        'Unsupported Media Type': 415,
         'Requested Range Not Satisfiable': 416,
+        'Expectation Failed': 417,
         'Internal Server Error': 500,
         'Not Implemented': 501,
         'Bad Gateway': 502,
@@ -148,18 +173,21 @@
         };
     };
 
-    var fillOutputHeaders = function(xhr, outputHeaders) {
+    var fillOutputHeaders = function(xhr, headers, outputHeaders) {
         var headers = xhr.getAllResponseHeaders().split(/\r?\n/);
         var i = headers.length - 1;
         var header;
+        var responseHeaders = false;
         while(i >= 0) {
             header = trim(headers[i]);
             if(header.length > 0) {
                 header = parseHeader(header);
                 outputHeaders[header.name] = header.value;
+                responseHeaders = true;
             }
             i -= 1;
         }
+        return responseHeaders;
     };
 
     var urlPartitioningRegExp = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/;
@@ -176,6 +204,19 @@
         }
         /*************** initialize helper variables **************/
         var uploadProgressCbCalled = false;
+        var uploadProgress = function(uploaded) {
+            if(c.uploadProgressCb === null) {
+                return;
+            }
+            if(!uploadProgressCbCalled) {
+                uploadProgressCbCalled = true;
+                c.uploadProgressCb(0, c.inputLength);
+            }
+            c.uploadProgressCb(uploaded, c.inputLength);
+            if(uploaded === c.inputLength) {
+                c.uploadProgressCb = null;
+            }
+        };
         var output;
         var i;
         var currentLocation;
@@ -212,7 +253,7 @@
         if(c.timeout > 0) {
             if(typeof xhr.timeout === 'undefined') {
                 setTimeout(function() {
-                    c.cb(new Error('Timeout of ' + c.timeout + 'ms exceeded'));
+                    c.cb(new Error('download timeout'));
                     c.cb = null;
                 }, c.timeout);
             } else {
@@ -239,11 +280,7 @@
                 return;
             }
             if(progressEvent && progressEvent.lengthComputable) {
-                if(!uploadProgressCbCalled) {
-                    uploadProgressCbCalled = true;
-                    c.uploadProgressCb(0, c.inputLength);
-                }
-                c.uploadProgressCb(progressEvent.loaded, c.inputLength);
+                uploadProgress(progressEvent.loaded);
             }
         };
         if(typeof xhr.upload !== 'undefined') {
@@ -268,6 +305,7 @@
 
         if(typeof xhr.ontimeout !== 'undefined') {
             xhr.ontimeout = function(progressEvent) {
+                //dbg('ontimeout');
                 if(c.cb === null) {
                     return;
                 }
@@ -276,26 +314,28 @@
             };
         }
         if(typeof xhr.onerror !== 'undefined') {
-            xhr.onerror = function() {
-                if(c.cb === null) {
-                    return;
-                }
-                c.cb(new Error('download error'));
-                c.cb = null;
+            xhr.onerror = function(e) {
+                inspect('onerror', e);
+                //dbg('onerror');
+                // For 4XX and 5XX response codes Firefox 3.6 cross-origin request ends up here, but has correct statusText, but no status and headers
+                onLoad();
             };
         }
         if(typeof xhr.onloadstart !== 'undefined') {
             xhr.onloadstart = function() {
+                //dbg('onloadstart');
                 onHeadersReceived(false);
             };
         }
         if(typeof xhr.onloadend !== 'undefined') {
             xhr.onloadend = function() {
+                //dbg('onloadend');
                 onHeadersReceived(false);
             };
         }
         if(typeof xhr.onprogress !== 'undefined') {
             xhr.onprogress = function(progressEvent) {
+                //dbg('onprogress');
                 if(c.cb === null) {
                     return;
                 }
@@ -304,6 +344,10 @@
                     return;
                 }
                 if(typeof progressEvent !== 'undefined') {
+                    // There is a bug in Chrome 10 on 206 response with Content-Range=0-4/12 - total must be 5
+                    // 'total', 12, 'totalSize', 12, 'loaded', 5, 'position', 5, 'lengthComputable', true, 'status', 206
+                    // console.log('total', progressEvent.total, 'totalSize', progressEvent.totalSize, 'loaded', progressEvent.loaded, 'position', progressEvent.position, 'lengthComputable', progressEvent.lengthComputable, 'status', c.status);
+                    // httpinvoke does not work around this bug, because Chrome 10 is practically not used at all, as Chrome agressively auto-updates itself to latest version
                     var total = progressEvent.total || progressEvent.totalSize || 0;
                     var current = progressEvent.loaded || progressEvent.position || 0;
                     if(progressEvent.lengthComputable) {
@@ -321,81 +365,131 @@
                 }
             };
         }
+        /*
+        var inspect = function(name, obj) {
+            return;
+            console.log('INSPECT ----- ', name, c.uri);
+            for(var i in obj) {
+                try {
+                    console.log(name, 'PASS', i, typeof obj[i], typeof obj[i] === 'function' ? '[code]' : obj[i]);
+                } catch(_) {
+                    console.log(name, 'FAIL', i);
+                }
+            }
+        };
+        var dbg = function(name) {
+            console.log('DBG ----- ', name, c.uri);
+            inspect('xhr', xhr);
+            try {
+                console.log('PASS', 'headers', xhr.getAllResponseHeaders());
+            } catch(_) {
+                console.log('FAIL', 'headers');
+            }
+            try {
+                console.log('PASS', 'cache-control', xhr.getResponseHeader('Cache-Control'));
+            } catch(_) {
+                console.log('FAIL', 'cache-control');
+            }
+        };
+        */
+        var received = {
+            success: false,
+            status: false,
+            entity: false,
+            headers: false
+        };
         var onHeadersReceived = function(lastTry) {
             if(c.cb === null) {
                 return;
             }
 
+            try {
+                if(typeof xhr.status === 'number' && xhr.status > 0) {
+                    received.status = true;
+                }
+            } catch(_) {
+            }
+            try {
+                if(isNonEmptyString(xhr.statusText)) {
+                    received.status = true;
+                }
+            } catch(_) {
+            }
+            try {
+                if(isNonEmptyString(xhr.responseText)) {
+                    received.entity = true;
+                }
+            } catch(_) {
+            }
+            try {
+                if(isNonEmptyString(xhr.response) || (typeof xhr.response === 'object' && xhr.response !== null)) {
+                    received.entity = true;
+                }
+            } catch(_) {
+            }
+
             if(c.statusCb === null) {
                 return;
             }
-            if(!crossDomain || httpinvoke.corsStatus) {
-                try {
-                    if(typeof xhr.status === 'undefined') {
-                        return;
-                    }
-                    if(xhr.status === 0) {
-                        if(typeof xhr.statusText !== 'undefined' && typeof statusTextToCode[xhr.statusText] !== 'undefined') {
-                            c.status = statusTextToCode[xhr.statusText];
-                        } else {
-                            return;
-                        }
-                    } else {
-                        c.status = xhr.status;
-                    }
-                } catch(_) {
-                    return;
-                }
-                // sometimes IE returns 1223 when it should be 204
-                if(c.status === 1223) {
-                    c.status = 204;
-                }
-            }
 
-            c.outputHeaders = {};
-            if(crossDomain) {
-                if(httpinvoke.corsResponseContentTypeOnly) {
-                    if(typeof xhr.contentType === 'string') {
+            if(received.status || received.entity || received.success || lastTry) {
+                if(typeof xhr.contentType === 'string') {
+                    if(xhr.contentType !== 'text/html' || xhr.responseText !== '') {
+                        // When no entity body and/or no Content-Type header is sent,
+                        // XDomainRequest on IE-8 defaults to text/html xhr.contentType.
+                        // Also, empty string is not a valid 'text/html' entity.
                         c.outputHeaders['content-type'] = xhr.contentType;
-                    }
-                } else {
-                    for(var i = 0; i < c.exposedHeaders.length; i += 1) {
-                        try {
-                            var header = xhr.getResponseHeader(c.exposedHeaders[i]);
-                            if(header !== null && header !== '') {
-                                c.outputHeaders[c.exposedHeaders[i].toLowerCase()] = header;
-                            }
-                        } catch(err) {
-                            if(!lastTry) {
-                                return;
-                            }
-                        }
+                        received.headers = true;
                     }
                 }
-            } else {
+                for(var i = 0; i < c.exposedHeaders.length; i += 1) {
+                    try {
+                        var header = xhr.getResponseHeader(c.exposedHeaders[i]);
+                        if(header !== null && header !== '') {
+                            c.outputHeaders[c.exposedHeaders[i].toLowerCase()] = header;
+                            received.headers = true;
+                        }
+                    } catch(err) {
+                    }
+                }
                 try {
-                    fillOutputHeaders(xhr, c.outputHeaders);
-                } catch(_) {
-                    if(!lastTry) {
-                        return;
+                    // note - on Opera 11.10 and 11.50 calling getAllResponseHeaders may introduce side effects on xhr and responses will timeout when server responds with some HTTP status codes
+                    if(fillOutputHeaders(xhr, c.outputHeaders)) {
+                        received.headers = true;
+                    }
+                } catch(err) {
+                }
+
+                if(typeof c.status === 'undefined' && (!crossDomain || httpinvoke.corsStatus)) {
+                    // Sometimes on IE 9 accessing .status throws an error, but .statusText does not.
+                    try {
+                        if(typeof xhr.status === 'number' && xhr.status > 0) {
+                            c.status = xhr.status;
+                        }
+                    } catch(_) {
+                    }
+                    if(typeof c.status === 'undefined') {
+                        try {
+                            if(typeof statusTextToCode[xhr.statusText] !== 'undefined') {
+                                c.status = statusTextToCode[xhr.statusText];
+                            }
+                        } catch(_) {
+                        }
+                    }
+                    // sometimes IE returns 1223 when it should be 204
+                    if(c.status === 1223) {
+                        c.status = 204;
                     }
                 }
             }
 
-            if(!uploadProgressCbCalled) {
-                uploadProgressCbCalled = true;
-                c.uploadProgressCb(0, c.inputLength);
-            }
-            c.uploadProgressCb(c.inputLength, c.inputLength);
-            if(c.cb === null) {
+            if(!lastTry && !(received.status && received.headers)) {
                 return;
             }
 
-            if(xhr.contentType === 'text/html' && xhr.responseText === '') {
-                // When no entity body and/or no Content-Type header is sent,
-                // XDomainRequest on IE-8 defaults to text/html xhr.contentType.
-                // Also, empty string is not a valid 'text/html' entity.
-                delete c.outputHeaders['content-type'];
+            uploadProgress(c.inputLength);
+            if(c.cb === null) {
+                return;
             }
 
             c.statusCb(c.status, c.outputHeaders);
@@ -404,18 +498,20 @@
                 return;
             }
 
+            if(c.method === 'HEAD') {
+                return c.noData();
+            }
+
             c.updateDownload(0);
             if(c.cb === null) {
                 return;
             }
+
             if(typeof c.outputHeaders['content-length'] !== 'undefined') {
                 c.initDownload(Number(c.outputHeaders['content-length']));
                 if(c.cb === null) {
                     return;
                 }
-            }
-            if(c.method === 'HEAD' || typeof c.outputHeaders['content-type'] === 'undefined') {
-                return c.noData();
             }
         };
         var onLoad = function() {
@@ -428,21 +524,29 @@
                 return;
             }
 
-            if((!crossDomain || httpinvoke.corsStatus) && typeof c.status === 'undefined') {
-                c.cb(new Error('"some type" of network error'));
+            if(!received.success && typeof c.status === 'undefined') {
+                // 'finished in onerror and status code is undefined'
+                c.cb(new Error('download error'));
                 c.cb = null;
                 return;
             }
 
+            var length;
+            try {
+                length = getOutputLength[c.outputType](xhr);
+            } catch(_) {
+                return c.noData();
+            }
             if(typeof c.outputLength === 'undefined') {
-                try {
-                    c.initDownload(getOutputLength[c.outputType](xhr));
-                    if(c.cb === null) {
-                        return;
-                    }
-                } catch(_) {
-                    return c.noData();
+                c.initDownload(length);
+                if(c.cb === null) {
+                    return;
                 }
+            } else if(length !== c.outputLength) {
+                // 'output length ' + c.outputLength + ' is not equal to actually received entity length ' + length
+                c.cb(new Error('download error'));
+                c.cb = null;
+                return;
             }
 
             c.updateDownload(c.outputLength);
@@ -451,19 +555,30 @@
             }
 
             try {
-                c.cb(null, c.outputConverter(getOutput[c.outputType](xhr)), c.status, c.outputHeaders);
+                c.cb(null, !received.entity && c.outputLength === 0 && typeof c.outputHeaders['content-type'] === 'undefined' ? c._undefined : c.outputConverter(getOutput[c.outputType](xhr)), c.status, c.outputHeaders);
             } catch(err) {
                 c.cb(err);
             }
             c.cb = null;
         };
+        var onloadBound = false;
+        if(typeof xhr.onload !== 'undefined') {
+            onloadBound = true;
+            xhr.onload = function() {
+                received.success = true;
+                //dbg('onload');
+                onLoad();
+            };
+        }
         if(typeof xhr.onreadystatechange !== 'undefined') {
             xhr.onreadystatechange = function() {
+                //dbg('onreadystatechange ' + xhr.readyState);
                 if(xhr.readyState === 2) {
                     // HEADERS_RECEIVED
                     onHeadersReceived(false);
                 } else if(xhr.readyState === 3) {
                     // LOADING
+                    received.success = true;
                     onHeadersReceived(false);
                     if(c.statusCb !== null) {
                         return;
@@ -472,13 +587,16 @@
                         c.updateDownload(getOutputLength[c.outputType](xhr));
                     } catch(err) {
                     }
-                } else if(xhr.readyState === 4) {
+                // Instead of 'typeof xhr.onload === "undefined"', we must use
+                // onloadBound variable, because otherwise Firefox 3.5 synchronously
+                // throws a "Permission denied for <> to create wrapper for
+                // object of class UnnamedClass" error
+                } else if(xhr.readyState === 4 && !onloadBound) {
                     // DONE
                     onLoad();
                 }
             };
         }
-        xhr.onload = onLoad;
 
         /*************** set XHR request headers **************/
         if(!crossDomain || httpinvoke.corsRequestHeaders) {
@@ -657,10 +775,7 @@
             } else {
                 xhr.send(null);
             }
-            if(!uploadProgressCbCalled) {
-                uploadProgressCbCalled = true;
-                c.uploadProgressCb(0, c.inputLength);
-            }
+            uploadProgress(0);
         }, 0);
 
         /*************** return "abort" function **************/
@@ -690,17 +805,6 @@
     httpinvoke.corsStatus = false;
     httpinvoke.corsResponseTextOnly = false;
     httpinvoke.requestTextOnly = false;
-    httpinvoke.statuses = [200, 201, 202, 203, 305];
-    /*
-     * 3XX 4XX 5XX:
-     * - Opera <12.00 sends "some type" of network error
-     */
-    if(typeof window.opera === 'undefined' || (typeof window.opera.version !== 'undefined' && parseFloat(window.opera.version()) >= 12)) {
-        httpinvoke.statuses.push.apply(httpinvoke.statuses, [204, 205, 400, 402, 403, 404, 405, 406, 409, 410, 416, 500, 501, 502, 503, 504, 505]);
-    }
-    if(typeof window.opera === 'undefined') {
-        httpinvoke.statuses.push.apply(httpinvoke.statuses, [206, 300, 304]);
-    }
     (function() {
         try {
             createXHR = function() {

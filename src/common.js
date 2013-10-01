@@ -112,8 +112,9 @@ var common = function(global) {
         c.inputLength = 0;
         c.inputHeaders = options.headers || {};
         c.outputType = options.outputType || "text";
+        c.outputHeaders = {};
         c.exposedHeaders = options.corsExposedHeaders || [];
-        c.exposedHeaders.push.apply(c.exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma']);
+        c.exposedHeaders.push.apply(c.exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma', 'Content-Range']);
         c.corsOriginHeader = options.corsOriginHeader || 'X-Httpinvoke-Origin';
         c.corsCredentials = !!options.corsCredentials;
         /*************** COMMON convert and validate parameters **************/
@@ -216,21 +217,11 @@ var common = function(global) {
             downloadProgressCb(downloaded, c.outputLength);
         };
         c.noData = function() {
-            if(c.method !== 'HEAD' && typeof c.outputHeaders['content-type'] !== 'undefined') {
-                c.cb(new Error('Received Content-Type header, but no entity body'));
-                c.cb = null;
-                return;
-            }
             c.initDownload(0);
             if(c.cb === null) {
                 return;
             }
-            c.updateDownload(0);
-            if(c.cb === null) {
-                return;
-            }
-            var _undefined;
-            c.cb(_undefined, _undefined, c.status, c.outputHeaders);
+            c.cb(c._undefined, c._undefined, c.status, c.outputHeaders);
             c.cb = null;
         };
         return c;

@@ -141,6 +141,5 @@ httpinvoke.corsPUT = true;
 httpinvoke.corsStatus = true;
 httpinvoke.corsResponseTextOnly = false;
 httpinvoke.requestTextOnly = false;
-httpinvoke.statuses = [200, 201, 202, 203, 204, 205, 206, 300, 304, 305, 400, 402, 403, 404, 405, 406, 409, 410, 416, 500, 501, 502, 503, 504, 505];
 
 module.exports = httpinvoke;
