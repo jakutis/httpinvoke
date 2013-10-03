@@ -14,7 +14,7 @@ var processCommon = function(globalVar) {
             from: 'var pass, failWithoutRequest, isArrayBufferView, _undefined, nextTick;',
             to: globalVar + ';' + fs.readFileSync('./src/common/static.js').toString()
         }, {
-            from: 'var uploadProgressCb, cb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;',
+            from: 'var uploadProgressCb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;',
             to: fs.readFileSync('./src/common/closures.js').toString()
         }]);
     };

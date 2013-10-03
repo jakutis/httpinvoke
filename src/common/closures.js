@@ -1,19 +1,44 @@
-var uploadProgressCb, cb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+var uploadProgressCb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
 /*************** COMMON initialize parameters **************/
 if(!method) {
+    // 1 argument
+    // method, options, cb skipped
     method = 'GET';
     options = {};
 } else if(!options) {
+    // 2 arguments
     if(typeof method === 'string') {
+        // options. cb skipped
         options = {};
-    } else {
+    } else if(typeof method === 'object') {
+        // method, cb skipped
         options = method;
         method = 'GET';
+    } else {
+        // method, options skipped
+        options = {
+            finished: method
+        };
+        method = 'GET';
     }
+} else if(!cb) {
+    // 3 arguments
+    if(typeof method === 'object') {
+        // method skipped
+        method.finished = options;
+        options = method;
+        method = 'GET';
+    } else if(typeof options === 'function') {
+        // options skipped
+        options = {
+            finished: options
+        };
+    }
+    // cb skipped
+} else {
+    // 4 arguments
+    options.finished = cb;
 }
-options = typeof options === 'function' ? {
-    finished: options
-} : options;
 var safeCallback = function(name) {
     if(name in options) {
         return function(a, b, c, d) {

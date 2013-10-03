@@ -22,8 +22,8 @@ var validateInputHeaders = function(headers) {
     }
 };
 
-var httpinvoke = function(uri, method, options) {
-    var uploadProgressCb, cb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+var httpinvoke = function(uri, method, options, cb) {
+    var uploadProgressCb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
     /*************** initialize helper variables **************/
     try {
         validateInputHeaders(inputHeaders);

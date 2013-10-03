@@ -114,8 +114,8 @@
         return !!(uri && (uri[1] !== location[1] || uri[2] !== location[2] || (uri[3] || (uri[1] === 'http:' ? '80' : '443')) !== (location[3] || (location[1] === 'http:' ? '80' : '443'))));
     };
     var createXHR;
-    var httpinvoke = function(uri, method, options) {
-        var uploadProgressCb, cb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+    var httpinvoke = function(uri, method, options, cb) {
+        var uploadProgressCb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
         /*************** initialize helper variables **************/
         var getOutput = outputBinary ? getOutputBinary : getOutputText;
         var getOutputLength = outputBinary ? getOutputLengthBinary : getOutputLengthText;

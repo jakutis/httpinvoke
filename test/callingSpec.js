@@ -4,18 +4,35 @@ var httpinvoke = require('../httpinvoke-node');
 describe('calling', function() {
     this.timeout(10000);
     cfg.eachBase(function(postfix, url) {
-        it('basically works' + postfix, function(done) {
+        it('accepts url, method, options and cb' + postfix, function(done) {
+            httpinvoke(url, 'GET', {}, done);
+        });
+        it('allows to skip method' + postfix, function(done) {
+            httpinvoke(url, {}, done);
+        });
+        it('allows to skip options' + postfix, function(done) {
+            httpinvoke(url, 'GET', done);
+        });
+        it('allows to skip cb' + postfix, function(done) {
             httpinvoke(url, 'GET', {
                 finished: done
             });
         });
-        it('allows to skip method' + postfix, function(done) {
+        it('allows to skip method and options' + postfix, function(done) {
+            httpinvoke(url, done);
+        });
+        it('allows to skip method and cb' + postfix, function(done) {
             httpinvoke(url, {
                 finished: done
             });
         });
-        it('allows to specify just "finished" callback instead of "options" object' + postfix, function(done) {
-            httpinvoke(url, done);
+        it('allows to skip options and cb' + postfix, function(done) {
+            httpinvoke(url, 'GET');
+            done();
+        });
+        it('allows to skip method, options and cb' + postfix, function(done) {
+            httpinvoke(url);
+            done();
         });
         it('does not break when callbacks throw errors' + postfix, function(done) {
             httpinvoke(url, {
