@@ -1,7 +1,7 @@
 var http = require('http');
 var url = require('url');
 
-var pass, failWithoutRequest, isArrayBufferView, _undefined, nextTick;
+var pass, isArray, isArrayBufferView, _undefined, nextTick;
 
 // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
 var forbiddenInputHeaders = ['accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'content-transfer-encoding', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
@@ -23,7 +23,7 @@ var validateInputHeaders = function(headers) {
 };
 
 var httpinvoke = function(uri, method, options, cb) {
-    var uploadProgressCb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+    var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
     /*************** initialize helper variables **************/
     try {
         validateInputHeaders(inputHeaders);
@@ -141,7 +141,7 @@ var httpinvoke = function(uri, method, options, cb) {
         cb = null;
     });
     req.end();
-    return function() {
+    promise = function() {
         if(cb === null) {
             return;
         }
@@ -151,6 +151,7 @@ var httpinvoke = function(uri, method, options, cb) {
         cb = null;
         _cb(new Error('abort'));
     };
+    return mixInPromise(promise);
 };
 httpinvoke.corsResponseContentTypeOnly = false;
 httpinvoke.corsRequestHeaders = true;

@@ -8,7 +8,7 @@
   }
 }(this, function () {
     var global;
-    var pass, failWithoutRequest, isArrayBufferView, _undefined, nextTick;
+    var pass, isArray, isArrayBufferView, _undefined, nextTick;
     // this could be a simple map, but with this "compression" we save about 100 bytes, if minified (50 bytes, if also gzipped)
     var statusTextToCode = (function() {
         var group = arguments.length, map = {};
@@ -115,7 +115,7 @@
     };
     var createXHR;
     var httpinvoke = function(uri, method, options, cb) {
-        var uploadProgressCb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+        var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
         /*************** initialize helper variables **************/
         var getOutput = outputBinary ? getOutputBinary : getOutputText;
         var getOutputLength = outputBinary ? getOutputLengthBinary : getOutputLengthText;
@@ -539,7 +539,7 @@
                 var triedSendBinaryString = false;
 
                 var BlobBuilder = global.BlobBuilder || global.WebKitBlobBuilder || global.MozBlobBuilder || global.MSBlobBuilder;
-                if(Object.prototype.toString.call(input) === '[object Array]') {
+                if(isArray(input)) {
                     input = global.Uint8Array ? new Uint8Array(input) : String.fromCharCode.apply(String, input);
                 }
                 var toBlob = BlobBuilder ? function() {
@@ -671,7 +671,7 @@
         });
 
         /*************** return "abort" function **************/
-        return function() {
+        promise = function() {
             if(!cb) {
                 return;
             }
@@ -686,6 +686,7 @@
             } catch(err){
             }
         };
+        return mixInPromise(promise);
     };
     httpinvoke.corsResponseContentTypeOnly = false;
     httpinvoke.corsRequestHeaders = false;

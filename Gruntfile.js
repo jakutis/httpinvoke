@@ -11,10 +11,10 @@ var replace = function(contents, replacements) {
 var processCommon = function(globalVar) {
     return function(contents) {
         return replace(contents, [{
-            from: 'var pass, failWithoutRequest, isArrayBufferView, _undefined, nextTick;',
+            from: 'var pass, isArray, isArrayBufferView, _undefined, nextTick;',
             to: globalVar + ';' + fs.readFileSync('./src/common/static.js').toString()
         }, {
-            from: 'var uploadProgressCb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;',
+            from: 'var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;',
             to: fs.readFileSync('./src/common/closures.js').toString()
         }]);
     };

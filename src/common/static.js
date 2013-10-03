@@ -12,6 +12,9 @@ var isArrayBufferView = function(input) {
         (global.Float64Array && input instanceof Float64Array)
     );
 };
+var isArray = function(object) {
+    return Object.prototype.toString.call(object) === '[object Array]';
+};
 var isByteArray = function(input) {
     return typeof input === 'object' && input !== null && (
         (global.Buffer && input instanceof Buffer) ||
@@ -19,7 +22,7 @@ var isByteArray = function(input) {
         (global.File && input instanceof File) ||
         (global.ArrayBuffer && input instanceof ArrayBuffer) ||
         isArrayBufferView(input) ||
-        Object.prototype.toString.call(input) === '[object Array]'
+        isArray(input)
     );
 };
 var bytearrayMessage = 'an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array';
@@ -41,13 +44,4 @@ var pass = function(value) {
     return value;
 };
 var nextTick = global.setImmediate || global.setTimeout;
-var failWithoutRequest = function(cb, err) {
-    nextTick(function() {
-        if(cb === null) {
-            return;
-        }
-        cb(err);
-    });
-    return pass;
-};
 var _undefined;

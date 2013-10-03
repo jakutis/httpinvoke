@@ -2,15 +2,14 @@
 
 The perfect JavaScript HTTP client. [Check out the demo.](http://jakut.is:1337/)
 
-* Thoroughly unit-tested - over 245 unit tests.
-* Weights 4356 bytes.
+* Thoroughly unit-tested - over 257 unit tests.
+* Weights 4715 bytes.
 * Handles HTTP responses The Right Way™:
   * Tries hard to get the HTTP response status code in all cases.
   * Emits the HTTP response status code and headers as soon as they are available.
   * Gives you HTTP status code instead of an error, that is for example HTTP 404 would just return success, with status 404
   * Throws an error only when the HTTP request did not actually completely finished.
-* Supports [promises](http://wiki.commonjs.org/wiki/Promises/A):
-  * Example using [Q](https://github.com/kriskowal/q): `Q.nfcall(httpinvoke, "http://example.org").then(console.log.bind(console));` - outputs an object with statusCode, body and headers properties
+* Supports both NodeJS style callbacks and [promises](http://wiki.commonjs.org/wiki/Promises/A) (with progress events, see [an example](https://github.com/jakutis/httpinvoke/blob/master/test/promiseSpec.js)).
 * Gracefully upgrades to latest platform-specific features:
   * [cross-origin resource sharing](http://www.w3.org/TR/cors/)
   * [progress events](http://www.w3.org/TR/progress-events/)
@@ -75,7 +74,7 @@ Load using your package manager, or use directly in web browser by adding `<scri
 
 Any one, two or three arguments can be skipped, except the **url**.
 
-* **abort** is a function for aborting the HTTP request. It immediately calls the "finished" callback with an Error. If "finished" callback is already called before the "abort", nothing happens.
+* **abort** is a function for aborting the HTTP request. It is also a Promise/A-compliant promise (has the `then()` method) that uses all the callbacks - **uploading**, **downloading**, **gotStatus** and **finished** - see [an example](https://github.com/jakutis/httpinvoke/blob/master/test/promiseSpec.js). When invoked as a function, it immediately calls the "finished" callback with an Error. If "finished" callback is already called before the "abort", nothing happens.
 * **url** is a string for URL, e.g. `"http://example.org/"`.
 * **method** is a string for HTTP method, one of `"HEAD"`, `"GET"`, `"POST"`, `"PUT"`, `"DELETE"`.
 * **options** is an object for various options (see the Options section below) or a function, which is used as a "finished" option (see the first example).

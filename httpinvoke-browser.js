@@ -22,6 +22,9 @@
         (global.Float64Array && input instanceof Float64Array)
     );
 };
+var isArray = function(object) {
+    return Object.prototype.toString.call(object) === '[object Array]';
+};
 var isByteArray = function(input) {
     return typeof input === 'object' && input !== null && (
         (global.Buffer && input instanceof Buffer) ||
@@ -29,7 +32,7 @@ var isByteArray = function(input) {
         (global.File && input instanceof File) ||
         (global.ArrayBuffer && input instanceof ArrayBuffer) ||
         isArrayBufferView(input) ||
-        Object.prototype.toString.call(input) === '[object Array]'
+        isArray(input)
     );
 };
 var bytearrayMessage = 'an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array';
@@ -51,15 +54,6 @@ var pass = function(value) {
     return value;
 };
 var nextTick = global.setImmediate || global.setTimeout;
-var failWithoutRequest = function(cb, err) {
-    nextTick(function() {
-        if(cb === null) {
-            return;
-        }
-        cb(err);
-    });
-    return pass;
-};
 var _undefined;
 ;
     // this could be a simple map, but with this "compression" we save about 100 bytes, if minified (50 bytes, if also gzipped)
@@ -209,21 +203,123 @@ if(!method) {
     // 4 arguments
     options.finished = cb;
 }
-var safeCallback = function(name) {
+var safeCallback = function(name, aspect) {
     if(name in options) {
         return function(a, b, c, d) {
             try {
                 options[name](a, b, c, d);
             } catch(_) {
             }
+            aspect(a, b, c, d);
         };
     }
-    return pass;
+    return aspect;
 };
-uploadProgressCb = safeCallback('uploading');
-var downloadProgressCb = safeCallback('downloading');
-statusCb = safeCallback('gotStatus');
-cb = safeCallback('finished');
+var mixInPromise = function(o) {
+    var state = [];
+    var chain = function(p, promise) {
+        if(p && p.then) {
+            p.then(promise.resolve.bind(promise), promise.reject.bind(promise), promise.notify.bind(promise));
+        }
+    };
+    var loop = function(value) {
+        if(!isArray(state)) {
+            return;
+        }
+        var name, after = function() {
+            state = value;
+        };
+        if(value instanceof Error) {
+            name = 'onreject';
+        } else if(value.type) {
+            name = 'onnotify';
+            after = pass;
+        } else {
+            name = 'onresolve';
+        }
+        var p;
+        for(var i = 0; i < state.length; i++) {
+            try {
+                p = state[i][name](value);
+                if(after !== pass) {
+                    chain(p, state[i].promise);
+                }
+            } catch(_) {
+            }
+        }
+        after();
+    };
+    o.then = function(onresolve, onreject, onnotify) {
+        var promise = {
+        };
+        mixInPromise(promise);
+        if(isArray(state)) {
+            // TODO see if the property names are minifed
+            state.push({
+                onresolve: onresolve,
+                onreject: onreject,
+                onnotify: onnotify,
+                promise: promise
+            });
+        } else if(state instanceof Error) {
+            nextTick(function() {
+                chain(onreject(state), promise);
+            });
+        } else {
+            nextTick(function() {
+                chain(onresolve(state), promise);
+            });
+        }
+        return promise;
+    };
+    o.notify = loop;
+    o.resolve = loop;
+    o.reject = loop;
+    return o;
+};
+var failWithoutRequest = function(cb, err) {
+    nextTick(function() {
+        if(cb === null) {
+            return;
+        }
+        cb(err);
+    });
+    promise = function() {
+    };
+    return mixInPromise(promise);
+};
+
+uploadProgressCb = safeCallback('uploading', function(current, total) {
+    promise.notify({
+        type: 'upload',
+        current: current,
+        total: total
+    });
+});
+var downloadProgressCb = safeCallback('downloading', function(current, total) {
+    promise.notify({
+        type: 'download',
+        current: current,
+        total: total
+    });
+});
+statusCb = safeCallback('gotStatus', function(statusCode, headers) {
+    promise.notify({
+        type: 'headers',
+        statusCode: statusCode,
+        headers: headers
+    });
+});
+cb = safeCallback('finished', function(err, body, statusCode, headers) {
+    if(err) {
+        return promise.reject(err);
+    }
+    promise.resolve({
+        body: body,
+        statusCode: statusCode,
+        headers: headers
+    });
+});
 timeout = options.timeout || 0;
 var converters = options.converters || {};
 var inputConverter;
@@ -743,7 +839,7 @@ noData = function() {
                 var triedSendBinaryString = false;
 
                 var BlobBuilder = global.BlobBuilder || global.WebKitBlobBuilder || global.MozBlobBuilder || global.MSBlobBuilder;
-                if(Object.prototype.toString.call(input) === '[object Array]') {
+                if(isArray(input)) {
                     input = global.Uint8Array ? new Uint8Array(input) : String.fromCharCode.apply(String, input);
                 }
                 var toBlob = BlobBuilder ? function() {
@@ -875,7 +971,7 @@ noData = function() {
         });
 
         /*************** return "abort" function **************/
-        return function() {
+        promise = function() {
             if(!cb) {
                 return;
             }
@@ -890,6 +986,7 @@ noData = function() {
             } catch(err){
             }
         };
+        return mixInPromise(promise);
     };
     httpinvoke.corsResponseContentTypeOnly = false;
     httpinvoke.corsRequestHeaders = false;
