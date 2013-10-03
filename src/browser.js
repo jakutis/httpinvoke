@@ -8,187 +8,103 @@
   }
 }(this, function () {
     var global;
-    var noop, failWithoutRequest, isArrayBufferView;
-    var isNonEmptyString = function(str) {
-        return typeof str === 'string' && str !== '';
-    };
-    var statusTextToCode = {
-        'Continue': 100,
-        'Switching Protocols': 101,
-        'OK': 200,
-        'Created': 201,
-        'Accepted': 202,
-        'Non-Authoritative Information': 203,
-        'No Content': 204,
-        'Reset Content': 205,
-        'Partial Content': 206,
-        'Multiple Choices': 300,
-        'Moved Permanently': 301,
-        'Found': 302,
-        'See Other': 303,
-        'Not Modified': 304,
-        'Use Proxy': 305,
-        'Temporary Redirect': 307,
-        'Bad Request': 400,
-        'Unauthorized': 401,
-        'Payment Required': 402,
-        'Forbidden': 403,
-        'Not Found': 404,
-        'Method Not Allowed': 405,
-        'Not Acceptable': 406,
-        'Proxy Authentication Required': 407,
-        'Request Timeout': 408,
-        'Conflict': 409,
-        'Gone': 410,
-        'Length Required': 411,
-        'Precondition Failed': 412,
-        'Request Entity Too Large': 413,
-        'Request-URI Too Long': 414,
-        'Unsupported Media Type': 415,
-        'Requested Range Not Satisfiable': 416,
-        'Expectation Failed': 417,
-        'Internal Server Error': 500,
-        'Not Implemented': 501,
-        'Bad Gateway': 502,
-        'Service Unavailable': 503,
-        'Gateway Time-out': 504,
-        'HTTP Version Not Supported': 505
-    };
+    var pass, failWithoutRequest, isArrayBufferView, _undefined, nextTick;
+    // this could be a simple map, but with this "compression" we save about 100 bytes, if minified (50 bytes, if also gzipped)
+    var statusTextToCode = (function() {
+        var group = arguments.length, map = {};
+        while(group--) {
+            var texts = arguments[group].split(','), index = texts.length;
+            while(index--) {
+                map[texts[index]] = (group + 1) * 100 + index;
+            }
+        }
+        return map;
+    })(
+        'Continue,Switching Protocols',
+        'OK,Created,Accepted,Non-Authoritative Information,No Content,Reset Content,Partial Content',
+        'Multiple Choices,Moved Permanently,Found,See Other,Not Modified,Use Proxy,_,Temporary Redirect',
+        'Bad Request,Unauthorized,Payment Required,Forbidden,Not Found,Method Not Allowed,Not Acceptable,Proxy Authentication Required,Request Timeout,Conflict,Gone,Length Required,Precondition Failed,Request Entity Too Large,Request-URI Too Long,Unsupported Media Type,Requested Range Not Satisfiable,Expectation Failed',
+        'Internal Server Error,Not Implemented,Bad Gateway,Service Unavailable,Gateway Time-out,HTTP Version Not Supported'
+    );
     var bufferSlice = function(buffer, begin, end) {
         if(begin === 0 && end === buffer.byteLength) {
             return buffer;
         }
-        if(typeof buffer.slice === 'undefined') {
-            return new Uint8Array(Array.prototype.slice.call(new Uint8Array(buffer), begin, end)).buffer;
-        } else {
-            return buffer.slice(begin, end);
-        }
+        return buffer.slice ? buffer.slice(begin, end) : new Uint8Array(Array.prototype.slice.call(new Uint8Array(buffer), begin, end)).buffer;
     };
     var responseBodyToBytes, responseBodyLength;
     (function() {
         try {
-            var vbscript = '';
-            vbscript += 'Function httpinvoke_BinaryExtract(Binary, Array)\r\n';
-            vbscript += '    Dim len, i\r\n';
-            vbscript += '    len = LenB(Binary)\r\n';
-            vbscript += '    For i = 1 to len\r\n';
-            vbscript += '        Array.push(AscB(MidB(Binary, i, 1)))\r\n';
-            vbscript += '    Next\r\n';
-            vbscript += 'End Function\r\n';
-            vbscript += '\r\n';
-            vbscript += 'Function httpinvoke_BinaryLength(Binary)\r\n';
-            vbscript += '    httpinvoke_BinaryLength = LenB(Binary)\r\n';
-            vbscript += 'End Function\r\n';
-            vbscript += '\r\n';
-            global.execScript(vbscript, 'vbscript');
-
-            var byteMapping = {};
-            for(var i = 0; i < 256; i += 1) {
-                for (var j = 0; j < 256; j += 1) {
-                    byteMapping[String.fromCharCode(i + j * 256)] = String.fromCharCode(i) + String.fromCharCode(j);
-                }
-            }
+            execScript('Function httpinvoke0(B,A)\r\nDim i\r\nFor i=1 to LenB(B)\r\nA.push(AscB(MidB(B,i,1)))\r\nNext\r\nEnd Function\r\nFunction httpinvoke1(B)\r\nhttpinvoke1=LenB(B)\r\nEnd Function', 'vbscript');
             responseBodyToBytes = function(binary) {
                 var bytes = [];
-                global.httpinvoke_BinaryExtract(binary, bytes);
+                httpinvoke0(binary, bytes);
                 return bytes;
             };
+            // cannot just assign the function, because httpinvoke1 is not a javascript 'function'
             responseBodyLength = function(binary) {
-                return global.httpinvoke_BinaryLength(binary);
+                return httpinvoke1(binary);
             };
         } catch(err) {
         }
     })();
-    var getOutput = {
-        'text' : function(xhr) {
-            if(typeof xhr.response !== 'undefined') {
-                return xhr.response;
-            }
-            return xhr.responseText;
-        },
-        'bytearray' : function(xhr) {
-            if(typeof xhr.response !== 'undefined') {
-                return new Uint8Array(xhr.response === null ? [] : xhr.response);
-            }
-            if(typeof xhr.responseBody !== 'undefined') {
-                return responseBodyToBytes(xhr.responseBody);
-            }
-            var str = xhr.responseText, n = str.length, bytearray = new Array(n);
-            for(var i = 0; i < n; i += 1) {
-                bytearray[i] = str.charCodeAt(i) & 0xFF;
-            }
-            if(typeof Uint8Array !== 'undefined') {
-                // firefox 4 supports typed arrays but not xhr2
-                return new Uint8Array(bytearray);
-            }
-            return bytearray;
-        }
+    var getOutputText = function(xhr) {
+        return xhr.response || xhr.responseText;
     };
-    var getOutputLength = {
-        'text': function(xhr) {
-            return countStringBytes(getOutput.text(xhr));
-        },
-        'bytearray': function(xhr) {
-            if(typeof xhr.response !== 'undefined') {
-                return xhr.response === null ? 0 : xhr.response.byteLength;
-            }
-            if(typeof xhr.responseBody !== 'undefined') {
-                return responseBodyLength(xhr.responseBody);
-            }
-            return xhr.responseText.length;
+    var binaryStringToByteArray = function(str) {
+        var n = str.length, bytearray = new Array(n);
+        while(n--) {
+            bytearray[n] = str.charCodeAt(n) & 255;
         }
+        return bytearray;
+    };
+    var getOutputBinary = function(xhr) {
+        if('response' in xhr) {
+            return new Uint8Array(xhr.response || []);
+        }
+        // responseBody must be checked this way, because otherwise
+        // it is falsy and then accessing responseText for binary data
+        // results in the "c00ce514" error
+        if('responseBody' in xhr) {
+            return responseBodyToBytes(xhr.responseBody);
+        }
+        var bytearray = binaryStringToByteArray(xhr.responseText);
+        // firefox 4 supports typed arrays but not xhr2
+        return global.Uint8Array ? new global.Uint8Array(bytearray) : bytearray;
+    };
+    var getOutputLengthText = function(xhr) {
+        return countStringBytes(getOutputText(xhr));
+    };
+    var getOutputLengthBinary = function(xhr) {
+        if('response' in xhr) {
+            return xhr.response ? xhr.response.byteLength : 0;
+        }
+        // responseBody must be checked this way, because otherwise
+        // it is falsy and then accessing responseText for binary data
+        // results in the "c00ce514" error
+        if('responseBody' in xhr) {
+            return responseBodyLength(xhr.responseBody);
+        }
+        return xhr.responseText.length;
     };
 
-    var trim = typeof ''.trim === 'undefined' ? function(string) {
-        return string.replace(/^\s+|\s+$/g,'');
-    } : function(string) {
-        return string.trim();
-    };
     var countStringBytes = function(string) {
-        var n = 0;
-        for(var i = 0; i < string.length; i += 1) {
-            var c = string.charCodeAt(i);
-            if (c < 128) {
-                n += 1;
-            } else if (c < 2048) {
-                n += 2;
-            } else {
-                n += 3;
-            }
+        var c, n = 0, i = string.length;
+        while(i--) {
+            c = string.charCodeAt(i);
+            n += c < 128 ? 1 : (c < 2048 ? 2 : 3);
         }
         return n;
     };
-    var convertByteArrayToBinaryString = function(bytearray) {
-        var str = '';
-        for(var i = 0; i < bytearray.length; i += 1) {
-            str += String.fromCharCode(bytearray[i]);
-        }
-        return str;
-    };
-
-    var parseHeader = function(header) {
-        var colon = header.indexOf(':');
-        return {
-            name: header.slice(0, colon).toLowerCase(),
-            value: trim(header.slice(colon + 1))
-        };
-    };
 
     var fillOutputHeaders = function(xhr, headers, outputHeaders) {
+        var i, colon, header;
         headers = xhr.getAllResponseHeaders().split(/\r?\n/);
-        var i = headers.length - 1;
-        var header;
-        var responseHeaders = false;
-        while(i >= 0) {
-            header = trim(headers[i]);
-            if(header.length > 0) {
-                header = parseHeader(header);
-                outputHeaders[header.name] = header.value;
-                responseHeaders = true;
-            }
-            i -= 1;
+        i = headers.length;
+        while(i-- && (colon = headers[i].indexOf(':')) >= 0) {
+            outputHeaders[headers[i].slice(0, colon).toLowerCase()] = header.slice(colon + 2);
         }
-        return responseHeaders;
+        return i + 1 !== headers.length;
     };
 
     var urlPartitioningRegExp = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/;
@@ -199,16 +115,21 @@
     };
     var createXHR;
     var httpinvoke = function(uri, method, options) {
-        var uploadProgressCb, cb, inputLength, inputType, noData, timeout, corsCredentials, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputType, input, outputLength, outputConverter, _undefined;
+        var uploadProgressCb, cb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
         /*************** initialize helper variables **************/
+        var getOutput = outputBinary ? getOutputBinary : getOutputText;
+        var getOutputLength = outputBinary ? getOutputLengthBinary : getOutputLengthText;
         var uploadProgressCbCalled = false;
         var uploadProgress = function(uploaded) {
-            if(uploadProgressCb === null) {
+            if(!uploadProgressCb) {
                 return;
             }
             if(!uploadProgressCbCalled) {
                 uploadProgressCbCalled = true;
                 uploadProgressCb(0, inputLength);
+                if(!cb) {
+                    return;
+                }
             }
             uploadProgressCb(uploaded, inputLength);
             if(uploaded === inputLength) {
@@ -231,7 +152,7 @@
         }
         var crossDomain = isCrossDomain(currentLocation, uri);
         /*************** start XHR **************/
-        if(inputType === 'bytearray' && httpinvoke.requestTextOnly) {
+        if(typeof input === 'object' && httpinvoke.requestTextOnly) {
             return failWithoutRequest(cb, new Error('bytearray inputType is not supported on this platform, please always test using requestTextOnly feature flag'));
         }
         if(crossDomain && !httpinvoke.cors) {
@@ -246,19 +167,22 @@
         if(crossDomain && method === 'HEAD' && !httpinvoke.corsHEAD) {
             return failWithoutRequest(cb, new Error('HEAD method in cross-origin requests is not supported in this browser'));
         }
+        if(!createXHR) {
+            return failWithoutRequest(cb, new Error('unable to construct XMLHttpRequest object'));
+        }
         var xhr = createXHR(crossDomain);
         xhr.open(method, uri, true);
         if(timeout > 0) {
-            if(typeof xhr.timeout === 'undefined') {
+            if('timeout' in xhr) {
+                xhr.timeout = timeout;
+            } else {
                 setTimeout(function() {
                     cb(new Error('download timeout'));
                     cb = null;
                 }, timeout);
-            } else {
-                xhr.timeout = timeout;
             }
         }
-        if(corsCredentials && httpinvoke.corsCredentials && typeof xhr.withCredentials === 'boolean') {
+        if(options.corsCredentials && httpinvoke.corsCredentials && typeof xhr.withCredentials === 'boolean') {
             xhr.withCredentials = true;
         }
         if(crossDomain) {
@@ -273,94 +197,79 @@
         }
 
         /*************** bind XHR event listeners **************/
+        var makeErrorCb = function(message) {
+            return function() {
+                // must check, because some callbacks are called synchronously, thus throwing exceptions and breaking code
+                if(cb) {
+                    cb(new Error(message));
+                    cb = null;
+                }
+            };
+        };
         var onuploadprogress = function(progressEvent) {
-            if(cb === null) {
-                return;
-            }
-            if(progressEvent && progressEvent.lengthComputable) {
+            if(cb && progressEvent.lengthComputable) {
                 uploadProgress(progressEvent.loaded);
             }
         };
-        if(typeof xhr.upload !== 'undefined') {
-            xhr.upload.ontimeout = function(progressEvent) {
-                if(cb === null) {
-                    return;
-                }
-                cb(new Error('upload timeout'));
-                cb = null;
-            };
-            xhr.upload.onerror = function(progressEvent) {
-                if(cb === null) {
-                    return;
-                }
-                cb(new Error('upload error'));
-                cb = null;
-            };
+        if('upload' in xhr) {
+            xhr.upload.ontimeout = makeErrorCb('upload timeout');
+            xhr.upload.onerror = makeErrorCb('upload error');
             xhr.upload.onprogress = onuploadprogress;
-        } else if(typeof xhr.onuploadprogress !== 'undefined') {
+        } else if('onuploadprogress' in xhr) {
             xhr.onuploadprogress = onuploadprogress;
         }
 
-        if(typeof xhr.ontimeout !== 'undefined') {
-            xhr.ontimeout = function(progressEvent) {
-                //dbg('ontimeout');
-                if(cb === null) {
-                    return;
-                }
-                cb(new Error('download timeout'));
-                cb = null;
-            };
+        if('ontimeout' in xhr) {
+            xhr.ontimeout = makeErrorCb('download timeout');
         }
-        if(typeof xhr.onerror !== 'undefined') {
-            xhr.onerror = function(e) {
-                //inspect('onerror', e);
+        if('onerror' in xhr) {
+            xhr.onerror = function() {
+                //inspect('onerror', arguments[0]);
                 //dbg('onerror');
                 // For 4XX and 5XX response codes Firefox 3.6 cross-origin request ends up here, but has correct statusText, but no status and headers
                 onLoad();
             };
         }
-        if(typeof xhr.onloadstart !== 'undefined') {
+        if('onloadstart' in xhr) {
             xhr.onloadstart = function() {
                 //dbg('onloadstart');
                 onHeadersReceived(false);
             };
         }
-        if(typeof xhr.onloadend !== 'undefined') {
+        if('onloadend' in xhr) {
             xhr.onloadend = function() {
                 //dbg('onloadend');
                 onHeadersReceived(false);
             };
         }
-        if(typeof xhr.onprogress !== 'undefined') {
+        if('onprogress' in xhr) {
             xhr.onprogress = function(progressEvent) {
                 //dbg('onprogress');
-                if(cb === null) {
+                if(!cb) {
                     return;
                 }
                 onHeadersReceived(false);
-                if(statusCb !== null) {
+                if(statusCb) {
                     return;
                 }
-                if(typeof progressEvent !== 'undefined') {
-                    // There is a bug in Chrome 10 on 206 response with Content-Range=0-4/12 - total must be 5
-                    // 'total', 12, 'totalSize', 12, 'loaded', 5, 'position', 5, 'lengthComputable', true, 'status', 206
-                    // console.log('total', progressEvent.total, 'totalSize', progressEvent.totalSize, 'loaded', progressEvent.loaded, 'position', progressEvent.position, 'lengthComputable', progressEvent.lengthComputable, 'status', status);
-                    // httpinvoke does not work around this bug, because Chrome 10 is practically not used at all, as Chrome agressively auto-updates itself to latest version
-                    var total = progressEvent.total || progressEvent.totalSize || 0;
-                    var current = progressEvent.loaded || progressEvent.position || 0;
-                    if(progressEvent.lengthComputable) {
-                        initDownload(total);
-                    }
-                    if(cb === null) {
-                        return;
-                    }
-                    if(current > total) {
-                        // Opera 12 progress events has a bug - .loaded can be higher than .total
-                        // see http://dev.opera.com/articles/view/xhr2/#comment-96081222
-                        return;
-                    }
-                    updateDownload(current);
+                // There is a bug in Chrome 10 on 206 response with Content-Range=0-4/12 - total must be 5
+                // 'total', 12, 'totalSize', 12, 'loaded', 5, 'position', 5, 'lengthComputable', true, 'status', 206
+                // console.log('total', progressEvent.total, 'totalSize', progressEvent.totalSize, 'loaded', progressEvent.loaded, 'position', progressEvent.position, 'lengthComputable', progressEvent.lengthComputable, 'status', status);
+                // httpinvoke does not work around this bug, because Chrome 10 is practically not used at all, as Chrome agressively auto-updates itself to latest version
+                var total = progressEvent.total || progressEvent.totalSize || 0;
+                var current = progressEvent.loaded || progressEvent.position || 0;
+                if(progressEvent.lengthComputable) {
+                    initDownload(total);
                 }
+                if(!cb) {
+                    return;
+                }
+                if(current > total) {
+                    // Opera 12 progress events has a bug - .loaded can be higher than .total
+                    // see http://dev.opera.com/articles/view/xhr2/#comment-96081222
+                    return;
+                }
+                updateDownload(current);
             };
         }
         /*
@@ -397,36 +306,36 @@
             headers: false
         };
         var onHeadersReceived = function(lastTry) {
-            if(cb === null) {
+            if(!cb) {
                 return;
             }
 
             try {
-                if(typeof xhr.status === 'number' && xhr.status > 0) {
+                if(xhr.status) {
                     received.status = true;
                 }
             } catch(_) {
             }
             try {
-                if(isNonEmptyString(xhr.statusText)) {
+                if(xhr.statusText) {
                     received.status = true;
                 }
             } catch(_) {
             }
             try {
-                if(isNonEmptyString(xhr.responseText)) {
+                if(xhr.responseText) {
                     received.entity = true;
                 }
             } catch(_) {
             }
             try {
-                if(isNonEmptyString(xhr.response) || (typeof xhr.response === 'object' && xhr.response !== null)) {
+                if(xhr.response) {
                     received.entity = true;
                 }
             } catch(_) {
             }
 
-            if(statusCb === null) {
+            if(!statusCb) {
                 return;
             }
 
@@ -441,9 +350,9 @@
                     }
                 }
                 for(var i = 0; i < exposedHeaders.length; i += 1) {
+                    var header;
                     try {
-                        var header = xhr.getResponseHeader(exposedHeaders[i]);
-                        if(header !== null && header !== '') {
+                        if(header = xhr.getResponseHeader(exposedHeaders[i])) {
                             outputHeaders[exposedHeaders[i].toLowerCase()] = header;
                             received.headers = true;
                         }
@@ -458,19 +367,17 @@
                 } catch(err) {
                 }
 
-                if(typeof status === 'undefined' && (!crossDomain || httpinvoke.corsStatus)) {
+                if(!status && (!crossDomain || httpinvoke.corsStatus)) {
                     // Sometimes on IE 9 accessing .status throws an error, but .statusText does not.
                     try {
-                        if(typeof xhr.status === 'number' && xhr.status > 0) {
+                        if(xhr.status) {
                             status = xhr.status;
                         }
                     } catch(_) {
                     }
-                    if(typeof status === 'undefined') {
+                    if(!status) {
                         try {
-                            if(typeof statusTextToCode[xhr.statusText] !== 'undefined') {
-                                status = statusTextToCode[xhr.statusText];
-                            }
+                            status = statusTextToCode[xhr.statusText];
                         } catch(_) {
                         }
                     }
@@ -486,13 +393,13 @@
             }
 
             uploadProgress(inputLength);
-            if(cb === null) {
+            if(!cb) {
                 return;
             }
 
             statusCb(status, outputHeaders);
             statusCb = null;
-            if(cb === null) {
+            if(!cb) {
                 return;
             }
 
@@ -501,28 +408,28 @@
             }
 
             updateDownload(0);
-            if(cb === null) {
+            if(!cb) {
                 return;
             }
 
-            if(typeof outputHeaders['content-length'] !== 'undefined') {
+            if('content-length' in outputHeaders) {
                 initDownload(Number(outputHeaders['content-length']));
-                if(cb === null) {
+                if(!cb) {
                     return;
                 }
             }
         };
         var onLoad = function() {
-            if(cb === null) {
+            if(!cb) {
                 return;
             }
 
             onHeadersReceived(true);
-            if(cb === null) {
+            if(!cb) {
                 return;
             }
 
-            if(!received.success && typeof status === 'undefined') {
+            if(!received.success && !status) {
                 // 'finished in onerror and status code is undefined'
                 cb(new Error('download error'));
                 cb = null;
@@ -531,29 +438,28 @@
 
             var length;
             try {
-                length = getOutputLength[outputType](xhr);
+                length = getOutputLength(xhr);
             } catch(_) {
                 return noData();
             }
-            if(typeof outputLength === 'undefined') {
+            if(!outputLength) {
                 initDownload(length);
-                if(cb === null) {
-                    return;
-                }
             } else if(length !== outputLength) {
                 // 'output length ' + outputLength + ' is not equal to actually received entity length ' + length
                 cb(new Error('download error'));
                 cb = null;
+            }
+            if(!cb) {
                 return;
             }
 
             updateDownload(outputLength);
-            if(cb === null) {
+            if(!cb) {
                 return;
             }
 
             try {
-                cb(null, !received.entity && outputLength === 0 && typeof outputHeaders['content-type'] === 'undefined' ? _undefined : outputConverter(getOutput[outputType](xhr)), status, outputHeaders);
+                cb(null, !received.entity && outputLength === 0 && typeof outputHeaders['content-type'] === 'undefined' ? _undefined : outputConverter(getOutput(xhr)), status, outputHeaders);
             } catch(err) {
                 cb(err);
             }
@@ -578,11 +484,11 @@
                     // LOADING
                     received.success = true;
                     onHeadersReceived(false);
-                    if(statusCb !== null) {
+                    if(statusCb) {
                         return;
                     }
                     try {
-                        updateDownload(getOutputLength[outputType](xhr));
+                        updateDownload(getOutputLength(xhr));
                     } catch(err) {
                     }
                 // Instead of 'typeof xhr.onload === "undefined"', we must use
@@ -609,44 +515,48 @@
             }
         }
         /*************** invoke XHR request process **************/
-        setTimeout(function() {
-            if(cb === null) {
+        nextTick(function() {
+            if(!cb) {
                 return;
             }
-            if(typeof xhr.response === 'undefined') {
+            if('response' in xhr) {
                 try {
-                    // mime type override must be done before receiving headers - at least for Safari 5.0.4
-                    if(outputType === 'bytearray') {
-                        xhr.overrideMimeType('text/plain; charset=x-user-defined');
-                    } else if(outputType === 'text') {
-                        if(outputHeaders['content-type'].substr(0, 'text/'.length) !== 'text/') {
-                            xhr.overrideMimeType('text/plain');
-                        }
-                    }
+                    xhr.responseType = outputBinary ? 'arraybuffer' : 'text';
                 } catch(err) {
                 }
             } else {
                 try {
-                    xhr.responseType = outputType === 'bytearray' ? 'arraybuffer' : 'text';
+                    // mime type override must be done before receiving headers - at least for Safari 5.0.4
+                    if(outputBinary) {
+                        xhr.overrideMimeType('text/plain; charset=x-user-defined');
+                    }
                 } catch(err) {
                 }
             }
-            // Content-Length header is set automatically
-            if(inputType === 'bytearray') {
+            if(typeof input === 'object') {
                 var triedSendArrayBufferView = false;
                 var triedSendBlob = false;
                 var triedSendBinaryString = false;
 
                 var BlobBuilder = global.BlobBuilder || global.WebKitBlobBuilder || global.MozBlobBuilder || global.MSBlobBuilder;
                 if(Object.prototype.toString.call(input) === '[object Array]') {
-                    if(typeof Uint8Array === 'undefined') {
-                        input = convertByteArrayToBinaryString(input);
-                    } else {
-                        input = new Uint8Array(input);
-                    }
+                    input = global.Uint8Array ? new Uint8Array(input) : String.fromCharCode.apply(String, input);
                 }
+                var toBlob = BlobBuilder ? function() {
+                    var bb = new BlobBuilder();
+                    bb.append(input);
+                    input = bb.getBlob(inputHeaders['Content-Type']);
+                } : function() {
+                    try {
+                        input = new Blob([input], {
+                            type: inputHeaders['Content-Type']
+                        });
+                    } catch(_) {
+                        triedSendBlob = true;
+                    }
+                };
                 var go = function() {
-                    var reader, bb;
+                    var reader;
                     if(triedSendBlob && triedSendArrayBufferView && triedSendBinaryString) {
                         return failWithoutRequest(cb, new Error('Unable to send'));
                     }
@@ -654,49 +564,38 @@
                         if(triedSendArrayBufferView) {
                             if(!triedSendBinaryString) {
                                 try {
-                                    input = convertByteArrayToBinaryString(new Uint8Array(input));
+                                    input = String.fromCharCode.apply(String, input);
                                 } catch(_) {
                                     triedSendBinaryString = true;
                                 }
                             } else if(!triedSendBlob) {
-                                if(typeof BlobBuilder === 'undefined') {
-                                    try {
-                                        input = new global.Blob([input], {
-                                            type: inputHeaders['Content-Type']
-                                        });
-                                    } catch(_) {
-                                        triedSendBlob = true;
-                                    }
-                                } else {
-                                    bb = new BlobBuilder();
-                                    bb.append(input);
-                                    input = bb.getBlob(inputHeaders['Content-Type']);
-                                }
+                                toBlob();
                             }
                         } else {
                             try {
                                 inputLength = input.byteLength;
-                                if(typeof global.ArrayBufferView === 'undefined') {
-                                    xhr.send(bufferSlice(input.buffer, input.byteOffset, input.byteOffset + input.byteLength));
-                                } else {
-                                    xhr.send(input);
-                                }
+                                // if there is ArrayBufferView, then the browser supports sending instances of subclasses of ArayBufferView, otherwise we must send an ArrayBuffer
+                                xhr.send(global.ArrayBufferView ? input : bufferSlice(input.buffer, input.byteOffset, input.byteOffset + input.byteLength));
                                 return;
                             } catch(_) {
                                 triedSendArrayBufferView = true;
                             }
                         }
-                    } else if(typeof global.Blob !== 'undefined' && input instanceof global.Blob) {
+                    } else if(global.Blob && input instanceof Blob) {
                         if(triedSendBlob) {
                             if(!triedSendArrayBufferView) {
                                 try {
-                                    reader = new global.FileReader();
+                                    reader = new FileReader();
                                     reader.onerror = function() {
                                         triedSendArrayBufferView = true;
                                         go();
                                     };
                                     reader.onload = function() {
-                                        input = new Uint8Array(reader.result);
+                                        try {
+                                            input = new Uint8Array(reader.result);
+                                        } catch(_) {
+                                            triedSendArrayBufferView = true;
+                                        }
                                         go();
                                     };
                                     reader.readAsArrayBuffer(input);
@@ -706,7 +605,7 @@
                                 }
                             } else if(!triedSendBinaryString) {
                                 try {
-                                    reader = new global.FileReader();
+                                    reader = new FileReader();
                                     reader.onerror = function() {
                                         triedSendBinaryString = true;
                                         go();
@@ -734,29 +633,12 @@
                         if(triedSendBinaryString) {
                             if(!triedSendArrayBufferView) {
                                 try {
-                                    var a = new ArrayBuffer(input.length);
-                                    var b = new Uint8Array(a);
-                                    for(var i = 0; i < input.length; i += 1) {
-                                        b[i] = input[i] & 0xFF;
-                                    }
-                                    input = b;
+                                    input = binaryStringToByteArray(input);
                                 } catch(_) {
                                     triedSendArrayBufferView = true;
                                 }
                             } else if(!triedSendBlob) {
-                                if(typeof BlobBuilder === 'undefined') {
-                                    try {
-                                        input = new global.Blob([input], {
-                                            type: inputHeaders['Content-Type']
-                                        });
-                                    } catch(_) {
-                                        triedSendBlob = true;
-                                    }
-                                } else {
-                                    bb = new BlobBuilder();
-                                    bb.append(input);
-                                    input = bb.getBlob(inputHeaders['Content-Type']);
-                                }
+                                toBlob();
                             }
                         } else {
                             try {
@@ -768,21 +650,29 @@
                             }
                         }
                     }
-                    setTimeout(go, 0);
+                    nextTick(go);
                 };
                 go();
-            } else if(inputType === 'text') {
-                inputLength = countStringBytes(input);
-                xhr.send(input);
             } else {
-                xhr.send(null);
+                try {
+                    if(typeof input === 'string') {
+                        inputLength = countStringBytes(input);
+                        xhr.send(input);
+                    } else {
+                        xhr.send(null);
+                    }
+                } catch(err) {
+                    var _cb = cb;
+                    cb = null;
+                    return failWithoutRequest(cb, new Error('Unable to send'));
+                }
             }
             uploadProgress(0);
-        }, 0);
+        });
 
         /*************** return "abort" function **************/
         return function() {
-            if(cb === null) {
+            if(!cb) {
                 return;
             }
 
@@ -815,16 +705,15 @@
             var tmpxhr = createXHR();
             httpinvoke.requestTextOnly = typeof Uint8Array === 'undefined' && typeof tmpxhr.sendAsBinary === 'undefined';
             httpinvoke.cors = 'withCredentials' in tmpxhr;
-            if(!httpinvoke.cors) {
-                throw '';
+            if(httpinvoke.cors) {
+                httpinvoke.corsRequestHeaders = true;
+                httpinvoke.corsCredentials = true;
+                httpinvoke.corsDELETE = true;
+                httpinvoke.corsPUT = true;
+                httpinvoke.corsHEAD = true;
+                httpinvoke.corsStatus = true;
+                return;
             }
-            httpinvoke.corsRequestHeaders = true;
-            httpinvoke.corsCredentials = true;
-            httpinvoke.corsDELETE = true;
-            httpinvoke.corsPUT = true;
-            httpinvoke.corsHEAD = true;
-            httpinvoke.corsStatus = true;
-            return;
         } catch(err) {
         }
         try {
@@ -863,9 +752,7 @@
             }
             i -= 1;
         }
-        createXHR = function() {
-            throw new Error('Cannot construct XMLHttpRequest');
-        };
+        createXHR = _undefined;
     })();
 
     return httpinvoke;

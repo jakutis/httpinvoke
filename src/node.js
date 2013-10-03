@@ -1,7 +1,7 @@
 var http = require('http');
 var url = require('url');
 
-var noop, failWithoutRequest, isArrayBufferView;
+var pass, failWithoutRequest, isArrayBufferView, _undefined, nextTick;
 
 // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
 var forbiddenInputHeaders = ['accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'content-transfer-encoding', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
@@ -23,7 +23,7 @@ var validateInputHeaders = function(headers) {
 };
 
 var httpinvoke = function(uri, method, options) {
-    var uploadProgressCb, cb, inputLength, inputType, noData, timeout, corsCredentials, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputType, input, outputLength, outputConverter, _undefined;
+    var uploadProgressCb, cb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
     /*************** initialize helper variables **************/
     try {
         validateInputHeaders(inputHeaders);
@@ -31,8 +31,8 @@ var httpinvoke = function(uri, method, options) {
         return failWithoutRequest(cb, err);
     }
     var ignorantlyConsume = function(res) {
-        res.on('data', noop);
-        res.on('end', noop);
+        res.on('data', pass);
+        res.on('end', pass);
     };
     uri = url.parse(uri);
     if(timeout > 0) {
@@ -110,7 +110,7 @@ var httpinvoke = function(uri, method, options) {
             }
 
             output = Buffer.concat(output, downloaded);
-            if(outputType === 'text') {
+            if(!outputBinary) {
                 output = output.toString('utf8');
             }
             try {

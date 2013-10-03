@@ -3,24 +3,24 @@ var url = require('url');
 
 ;;var isArrayBufferView = function(input) {
     return typeof input === 'object' && input !== null && (
-        (typeof global.ArrayBufferView !== 'undefined' && input instanceof global.ArrayBufferView) ||
-        (typeof global.Int8Array !== 'undefined' && input instanceof global.Int8Array) ||
-        (typeof global.Uint8Array !== 'undefined' && input instanceof global.Uint8Array) ||
-        (typeof global.Uint8ClampedArray !== 'undefined' && input instanceof global.Uint8ClampedArray) ||
-        (typeof global.Int16Array !== 'undefined' && input instanceof global.Int16Array) ||
-        (typeof global.Uint16Array !== 'undefined' && input instanceof global.Uint16Array) ||
-        (typeof global.Int32Array !== 'undefined' && input instanceof global.Int32Array) ||
-        (typeof global.Uint32Array !== 'undefined' && input instanceof global.Uint32Array) ||
-        (typeof global.Float32Array !== 'undefined' && input instanceof global.Float32Array) ||
-        (typeof global.Float64Array !== 'undefined' && input instanceof global.Float64Array)
+        (global.ArrayBufferView && input instanceof ArrayBufferView) ||
+        (global.Int8Array && input instanceof Int8Array) ||
+        (global.Uint8Array && input instanceof Uint8Array) ||
+        (global.Uint8ClampedArray && input instanceof Uint8ClampedArray) ||
+        (global.Int16Array && input instanceof Int16Array) ||
+        (global.Uint16Array && input instanceof Uint16Array) ||
+        (global.Int32Array && input instanceof Int32Array) ||
+        (global.Uint32Array && input instanceof Uint32Array) ||
+        (global.Float32Array && input instanceof Float32Array) ||
+        (global.Float64Array && input instanceof Float64Array)
     );
 };
 var isByteArray = function(input) {
     return typeof input === 'object' && input !== null && (
-        (typeof global.Buffer !== 'undefined' && input instanceof global.Buffer) ||
-        (typeof global.Blob !== 'undefined' && input instanceof global.Blob) ||
-        (typeof global.File !== 'undefined' && input instanceof global.File) ||
-        (typeof global.ArrayBuffer !== 'undefined' && input instanceof global.ArrayBuffer) ||
+        (global.Buffer && input instanceof Buffer) ||
+        (global.Blob && input instanceof Blob) ||
+        (global.File && input instanceof File) ||
+        (global.ArrayBuffer && input instanceof ArrayBuffer) ||
         isArrayBufferView(input) ||
         Object.prototype.toString.call(input) === '[object Array]'
     );
@@ -28,18 +28,18 @@ var isByteArray = function(input) {
 var bytearrayMessage = 'an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array';
 
 var supportedMethods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'];
-var indexOf = typeof [].indexOf === 'undefined' ? function(array, item) {
-    for(var i = 0; i < array.length; i += 1) {
+var indexOf = [].indexOf ? function(array, item) {
+    return array.indexOf(item);
+} : function(array, item) {
+    var i = -1;
+    while(++i < array.length) {
         if(array[i] === item) {
             return i;
         }
     }
     return -1;
-} : function(array, item) {
-    return array.indexOf(item);
 };
 
-var noop = function() {};
 var pass = function(value) {
     return value;
 };
@@ -51,8 +51,9 @@ var failWithoutRequest = function(cb, err) {
         }
         cb(err);
     });
-    return noop;
+    return pass;
 };
+var _undefined;
 ;
 
 // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
@@ -75,12 +76,12 @@ var validateInputHeaders = function(headers) {
 };
 
 var httpinvoke = function(uri, method, options) {
-    ;var uploadProgressCb, cb, inputLength, inputType, noData, timeout, corsCredentials, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputType, input, outputLength, outputConverter, _undefined;
+    ;var uploadProgressCb, cb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
 /*************** COMMON initialize parameters **************/
-if(typeof method === 'undefined') {
+if(!method) {
     method = 'GET';
     options = {};
-} else if(typeof options === 'undefined') {
+} else if(!options) {
     if(typeof method === 'string') {
         options = {};
     } else {
@@ -92,15 +93,15 @@ options = typeof options === 'function' ? {
     finished: options
 } : options;
 var safeCallback = function(name) {
-    if(typeof options[name] === 'undefined') {
-        return noop;
+    if(name in options) {
+        return function(a, b, c, d) {
+            try {
+                options[name](a, b, c, d);
+            } catch(_) {
+            }
+        };
     }
-    return function() {
-        try {
-            options[name].apply(null, arguments);
-        } catch(_) {
-        }
-    };
+    return pass;
 };
 uploadProgressCb = safeCallback('uploading');
 var downloadProgressCb = safeCallback('downloading');
@@ -111,78 +112,59 @@ var converters = options.converters || {};
 var inputConverter;
 inputLength = 0;
 inputHeaders = options.headers || {};
-outputType = options.outputType || "text";
 outputHeaders = {};
 exposedHeaders = options.corsExposedHeaders || [];
 exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma', 'Content-Range']);
 corsOriginHeader = options.corsOriginHeader || 'X-Httpinvoke-Origin';
-corsCredentials = !!options.corsCredentials;
 /*************** COMMON convert and validate parameters **************/
 if(indexOf(supportedMethods, method) < 0) {
     return failWithoutRequest(cb, new Error('Unsupported method ' + method));
 }
-if(outputType === 'text' || outputType === 'bytearray') {
+outputBinary = options.outputType === 'bytearray';
+if(!options.outputType || options.outputType === 'text' || outputBinary) {
     outputConverter = pass;
-} else if(typeof converters['text ' + outputType] !== 'undefined') {
-    outputConverter = converters['text ' + outputType];
-    outputType = 'text';
-} else if(typeof converters['bytearray ' + outputType] !== 'undefined') {
-    outputConverter = converters['bytearray ' + outputType];
-    outputType = 'bytearray';
+} else if(converters['text ' + options.outputType]) {
+    outputConverter = converters['text ' + options.outputType];
+    outputBinary = false;
+} else if(converters['bytearray ' + options.outputType]) {
+    outputConverter = converters['bytearray ' + options.outputType];
+    outputBinary = true;
 } else {
-    return failWithoutRequest(cb, new Error('Unsupported outputType ' + outputType));
+    return failWithoutRequest(cb, new Error('Unsupported outputType ' + options.outputType));
 }
-if(typeof options.input === 'undefined') {
-    if(typeof options.inputType !== 'undefined') {
-        return failWithoutRequest(cb, new Error('"input" is undefined, but inputType is defined'));
-    }
-    if(typeof inputHeaders['Content-Type'] !== 'undefined') {
-        return failWithoutRequest(cb, new Error('"input" is undefined, but Content-Type request header is defined'));
-    }
-} else {
+inputConverter = pass;
+if('input' in options) {
     input = options.input;
-    if(typeof options.inputType === 'undefined' || options.inputType === 'auto') {
-        if(typeof input === 'string') {
-            inputType = 'text';
-        } else if(isByteArray(input)) {
-            inputType = 'bytearray';
-        } else {
+    if(!options.inputType || options.inputType === 'auto') {
+        if(typeof input !== 'string' && !isByteArray(input)) {
             return failWithoutRequest(cb, new Error('inputType is undefined or auto and input is neither string, nor ' + bytearrayMessage));
         }
-    } else {
-        inputType = options.inputType;
-        if(inputType === 'text') {
-            if(typeof input !== 'string') {
-                return failWithoutRequest(cb, new Error('inputType is text, but input is not a string'));
-            }
-        } else if (inputType === 'bytearray') {
-            if(!isByteArray(input)) {
-                return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither ' + bytearrayMessage));
-            }
+    } else if(options.inputType === 'text') {
+        if(typeof input !== 'string') {
+            return failWithoutRequest(cb, new Error('inputType is text, but input is not a string'));
         }
-    }
-    if(typeof converters[inputType + ' text'] !== 'undefined') {
-        inputConverter = converters[inputType + ' text'];
-        inputType = 'text';
-    } else if(typeof converters[inputType + ' bytearray'] !== 'undefined') {
-        inputConverter = converters[inputType + ' bytearray'];
-        inputType = 'bytearray';
-    } else if(inputType === 'text' || inputType === 'bytearray') {
-        inputConverter = pass;
+    } else if (options.inputType === 'bytearray') {
+        if(!isByteArray(input)) {
+            return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither ' + bytearrayMessage));
+        }
+    } else if(converters[options.inputType + ' text']) {
+        inputConverter = converters[options.inputType + ' text'];
+    } else if(converters[options.inputType + ' bytearray']) {
+        inputConverter = converters[options.inputType + ' bytearray'];
     } else {
         return failWithoutRequest(cb, new Error('There is no converter for specified inputType'));
     }
-    if(inputType === 'text') {
-        if(typeof inputHeaders['Content-Type'] === 'undefined') {
+    if(typeof input === 'string') {
+        if(!inputHeaders['Content-Type']) {
             inputHeaders['Content-Type'] = 'text/plain; charset=UTF-8';
         }
-    } else if(inputType === 'bytearray') {
-        if(typeof inputHeaders['Content-Type'] === 'undefined') {
+    } else {
+        if(!inputHeaders['Content-Type']) {
             inputHeaders['Content-Type'] = 'application/octet-stream';
         }
-        if(typeof ArrayBuffer !== 'undefined' && input instanceof ArrayBuffer) {
+        if(global.ArrayBuffer && input instanceof ArrayBuffer) {
             input = new Uint8Array(input);
-        } else if((typeof Int16Array !== 'undefined' && input instanceof Int16Array) || (typeof Uint16Array !== 'undefined' && input instanceof Uint16Array) || (typeof Int32Array !== 'undefined' && input instanceof Int32Array) || (typeof Uint32Array !== 'undefined' && input instanceof Uint32Array) || (typeof Float32Array !== 'undefined' && input instanceof Float32Array) || (typeof Float64Array !== 'undefined' && input instanceof Float64Array)) {
+        } else if(isArrayBufferView(input)) {
             input = new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
         }
     }
@@ -191,33 +173,34 @@ if(typeof options.input === 'undefined') {
     } catch(err) {
         return failWithoutRequest(cb, err);
     }
+} else {
+    if(options.inputType) {
+        return failWithoutRequest(cb, new Error('"input" is undefined, but inputType is defined'));
+    }
+    if(inputHeaders['Content-Type']) {
+        return failWithoutRequest(cb, new Error('"input" is undefined, but Content-Type request header is defined'));
+    }
 }
 
 /*************** COMMON initialize helper variables **************/
 var downloaded;
 initDownload = function(total) {
-    if(typeof outputLength !== 'undefined') {
-        return;
+    if(typeof outputLength === 'undefined') {
+        downloadProgressCb(downloaded, outputLength = total);
     }
-    outputLength = total;
-
-    downloadProgressCb(downloaded, outputLength);
 };
 updateDownload = function(value) {
-    if(value === downloaded) {
-        return;
+    if(value !== downloaded) {
+        downloadProgressCb(downloaded = value, outputLength);
     }
-    downloaded = value;
-
-    downloadProgressCb(downloaded, outputLength);
 };
 noData = function() {
     initDownload(0);
-    if(cb === null) {
-        return;
+    if(cb) {
+        // TODO what happens if we try to call abort in cb?
+        cb(null, _undefined, status, outputHeaders);
+        cb = null;
     }
-    cb(null, _undefined, status, outputHeaders);
-    cb = null;
 };
 ;
     /*************** initialize helper variables **************/
@@ -227,8 +210,8 @@ noData = function() {
         return failWithoutRequest(cb, err);
     }
     var ignorantlyConsume = function(res) {
-        res.on('data', noop);
-        res.on('end', noop);
+        res.on('data', pass);
+        res.on('end', pass);
     };
     uri = url.parse(uri);
     if(timeout > 0) {
@@ -306,7 +289,7 @@ noData = function() {
             }
 
             output = Buffer.concat(output, downloaded);
-            if(outputType === 'text') {
+            if(!outputBinary) {
                 output = output.toString('utf8');
             }
             try {

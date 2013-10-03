@@ -1,23 +1,23 @@
 var isArrayBufferView = function(input) {
     return typeof input === 'object' && input !== null && (
-        (typeof global.ArrayBufferView !== 'undefined' && input instanceof global.ArrayBufferView) ||
-        (typeof global.Int8Array !== 'undefined' && input instanceof global.Int8Array) ||
-        (typeof global.Uint8Array !== 'undefined' && input instanceof global.Uint8Array) ||
-        (typeof global.Uint8ClampedArray !== 'undefined' && input instanceof global.Uint8ClampedArray) ||
-        (typeof global.Int16Array !== 'undefined' && input instanceof global.Int16Array) ||
-        (typeof global.Uint16Array !== 'undefined' && input instanceof global.Uint16Array) ||
-        (typeof global.Int32Array !== 'undefined' && input instanceof global.Int32Array) ||
-        (typeof global.Uint32Array !== 'undefined' && input instanceof global.Uint32Array) ||
-        (typeof global.Float32Array !== 'undefined' && input instanceof global.Float32Array) ||
-        (typeof global.Float64Array !== 'undefined' && input instanceof global.Float64Array)
+        (global.ArrayBufferView && input instanceof ArrayBufferView) ||
+        (global.Int8Array && input instanceof Int8Array) ||
+        (global.Uint8Array && input instanceof Uint8Array) ||
+        (global.Uint8ClampedArray && input instanceof Uint8ClampedArray) ||
+        (global.Int16Array && input instanceof Int16Array) ||
+        (global.Uint16Array && input instanceof Uint16Array) ||
+        (global.Int32Array && input instanceof Int32Array) ||
+        (global.Uint32Array && input instanceof Uint32Array) ||
+        (global.Float32Array && input instanceof Float32Array) ||
+        (global.Float64Array && input instanceof Float64Array)
     );
 };
 var isByteArray = function(input) {
     return typeof input === 'object' && input !== null && (
-        (typeof global.Buffer !== 'undefined' && input instanceof global.Buffer) ||
-        (typeof global.Blob !== 'undefined' && input instanceof global.Blob) ||
-        (typeof global.File !== 'undefined' && input instanceof global.File) ||
-        (typeof global.ArrayBuffer !== 'undefined' && input instanceof global.ArrayBuffer) ||
+        (global.Buffer && input instanceof Buffer) ||
+        (global.Blob && input instanceof Blob) ||
+        (global.File && input instanceof File) ||
+        (global.ArrayBuffer && input instanceof ArrayBuffer) ||
         isArrayBufferView(input) ||
         Object.prototype.toString.call(input) === '[object Array]'
     );
@@ -25,18 +25,18 @@ var isByteArray = function(input) {
 var bytearrayMessage = 'an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array';
 
 var supportedMethods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'];
-var indexOf = typeof [].indexOf === 'undefined' ? function(array, item) {
-    for(var i = 0; i < array.length; i += 1) {
+var indexOf = [].indexOf ? function(array, item) {
+    return array.indexOf(item);
+} : function(array, item) {
+    var i = -1;
+    while(++i < array.length) {
         if(array[i] === item) {
             return i;
         }
     }
     return -1;
-} : function(array, item) {
-    return array.indexOf(item);
 };
 
-var noop = function() {};
 var pass = function(value) {
     return value;
 };
@@ -48,5 +48,6 @@ var failWithoutRequest = function(cb, err) {
         }
         cb(err);
     });
-    return noop;
+    return pass;
 };
+var _undefined;
