@@ -44,6 +44,13 @@ Load using your package manager, or use directly in web browser by adding `<scri
         console.log('Success', html);
     });
 
+    // same as above, but using promise
+    httpinvoke('http://example.org').then(function(html) {
+        console.log('Success', html);
+    }, function(err) {
+        console.log('Failure', err);
+    });
+
     httpinvoke('http://updates.html5rocks.com', 'POST', {
         inputType: 'bytearray',
         outputType: 'text',
