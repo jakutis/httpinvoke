@@ -1,13 +1,26 @@
 var fs = require('fs');
 
-module.exports = function(grunt) {
-    var common = fs.readFileSync('./src/common.js').toString();
-    var processCommon = function(globalVar) {
-        return function(contents) {
-            contents = contents.split('var common;');
-            return contents[0] + ';' + common + ';common = common(' + globalVar + ');' + contents[1];
-        };
+var replace = function(contents, replacements) {
+    replacements.forEach(function(replacement) {
+        contents = contents.split(replacement.from);
+        contents = contents[0] + ';' + replacement.to + ';' + contents[1];
+    });
+    return contents;
+};
+
+var processCommon = function(globalVar) {
+    return function(contents) {
+        return replace(contents, [{
+            from: 'var noop, failWithoutRequest, isArrayBufferView;',
+            to: globalVar + ';' + fs.readFileSync('./src/common/static.js').toString()
+        }, {
+            from: 'var uploadProgressCb, cb, inputLength, inputType, noData, timeout, corsCredentials, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputType, input, outputLength, outputConverter, _undefined;',
+            to: fs.readFileSync('./src/common/closures.js').toString()
+        }]);
     };
+};
+
+module.exports = function(grunt) {
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
@@ -32,14 +45,14 @@ module.exports = function(grunt) {
         concat: {
             browser: {
                 options: {
-                    process: processCommon('window')
+                    process: processCommon('global = window;')
                 },
                 src: ['./src/browser.js'],
                 dest: './httpinvoke-browser.js'
             },
             node: {
                 options: {
-                    process: processCommon('global')
+                    process: processCommon('')
                 },
                 src: ['./src/node.js'],
                 dest: './httpinvoke-node.js'
@@ -47,17 +60,13 @@ module.exports = function(grunt) {
             commonjs: {
                 options: {
                     process: function(contents) {
-                        var include;
-
-                        include = fs.readFileSync('./httpinvoke-node.js').toString();
-                        contents = contents.split('var node;');
-                        contents = contents[0] + ';' + include + ';' + contents[1];
-
-                        include = fs.readFileSync('./httpinvoke-browser.js').toString();
-                        contents = contents.split('var browser;');
-                        contents = contents[0] + ';' + include + ';' + contents[1];
-
-                        return contents;
+                        return replace(contents, [{
+                            from: 'var node;',
+                            to: fs.readFileSync('./httpinvoke-node.js').toString()
+                        }, {
+                            from: 'var browser;',
+                            to: fs.readFileSync('./httpinvoke-browser.js').toString()
+                        }]);
                     }
                 },
                 src: ['./src/commonjs.js'],

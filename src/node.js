@@ -1,133 +1,130 @@
 var http = require('http');
 var url = require('url');
 
-var common;
+var noop, failWithoutRequest, isArrayBufferView;
 
-var httpinvoke = function() {
-    var c = common.initialize.apply(null, arguments);
-    if(typeof c === 'function') {
-        return c;
-    }
+var httpinvoke = function(uri, method, options) {
+    var uploadProgressCb, cb, inputLength, inputType, noData, timeout, corsCredentials, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputType, input, outputLength, outputConverter, _undefined;
     /*************** initialize helper variables **************/
     var ignorantlyConsume = function(res) {
-        res.on('data', common.noop);
-        res.on('end', common.noop);
+        res.on('data', noop);
+        res.on('end', noop);
     };
-    var uri = url.parse(c.uri);
-    if(c.timeout > 0) {
+    uri = url.parse(uri);
+    if(timeout > 0) {
         setTimeout(function() {
-            c.cb(new Error('Timeout of ' + c.timeout + 'ms exceeded'));
-            c.cb = null;
-        }, c.timeout);
+            cb(new Error('Timeout of ' + timeout + 'ms exceeded'));
+            cb = null;
+        }, timeout);
     }
     var req = http.request({
         hostname: uri.hostname,
         port: Number(uri.port),
         path: uri.path,
-        method: c.method,
-        headers: c.inputHeaders
+        method: method,
+        headers: inputHeaders
     }, function(res) {
-        if(c.cb === null) {
+        if(cb === null) {
             ignorantlyConsume(res);
             return;
         }
-        c.outputHeaders = res.headers;
-        c.status = res.statusCode;
+        outputHeaders = res.headers;
+        status = res.statusCode;
 
-        c.uploadProgressCb(c.inputLength, c.inputLength);
-        if(c.cb === null) {
-            ignorantlyConsume(res);
-            return;
-        }
-
-        c.statusCb(c.status, c.outputHeaders);
-        if(c.cb === null) {
+        uploadProgressCb(inputLength, inputLength);
+        if(cb === null) {
             ignorantlyConsume(res);
             return;
         }
 
-        c.updateDownload(0);
-        if(c.cb === null) {
+        statusCb(status, outputHeaders);
+        if(cb === null) {
             ignorantlyConsume(res);
             return;
         }
-        if(typeof c.outputHeaders['content-length'] !== 'undefined') {
-            c.initDownload(Number(c.outputHeaders['content-length']));
-            if(c.cb === null) {
+
+        updateDownload(0);
+        if(cb === null) {
+            ignorantlyConsume(res);
+            return;
+        }
+        if(typeof outputHeaders['content-length'] !== 'undefined') {
+            initDownload(Number(outputHeaders['content-length']));
+            if(cb === null) {
                 ignorantlyConsume(res);
                 return;
             }
         }
-        if(c.method === 'HEAD' || typeof c.outputHeaders['content-type'] === 'undefined') {
+        if(method === 'HEAD' || typeof outputHeaders['content-type'] === 'undefined') {
             ignorantlyConsume(res);
-            return c.noData();
+            return noData();
         }
 
         var output = [], downloaded = 0;
         res.on('data', function(chunk) {
-            if(c.cb === null) {
+            if(cb === null) {
                 return;
             }
             downloaded += chunk.length;
             output.push(chunk);
-            c.updateDownload(downloaded);
-            if(c.cb === null) {
+            updateDownload(downloaded);
+            if(cb === null) {
                 return;
             }
         });
         res.on('end', function() {
-            if(c.cb === null) {
+            if(cb === null) {
                 return;
             }
-            c.updateDownload(downloaded);
-            if(c.cb === null) {
+            updateDownload(downloaded);
+            if(cb === null) {
                 return;
             }
 
-            if(typeof c.outputLength === 'undefined') {
-                c.outputLength = downloaded;
+            if(typeof outputLength === 'undefined') {
+                outputLength = downloaded;
             }
 
             output = Buffer.concat(output, downloaded);
-            if(c.outputType === 'text') {
+            if(outputType === 'text') {
                 output = output.toString('utf8');
             }
             try {
-                c.cb(null, c.outputConverter(output), c.status, c.outputHeaders);
+                cb(null, outputConverter(output), status, outputHeaders);
             } catch(err) {
-                c.cb(err);
+                cb(err);
             }
-            c.cb = null;
+            cb = null;
         });
     });
 
     process.nextTick(function() {
-        if(c.cb === null) {
+        if(cb === null) {
             return;
         }
-        c.uploadProgressCb(0, c.inputLength);
+        uploadProgressCb(0, inputLength);
     });
-    if(typeof c.input !== 'undefined') {
-        c.input = new Buffer(c.input);
-        c.inputLength = c.input.length;
-        req.write(c.input);
+    if(typeof input !== 'undefined') {
+        input = new Buffer(input);
+        inputLength = input.length;
+        req.write(input);
     }
     req.on('error', function(e) {
-        if(c.cb === null) {
+        if(cb === null) {
             return;
         }
-        c.cb(e);
-        c.cb = null;
+        cb(e);
+        cb = null;
     });
     req.end();
     return function() {
-        if(c.cb === null) {
+        if(cb === null) {
             return;
         }
 
         // these statements are in case "abort" is called in "finished" callback
-        var _cb = c.cb;
-        c.cb = null;
+        var _cb = cb;
+        cb = null;
         _cb(new Error('abort'));
     };
 };
