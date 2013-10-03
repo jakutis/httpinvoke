@@ -10,10 +10,10 @@ The perfect JavaScript HTTP client. [Check out the demo.](http://jakut.is:1337/)
 * Handles HTTP responses The Right Way™:
   * Tries hard to get the HTTP response status code in all cases.
   * Emits the HTTP response status code and headers as soon as they are available.
-  * Gives you HTTP status code instead of an error, that is for example HTTP 404 would just return success, with status 404
+  * Gives you HTTP status code instead of an error, that is for example HTTP 404 would just return success, with status 404.
   * Throws an error only when the HTTP request did not actually completely finished.
 * Thoroughly unit-tested - over 257 unit tests.
-* Weights 4715 bytes.
+* Weighs 4715 bytes.
 * Works on [web browser](http://en.wikipedia.org/wiki/Internet_Explorer_5) and [Node.js](http://nodejs.org) platforms.
 * Detects the presence of [CommonJS](http://www.commonjs.org/) and [AMD](https://www.google.com/search?q=advanced+module+definition) script loaders.
 * Available on [npm](https://npmjs.org/package/httpinvoke) and [GitHub](https://github.com/jakutis/httpinvoke).
