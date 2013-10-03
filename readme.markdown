@@ -1,6 +1,6 @@
 # httpinvoke
 
-HTTP client for JavaScript. [Check out the demo.](http://jakut.is:1337/)
+The perfect JavaScript HTTP client. [Check out the demo.](http://jakut.is:1337/)
 
 * Thoroughly unit-tested - over 245 unit tests.
 * Weights 4356 bytes.
