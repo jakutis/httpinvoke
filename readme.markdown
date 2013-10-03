@@ -116,6 +116,7 @@ All options are optional.
 
 The **finished** callback will be called with an instance of Error only when strictly either one of these things happen:
 
+* **abort** function is called (error message "abort");
 * sending request fails (error message "upload error");
 * sending request times out (error message "upload timeout");
 * native XMLHttpRequest calls .onerror without a .status or .statusText (error message "download error") - this can happen due to various network errors, server response sending errors, or simply an unsupported status code - e.g. Firefox 3.0 ends up here after a status 408 response;
