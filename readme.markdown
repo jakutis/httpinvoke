@@ -125,13 +125,13 @@ All options are optional.
 
 The **finished** callback will be called with an instance of Error only when strictly either one of these things happen:
 
-* **abort** function is called (error message "abort");
-* sending request fails (error message "upload error");
-* sending request times out (error message "upload timeout");
-* native XMLHttpRequest calls .onerror without a .status or .statusText (error message "download error") - this can happen due to various network errors, server response sending errors, or simply an unsupported status code - e.g. Firefox 3.0 ends up here after a status 408 response;
-* receiving request times out (error message "download timeout");
+* **abort** function was called (error message "abort");
+* sending request failed (error message "upload error");
+* sending request timed out (error message "upload timeout");
+* native XMLHttpRequest called .onerror without a .status or .statusText (error message "download error") - this can happen due to various network errors, server response sending errors, or simply an unsupported status code - e.g. Firefox 3.0 ends up here after a status 408 response;
+* receiving request timed out (error message "download timeout");
 * converter from **converters** option threw an error (the thrown error message is passed);
-* request has not even started - calling options validation failed or a feature that is not supported by the platform was used (various error messages are passed, e.g. "Unsupported method TRACE").
+* request did not even start - calling options validation failed or a feature that is not supported by the platform was used (various error messages are passed, e.g. "Unsupported method TRACE").
 
 So generally, finishing with an error means that a response has not been received.
 Please note that a request can finish successfully, with an **err** set to `null`, but also with an undefined **status**, undefined **output** and an empty **headers** object - generally **status** is defined at all times, but some older browsers provide status code only for 2XX responses - e.g. Opera 11.50.
