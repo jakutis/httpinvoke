@@ -116,11 +116,6 @@ if(typeof options.input === 'undefined') {
     }
 }
 
-try {
-    validateInputHeaders(inputHeaders);
-} catch(err) {
-    return failWithoutRequest(cb, err);
-}
 /*************** COMMON initialize helper variables **************/
 var downloaded;
 initDownload = function(total) {

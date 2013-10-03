@@ -46,24 +46,6 @@ var indexOf = typeof [].indexOf === 'undefined' ? function(array, item) {
     return array.indexOf(item);
 };
 
-// http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
-var forbiddenInputHeaders = ['accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'content-transfer-encoding', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
-var validateInputHeaders = function(headers) {
-    for(var header in headers) {
-        if(headers.hasOwnProperty(header)) {
-            var headerl = header.toLowerCase();
-            if(indexOf(forbiddenInputHeaders, headerl) >= 0) {
-                throw new Error('Input header ' + header + ' is forbidden to be set programmatically');
-            }
-            if(headerl.substr(0, 'proxy-'.length) === 'proxy-') {
-                throw new Error('Input header ' + header + ' (to be precise, all Proxy-*) is forbidden to be set programmatically');
-            }
-            if(headerl.substr(0, 'sec-'.length) === 'sec-') {
-                throw new Error('Input header ' + header + ' (to be precise, all Sec-*) is forbidden to be set programmatically');
-            }
-        }
-    }
-};
 var noop = function() {};
 var pass = function(value) {
     return value;
@@ -387,11 +369,6 @@ if(typeof options.input === 'undefined') {
     }
 }
 
-try {
-    validateInputHeaders(inputHeaders);
-} catch(err) {
-    return failWithoutRequest(cb, err);
-}
 /*************** COMMON initialize helper variables **************/
 var downloaded;
 initDownload = function(total) {
@@ -819,7 +796,11 @@ noData = function() {
         if(!crossDomain || httpinvoke.corsRequestHeaders) {
             for(var inputHeaderName in inputHeaders) {
                 if(inputHeaders.hasOwnProperty(inputHeaderName)) {
-                    xhr.setRequestHeader(inputHeaderName, inputHeaders[inputHeaderName]);
+                    try {
+                        xhr.setRequestHeader(inputHeaderName, inputHeaders[inputHeaderName]);
+                    } catch(err) {
+                        return failWithoutRequest(cb, err);
+                    }
                 }
             }
         }

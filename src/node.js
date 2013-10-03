@@ -3,9 +3,33 @@ var url = require('url');
 
 var noop, failWithoutRequest, isArrayBufferView;
 
+// http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
+var forbiddenInputHeaders = ['accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'content-transfer-encoding', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
+var validateInputHeaders = function(headers) {
+    for(var header in headers) {
+        if(headers.hasOwnProperty(header)) {
+            var headerl = header.toLowerCase();
+            if(forbiddenInputHeaders.indexOf(headerl) >= 0) {
+                throw new Error('Input header ' + header + ' is forbidden to be set programmatically');
+            }
+            if(headerl.substr(0, 'proxy-'.length) === 'proxy-') {
+                throw new Error('Input header ' + header + ' (to be precise, all Proxy-*) is forbidden to be set programmatically');
+            }
+            if(headerl.substr(0, 'sec-'.length) === 'sec-') {
+                throw new Error('Input header ' + header + ' (to be precise, all Sec-*) is forbidden to be set programmatically');
+            }
+        }
+    }
+};
+
 var httpinvoke = function(uri, method, options) {
     var uploadProgressCb, cb, inputLength, inputType, noData, timeout, corsCredentials, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputType, input, outputLength, outputConverter, _undefined;
     /*************** initialize helper variables **************/
+    try {
+        validateInputHeaders(inputHeaders);
+    } catch(err) {
+        return failWithoutRequest(cb, err);
+    }
     var ignorantlyConsume = function(res) {
         res.on('data', noop);
         res.on('end', noop);

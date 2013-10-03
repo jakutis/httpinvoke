@@ -1,6 +1,9 @@
 var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
+// http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
+var forbiddenInputHeaders = ['Accept-Charset', 'Accept-Encoding', 'Access-Control-Request-Headers', 'Access-Control-Request-Method', 'Connection', 'Content-Length', 'Content-Transfer-Encoding', 'Cookie', 'Cookie2', 'Date', 'DNT', 'Expect', 'Host', 'Keep-Alive', 'Origin', 'Referer', 'TE', 'Trailer', 'Transfer-Encoding', 'Upgrade', 'User-Agent', 'Via', 'Proxy-Authorization', 'Sec-From'];
+
 describe('"headers" option', function() {
     this.timeout(10000);
     cfg.eachBase(function(postfix, url, crossDomain) {
@@ -25,5 +28,20 @@ describe('"headers" option', function() {
                 });
             });
         }
+    });
+    forbiddenInputHeaders.forEach(function(header) {
+        it('immediately finishes with error, when a "' + header + '" header is tried to be set', function(done) {
+            var headers = {};
+            headers[header] = '';
+            httpinvoke(cfg.url, {
+                headers: headers,
+                finished: function(err) {
+                    if(err) {
+                        return done();
+                    }
+                    done(err);
+                }
+            });
+        });
     });
 });

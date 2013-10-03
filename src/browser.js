@@ -600,7 +600,11 @@
         if(!crossDomain || httpinvoke.corsRequestHeaders) {
             for(var inputHeaderName in inputHeaders) {
                 if(inputHeaders.hasOwnProperty(inputHeaderName)) {
-                    xhr.setRequestHeader(inputHeaderName, inputHeaders[inputHeaderName]);
+                    try {
+                        xhr.setRequestHeader(inputHeaderName, inputHeaders[inputHeaderName]);
+                    } catch(err) {
+                        return failWithoutRequest(cb, err);
+                    }
                 }
             }
         }
