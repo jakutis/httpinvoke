@@ -21,7 +21,7 @@ The perfect JavaScript HTTP client. [Check out the demo.](http://jakut.is:1337/)
 * Tested on:
   * NodeJS 0.10.20
   * Internet Explorer 6 and later
-  * Firefox 3.0 and later
+  * Firefox 1.5 and later
   * Chrome 1 and later
   * Safari 4.0 and later
   * Opera 10.50 and later
