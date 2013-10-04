@@ -9,7 +9,6 @@ var makeErrorFinished = function(done) {
         done(new Error('Did not finish with an error'));
     };
 };
-var g = global || window;
 
 describe('"input" option', function() {
     this.timeout(10000);
@@ -119,12 +118,12 @@ describe('"input" option', function() {
                     }
                 };
                 eachClass(function(className) {
-                    if(typeof g[className] === 'undefined') {
+                    if(typeof global[className] === 'undefined') {
                         return;
                     }
                     it('correctly sends the input when inputType is bytearray and input is ' + className + postfix, function(done) {
                         httpinvoke(url + 'bytearray', 'POST', {
-                            input: new g[className](buffer),
+                            input: new global[className](buffer),
                             inputType: 'bytearray',
                             outputType: 'text',
                             finished: function(err, output) {
