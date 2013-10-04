@@ -26,6 +26,8 @@
   "private": false,
   "dependencies": {},
   "devDependencies": {
+    "sizzle": "1.1.x",
+    "JSON2": "0.1.x",
     "es5-shim": "2.1.x",
     "grunt": "0.4.x",
     "grunt-cli": "0.1.x",

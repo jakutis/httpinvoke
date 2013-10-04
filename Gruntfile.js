@@ -30,7 +30,7 @@ module.exports = function(grunt) {
                     reporter: 'spec',
                     bail: true
                 },
-                src: ['test/**/*.js']
+                src: ['test/*.js']
             }
         },
         uglify: {

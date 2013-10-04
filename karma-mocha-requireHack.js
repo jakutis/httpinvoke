@@ -393,3 +393,5 @@ window.require = function(module) {
 if(typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = window._cfg;
 }
+
+global = window;

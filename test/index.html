@@ -1,0 +1,47 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>httpinvoke</title>
+
+        <link rel="stylesheet" type="text/css" href="../node_modules/mocha/mocha.css" />
+
+        <script src="../httpinvoke-browser.js"></script>
+        <script src="../karma-mocha-requireHack.js"></script>
+        <script src="../node_modules/es5-shim/es5-shim.js"></script>
+        <script src="../node_modules/JSON2/json2.js"></script>
+        <script src="../node_modules/sizzle/sizzle.js"></script>
+        <script src="../node_modules/mocha/mocha.js"></script>
+
+        <script>
+mocha.setup('bdd');
+        </script>
+
+        <script src="abort.js"></script>
+        <script src="callbackSequence.js"></script>
+        <script src="calling.js"></script>
+        <script src="converters.js"></script>
+        <script src="cors.js"></script>
+        <script src="corsCredentials.js"></script>
+        <script src="downloading.js"></script>
+        <script src="finished.js"></script>
+        <script src="gotStatus.js"></script>
+        <script src="headers.js"></script>
+        <script src="input.js"></script>
+        <script src="method.js"></script>
+        <script src="output.js"></script>
+        <script src="promise.js"></script>
+        <script src="status.js"></script>
+        <script src="timeout.js"></script>
+        <script src="uploading.js"></script>
+
+        <script>
+window.onload = function() {
+    mocha.checkLeaks();
+    mocha.run();
+};
+        </script>
+    </head>
+    <body id="mocha">
+    </body>
+</html>
