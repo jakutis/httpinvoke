@@ -74,7 +74,7 @@ describe('"status" argument', function() {
                         if(params.ifModified) {
                             opts.headers['If-Modified-Since'] = 'Thu, 01 Jan 1970 00:00:00 GMT';
                         }
-                        httpinvoke(url + '/' + i + '/status/' + code, method, opts);
+                        httpinvoke(url + i + '/status/' + code, method, opts);
                     });
                 });
             });

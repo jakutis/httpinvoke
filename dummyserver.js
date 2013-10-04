@@ -2,6 +2,7 @@ var http = require('http');
 var cfg = require('./dummyserver-config');
 var daemon = require('daemon');
 var fs = require('fs');
+var mime = require('mime');
 
 var hello = new Buffer('Hello World\n', 'utf8');
 
@@ -78,16 +79,21 @@ var entityHeaders = function(headers) {
 };
 
 var outputStatus = function(req, res) {
-    var code, i;
+    var code, i, max = 0;
+    Object.keys(cfg.status).forEach(function(code) {
+        Object.keys(cfg.status[code]).forEach(function(method) {
+            if(max < cfg.status[code][method].length) {
+                max = cfg.status[code][method].length;
+            }
+        });
+    });
     if(Object.keys(cfg.status).some(function(_code) {
         code = _code;
         if(endsWith(req.url, '/status/' + code)) {
-            i = 0;
-            while(true) {
-                if(endsWith(req.url, '/' + i + '/status/' + code)) {
+            for(i = 0; i < max; i += 1) {
+                if(req.url === req.proxyPath + '/' + i + '/status/' + code) {
                     break;
                 }
-                i += 1;
             }
             return true;
         }
@@ -97,7 +103,7 @@ var outputStatus = function(req, res) {
             var headers = {};
             corsHeaders(headers, req);
             if(params.location) {
-                headers.Location = 'http://' + req.headers.host + req.url.substr(0, req.url.length - ('/' + i + '/status/' + code).length);
+                headers.Location = 'http://' + req.headers.host + req.proxyPath + '/';
                 res.writeHead(Number(code), headers);
                 res.end();
             } else if(params.responseEntity) {
@@ -128,6 +134,7 @@ var outputStatus = function(req, res) {
 };
 
 var listen = function (req, res) {
+    req.proxyPath = req.url.substr(0, cfg.proxyPath.length) === cfg.proxyPath ? cfg.proxyPath : '';
     res.useChunkedEncodingByDefault = false;
 
     var output = function(status, body, head, mimeType) {
@@ -160,15 +167,15 @@ var listen = function (req, res) {
         return;
     }
     if(req.method === 'POST') {
-        if(endsWith(req.url, '/noentity')) {
+        if(req.url === req.proxyPath + '/noentity') {
             output(204, null, false);
-        } else if(endsWith(req.url, '/headers/contentType')) {
+        } else if(req.url === req.proxyPath + '/headers/contentType') {
             output(200, new Buffer(typeof req.headers['content-type'] === 'undefined' ? 'undefined' : req.headers['content-type'], 'utf8'), false, 'text/plain; charset=UTF-8');
-        } else if(endsWith(req.url, '/bytearray')) {
+        } else if(req.url === req.proxyPath + '/bytearray') {
             readEntityBody(req, false, cfg.makeByteArrayFinished(reportTest));
-        } else if(endsWith(req.url, '/text/utf8')) {
+        } else if(req.url === req.proxyPath + '/text/utf8') {
             readEntityBody(req, true, cfg.makeTextFinished(reportTest));
-        } else if(endsWith(req.url, '/boolean')) {
+        } else if(req.url === req.proxyPath + '/boolean') {
             readEntityBody(req, false, function(err, input) {
                 output(200, input, false, 'text/plain; charset=UTF-8');
             });
@@ -182,26 +189,38 @@ var listen = function (req, res) {
     } else if(req.method === 'DELETE') {
         output(200, hello, false, 'text/plain; charset=UTF-8');
     } else if(req.method === 'GET') {
-        if(endsWith(req.url, '/bigslow')) {
+        if(req.url === req.proxyPath + '/') {
+            output(200, hello, false, 'text/plain; charset=UTF-8');
+        } else if(req.url === req.proxyPath + '/bigslow') {
             bigslowHello(res);
-        } else if(endsWith(req.url, '/text/utf8')) {
+        } else if(req.url === req.proxyPath + '/text/utf8') {
             output(200, new Buffer(cfg.textTest(), 'utf8'), false, 'text/plain; charset=UTF-8');
-        } else if(endsWith(req.url, '/text/utf8/empty')) {
+        } else if(req.url === req.proxyPath + '/text/utf8/empty') {
             output(200, new Buffer('', 'utf8'), false, 'text/plain; charset=UTF-8');
-        } else if(endsWith(req.url, '/json')) {
+        } else if(req.url === req.proxyPath + '/json') {
             output(200, new Buffer(JSON.stringify(cfg.jsonTest()), 'utf8'), false, 'application/json');
-        } else if(endsWith(req.url, '/json/null')) {
+        } else if(req.url === req.proxyPath + '/json/null') {
             output(200, new Buffer('null', 'utf8'), false, 'application/json');
-        } else if(endsWith(req.url, '/bytearray')) {
+        } else if(req.url === req.proxyPath + '/bytearray') {
             output(200, new Buffer(cfg.bytearrayTest()), false, 'application/octet-stream');
-        } else if(endsWith(req.url, '/bytearray/empty')) {
+        } else if(req.url === req.proxyPath + '/bytearray/empty') {
             output(200, new Buffer([]), false, 'application/octet-stream');
-        } else if(endsWith(req.url, '/tenseconds')) {
+        } else if(req.url === req.proxyPath + '/tenseconds') {
             setTimeout(function() {
                 output(200, hello, false, 'text/plain; charset=UTF-8');
             }, 10000);
         } else {
-            output(200, hello, false, 'text/plain; charset=UTF-8');
+            fs.realpath(__dirname + req.url.substr(req.proxyPath.length), function(err, path) {
+                if(err || path.substr(0, __dirname.length) !== __dirname) {
+                    return output(404, null, false);
+                }
+                fs.readFile(path, function(err, contents) {
+                    if(err) {
+                        return output(404, null, false);
+                    }
+                    output(200, contents, false, mime.lookup(path));
+                });
+            });
         }
     } else {
         output(406, hello, false, 'text/plain; charset=UTF-8');
@@ -214,5 +233,6 @@ if(fs.existsSync('./dummyserver.pid')) {
 } else {
     daemon();
     fs.writeFileSync('./dummyserver.pid', String(process.pid));
-    http.createServer(listen).listen(cfg.port, cfg.host);
+    http.createServer(listen).listen(cfg.dummyserverPort, cfg.host);
+    http.createServer(listen).listen(cfg.dummyserverPortAlternative, cfg.host);
 }

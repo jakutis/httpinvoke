@@ -1,6 +1,9 @@
 if(typeof window === 'undefined') {
     window = {};
+} else {
+    global = window;
 }
+
 if(typeof location === 'undefined') {
     location = {};
 }
@@ -9,10 +12,11 @@ window._httpinvoke = window.httpinvoke;
 
 // basic
 window._cfg = {
+    proxyPath: '/dummyserver',
     dummyserverPort: 1337,
+    dummyserverPortAlternative: 1338,
     host: location.hostname,
-    port: location.port || (location.protocol === 'https:' ? 443 : 80),
-    path: '/dummyserver/',
+    port: Number(location.port) || (location.protocol === 'https:' ? 443 : 80),
     /* # Statuses from RFC 2616
      *
      * ## Not tested statuses, with reasons
@@ -380,8 +384,8 @@ window._cfg = {
     }
 };
 // generated
-window._cfg.corsURL = 'http://' + window._cfg.host + ':' + window._cfg.dummyserverPort + '/';
-window._cfg.url = 'http://' + window._cfg.host + ':' + window._cfg.port + window._cfg.path;
+window._cfg.corsURL = 'http://' + window._cfg.host + ':' + (window._cfg.port === window._cfg.dummyserverPort ? window._cfg.dummyserverPortAlternative : window._cfg.dummyserverPort) + '/';
+window._cfg.url = 'http://' + window._cfg.host + ':' + window._cfg.port + (window._cfg.port === window._cfg.dummyserverPort ? '' : window._cfg.proxyPath) + '/';
 
 window.require = function(module) {
     if(module === '../dummyserver-config' || module === './dummyserver-config') {
@@ -394,4 +398,11 @@ if(typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = window._cfg;
 }
 
-global = window;
+if(!global.console) {
+    global.console = {
+        _log: [],
+        log: function() {
+            this._log.push([].slice.call(arguments));
+        }
+    };
+}

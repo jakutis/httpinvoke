@@ -43,5 +43,5 @@ var indexOf = [].indexOf ? function(array, item) {
 var pass = function(value) {
     return value;
 };
-var nextTick = global.setImmediate || global.setTimeout;
+var nextTick = (global.process && global.process.nextTick) || global.setImmediate || global.setTimeout;
 var _undefined;

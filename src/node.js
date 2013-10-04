@@ -122,7 +122,7 @@ var httpinvoke = function(uri, method, options, cb) {
         });
     });
 
-    process.nextTick(function() {
+    nextTick(function() {
         if(cb === null) {
             return;
         }

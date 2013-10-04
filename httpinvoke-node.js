@@ -46,7 +46,7 @@ var indexOf = [].indexOf ? function(array, item) {
 var pass = function(value) {
     return value;
 };
-var nextTick = global.setImmediate || global.setTimeout;
+var nextTick = (global.process && global.process.nextTick) || global.setImmediate || global.setTimeout;
 var _undefined;
 ;
 
@@ -70,7 +70,7 @@ var validateInputHeaders = function(headers) {
 };
 
 var httpinvoke = function(uri, method, options, cb) {
-    ;var uploadProgressCb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+    ;var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
 /*************** COMMON initialize parameters **************/
 if(!method) {
     // 1 argument
@@ -123,7 +123,7 @@ var safeCallback = function(name, aspect) {
     }
     return aspect;
 };
-var mixInPromise = function(o) {
+mixInPromise = function(o) {
     var state = [];
     var chain = function(p, promise) {
         if(p && p.then) {
@@ -158,9 +158,7 @@ var mixInPromise = function(o) {
         after();
     };
     o.then = function(onresolve, onreject, onnotify) {
-        var promise = {
-        };
-        mixInPromise(promise);
+        var promise = mixInPromise({});
         if(isArray(state)) {
             // TODO see if the property names are minifed
             state.push({
@@ -185,7 +183,7 @@ var mixInPromise = function(o) {
     o.reject = loop;
     return o;
 };
-var failWithoutRequest = function(cb, err) {
+failWithoutRequest = function(cb, err) {
     nextTick(function() {
         if(cb === null) {
             return;
@@ -422,7 +420,7 @@ noData = function() {
         });
     });
 
-    process.nextTick(function() {
+    nextTick(function() {
         if(cb === null) {
             return;
         }

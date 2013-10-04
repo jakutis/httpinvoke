@@ -3,7 +3,7 @@
 var dummyserverCfg = require('./dummyserver-config');
 
 module.exports = function(config) {
-  config.set({
+  var cfg = {
 
     // base path, that will be used to resolve files and exclude
     basePath: '',
@@ -70,8 +70,9 @@ module.exports = function(config) {
     singleRun: false,
 
     proxies: {
-        '/dummyserver/': dummyserverCfg.url
     }
 
-  });
+  };
+  cfg.proxies[dummyserverCfg.proxyPath + '/'] = dummyserverCfg.url;
+  config.set(cfg);
 };
