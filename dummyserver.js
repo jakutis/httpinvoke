@@ -231,6 +231,7 @@ if(fs.existsSync('./dummyserver.pid')) {
     console.log('Error: file ./dummyserver.pid already exists');
     process.exit(1);
 } else {
+    console.log('HTML test runner available at http://localhost:' + cfg.dummyserverPort + '/test/index.html');
     daemon();
     fs.writeFileSync('./dummyserver.pid', String(process.pid));
     http.createServer(listen).listen(cfg.dummyserverPort, cfg.host);
