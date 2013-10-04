@@ -20,14 +20,14 @@ The perfect JavaScript HTTP client. [Check out the demo.](http://jakut.is:1337/)
 * Supports [npm](https://npmjs.org/), [Bower](http://bower.io/) and [Component](http://component.io/) package managers.
 * Tested on:
   * NodeJS 0.10.20
-  * IE 7.0.0 and later
-  * Firefox 3.0.0 and later
-  * Chrome 1.0.154 and later
-  * Safari 4.0.3 and later
-  * Opera 10.50.0 and later
-  * Mobile Safari 7.0.0 (iOS 7.0.2)
+  * Internet Explorer 6 and later
+  * Firefox 3.0 and later
+  * Chrome 1 and later
+  * Safari 4.0 and later
+  * Opera 10.50 and later
+  * Mobile Safari 7.0.0
   * Kindle 3.0.0
-  * Android 2.3.7 (Android 2.3.7)
+  * Android 2.3.7
 
 # Usage
 

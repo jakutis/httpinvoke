@@ -1046,6 +1046,7 @@ noData = function() {
                     return new global.ActiveXObject(candidates[i]);
                 };
                 createXHR();
+                httpinvoke.requestTextOnly = true;
                 return;
             } catch(err) {
             }
