@@ -6,7 +6,7 @@ httpinvoke is a 4.6kb no-dependencies HTTP client library for **browsers** and *
   * [cross-origin resource sharing](http://www.w3.org/TR/cors/) - do cross-domain requests with confidence
   * [progress events](http://www.w3.org/TR/progress-events/) - get current and total bytes downloaded or uploaded
   * [binary file uploads and downloads](http://www.w3.org/TR/XMLHttpRequest/) - easily use Blob, FormData, ArrayBuffer, Uint8Array or a simple array of bytes
-* Supports both NodeJS style callbacks and [promises](http://wiki.commonjs.org/wiki/Promises/A) (with progress events, see [an example](https://github.com/jakutis/httpinvoke/blob/master/test/promiseSpec.js)).
+* Supports both NodeJS style callbacks and [Promises/A+](http://promisesaplus.com/) (with progress events, see [an example](https://github.com/jakutis/httpinvoke/blob/master/test/promise.js)).
 * Handles HTTP responses The Right Way™:
   * Tries hard to get the HTTP response status code in all cases.
   * Emits the HTTP response status code and headers as soon as they are available.
@@ -91,7 +91,7 @@ Adding to your HTML file:
 
 Any one, two or three arguments can be skipped, except the **url**.
 
-* **abort** is a function for aborting the HTTP request. It is also a [Promise/A](http://wiki.commonjs.org/wiki/Promises/A)-compliant promise (has the `then()` method) that receives all the same events as the callbacks - **uploading**, **downloading**, **gotStatus** and **finished** - see [an example](https://github.com/jakutis/httpinvoke/blob/master/test/promiseSpec.js). When invoked as a function, it immediately calls the "finished" callback with an Error. If "finished" callback is already called before the "abort", nothing happens.
+* **abort** is a function for aborting the HTTP request. It is also a [Promise/A+](http://promisesaplus.com/)-compliant promise (has the `then()` method) that receives all the same events as the callbacks - **uploading**, **downloading**, **gotStatus** and **finished** - see [an example](https://github.com/jakutis/httpinvoke/blob/master/test/promiseSpec.js). When invoked as a function, it immediately calls the "finished" callback with an Error. If "finished" callback is already called before the "abort", nothing happens.
 * **url** is a string for URL, e.g. `"http://example.org/"`.
 * **method** is a string for HTTP method, one of `"HEAD"`, `"GET"`, `"POST"`, `"PUT"`, `"DELETE"`.
 * **options** is an object for various options (see the Options section below) or a function, which is used as a "finished" option (see the first example).
