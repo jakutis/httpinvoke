@@ -50,22 +50,22 @@ Adding to your HTML file:
 
 ## Examples
 
-    httpinvoke('http://example.org', 'GET', function(err, html) {
+    httpinvoke('http://example.org', 'GET', function(err, body, statusCode, headers) {
         if(err) {
             return console.log('Failure', err);
         }
-        console.log('Success', html);
+        console.log('Success', body, statusCode, headers);
     });
 
     // same as above, but using promise
-    httpinvoke('http://example.org', 'GET').then(function(html) {
-        console.log('Success', html);
+    httpinvoke('http://example.org', 'GET').then(function(res) {
+        console.log('Success', res.body, res.statusCode, res.headers);
     }, function(err) {
         console.log('Failure', err);
     });
 
     // Demonstration of most of options.
-    httpinvoke('https://rawgithub.com/jakutis/httpinvoke/master/package.json', 'GET', {
+    httpinvoke('https://raw.github.com/jakutis/httpinvoke/master/package.json', 'GET', {
         outputType: 'json',
         converters: {
             'text json': JSON.parse
