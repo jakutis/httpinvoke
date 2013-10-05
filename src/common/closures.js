@@ -160,7 +160,7 @@ exposedHeaders = options.corsExposedHeaders || [];
 exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma', 'Content-Range']);
 corsOriginHeader = options.corsOriginHeader || 'X-Httpinvoke-Origin';
 /*************** COMMON convert and validate parameters **************/
-if(indexOf(supportedMethods, method) < 0) {
+if(method.indexOf(',') >= 0 || supportedMethods.indexOf(',' + method + ',') < 0) {
     return failWithoutRequest(cb, new Error('Unsupported method ' + method));
 }
 outputBinary = options.outputType === 'bytearray';

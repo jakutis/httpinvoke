@@ -137,7 +137,7 @@
             }
         };
         var output;
-        var i;
+        var i, j;
         var currentLocation;
         try {
             // IE may throw an exception when accessing
@@ -158,14 +158,11 @@
         if(crossDomain && !httpinvoke.cors) {
             return failWithoutRequest(cb, new Error('Cross-origin requests are not supported'));
         }
-        if(crossDomain && method === 'DELETE' && !httpinvoke.corsDELETE) {
-            return failWithoutRequest(cb, new Error('DELETE method in cross-origin requests is not supported in this browser'));
-        }
-        if(crossDomain && method === 'PUT' && !httpinvoke.corsPUT) {
-            return failWithoutRequest(cb, new Error('PUT method in cross-origin requests is not supported in this browser'));
-        }
-        if(crossDomain && method === 'HEAD' && !httpinvoke.corsHEAD) {
-            return failWithoutRequest(cb, new Error('HEAD method in cross-origin requests is not supported in this browser'));
+        j = ['DELETE', 'PUT', 'HEAD'];
+        for(i = j.length;i-- > 0;) {
+            if(crossDomain && method === j[i] && !httpinvoke['cors' + j[i]]) {
+                return failWithoutRequest(cb, new Error(j[i] + ' method in cross-origin requests is not supported in this browser'));
+            }
         }
         if(!createXHR) {
             return failWithoutRequest(cb, new Error('unable to construct XMLHttpRequest object'));
