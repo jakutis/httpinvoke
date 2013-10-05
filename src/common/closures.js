@@ -80,6 +80,8 @@ mixInPromise = function(o) {
                         } catch(err) {
                             queue[i]._[reject](err);
                         }
+                    } else if(state < progress) {
+                        queue[i]._[state](value);
                     }
                 }
                 if(state < progress) {

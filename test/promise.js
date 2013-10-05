@@ -1,7 +1,7 @@
 var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
-describe('promise', function() {
+describe.only('promise', function() {
     this.timeout(10000);
     cfg.eachBase(function(postfix, url) {
         it('supports Promises/A' + postfix, function(done) {
@@ -115,6 +115,28 @@ describe('promise', function() {
             }, function(err) {
                 if(err !== e) {
                     done(new Error('was not rejected with same reason'));
+                }
+                done();
+            });
+        });
+        it('supports a requirement, that If onResolved is not a function and the original promise is resolved, the returned promise must be resolved with the same value' + postfix, function(done) {
+            var output;
+            httpinvoke(url, function(err, _output) {
+                output = _output;
+            }).then().then(function(res) {
+                if(output !== res.body) {
+                    return done(new Error('the passed value is not the same'));
+                }
+                done();
+            });
+        });
+        it('supports a requirement, that If onRejected is not a function and the original promise is rejected, the returned promise must be rejected with the same reason' + postfix, function(done) {
+            var err;
+            httpinvoke(url, 'ERROR', function(_err) {
+                err = _err;
+            }).then().then(null, function(_err) {
+                if(err !== _err) {
+                    return done(new Error('the passed reason is not the same'));
                 }
                 done();
             });
