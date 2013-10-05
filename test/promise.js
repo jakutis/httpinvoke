@@ -64,8 +64,67 @@ describe('promise', function() {
                 }
             });
         });
+        it('supports Promises/A+ requirement, that If onResolved is not a function, it must be ignored' + postfix, function(done) {
+            httpinvoke(url, 'ERROR').then(null, function(err) {
+                if(!isValidReason(err)) {
+                    return done(new Error('invalid reason'));
+                }
+                done();
+            });
+        });
+        it('supports Promises/A+ requirement, that If onRejected is not a function, it must be ignored' + postfix, function(done) {
+            httpinvoke(url).then(function(response) {
+                if(!isValidResponse(response)) {
+                    done(new Error('invalid response'));
+                }
+                done();
+            }, null);
+        });
+        it('supports Promises/A+ requirement, that If onResolved throws an exception e, returned promise must be rejected with e as the reason' + postfix, function(done) {
+            var e = {};
+            httpinvoke(url).then(function() {
+                throw e;
+            }).then(function() {
+                done(new Error('was not rejected'));
+            }, function(err) {
+                if(err !== e) {
+                    done(new Error('was not rejected with same reason'));
+                }
+                done();
+            });
+        });
+        it('supports Promises/A+ requirement, that If onRejected throws an exception e, returned promise must be rejected with e as the reason' + postfix, function(done) {
+            var e = {};
+            httpinvoke(url, 'ERROR').then(null, function() {
+                throw e;
+            }).then(function() {
+                done(new Error('was not rejected'));
+            }, function(err) {
+                if(err !== e) {
+                    done(new Error('was not rejected with same reason'));
+                }
+                done();
+            });
+        });
+        it('supports a requirement, that If onNotify throws an exception e, returned promise must be rejected with e as the reason' + postfix, function(done) {
+            var e = {};
+            httpinvoke(url).then(null, null, function() {
+                throw e;
+            }).then(function() {
+                done(new Error('was not rejected'));
+            }, function(err) {
+                if(err !== e) {
+                    done(new Error('was not rejected with same reason'));
+                }
+                done();
+            });
+        });
     });
 });
+
+function isValidReason(reason) {
+    return typeof reason === 'object' && reason !== null && reason instanceof Error;
+}
 
 function isValidResponse(response) {
     return typeof response === 'object' && typeof response.body === 'string' && typeof response.statusCode === 'number' && typeof response.headers === 'object';
