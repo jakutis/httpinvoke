@@ -33,6 +33,37 @@ describe('promise', function() {
                 done = null;
             }
         });
+        it('supports Promises/A+ requirement, that callbacks must be called as functions' + postfix, function(done) {
+            httpinvoke(url).then(function() {
+                if(!done) {
+                    return;
+                }
+                if(this !== global) {
+                    done = null;
+                    return done(new Error('onResolved was not called as a function'));
+                }
+                httpinvoke(url, 'ERROR').then(function() {
+                }, function(err) {
+                    if(!done) {
+                        return;
+                    }
+                    if(this !== global) {
+                        done = null;
+                        return done(new Error('onRejected was not called as a function'));
+                    }
+                    done();
+                });
+            }, function() {
+            }, function() {
+                if(!done) {
+                    return;
+                }
+                if(this !== global) {
+                    done = null;
+                    return done(new Error('onProgress was not called as a function'));
+                }
+            });
+        });
     });
 });
 

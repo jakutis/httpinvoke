@@ -76,7 +76,7 @@ mixInPromise = function(o) {
         var p;
         for(var i = 0; i < state.length; i++) {
             try {
-                p = state[i][name](value);
+                p = state[i][name].call(null, value);
                 if(after !== pass) {
                     chain(p, state[i].promise);
                 }
