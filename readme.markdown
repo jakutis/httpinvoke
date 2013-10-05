@@ -186,6 +186,12 @@ To test for NodeJS functionality run `npm run test-node`.
 
 To test for web browser functionality run `npm run test-browser`, copy the URL link that is displayed in console and open it in any web browser.
 
+#### Checklist before releasing
+
+* package.json, bower.json and component.json version number bumped
+* file size, test number in readme.markdown updated
+* httpinvoke-* files regenerated
+
 ## License
 
     The MIT License (MIT)
