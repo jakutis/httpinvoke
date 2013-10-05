@@ -5,9 +5,9 @@ httpinvoke is a 4.6kb no-dependencies HTTP client library for **browsers** and *
 [Ask a question](https://news.ycombinator.com/item?id=6498905)
 
 * Gracefully upgrades to latest platform-specific features:
-  * [cross-origin resource sharing](http://www.w3.org/TR/cors/) - do cross-domain requests with confidence
-  * [progress events](http://www.w3.org/TR/progress-events/) - get current and total bytes downloaded or uploaded
-  * [binary file uploads and downloads](http://www.w3.org/TR/XMLHttpRequest/) - easily use Blob, FormData, ArrayBuffer, Uint8Array or a simple array of bytes
+  * [cross-origin resource sharing](http://www.w3.org/TR/cors/) - do cross-domain requests with confidence;
+  * [progress events](http://www.w3.org/TR/progress-events/) - get current and total bytes downloaded or uploaded;
+  * [binary file uploads and downloads](http://www.w3.org/TR/XMLHttpRequest/) - easily use Blob, FormData, ArrayBuffer, Uint8Array or a simple array of bytes.
 * Supports both NodeJS style callbacks and [Promises/A+](http://promisesaplus.com/) (with progress events, see [an example](https://github.com/jakutis/httpinvoke/blob/master/test/promise.js)).
 * Handles HTTP responses The Right Way™:
   * Tries hard to get the HTTP response status code in all cases.
@@ -15,20 +15,17 @@ httpinvoke is a 4.6kb no-dependencies HTTP client library for **browsers** and *
   * Gives you HTTP status code instead of an error, that is for example HTTP 404 would just return success, with status 404.
   * Throws an error only when the HTTP request did not actually completely finished.
 * Well tested - over 277 unit tests.
-* Has no runtime dependencies.
-* Works on [web browser](http://en.wikipedia.org/wiki/Internet_Explorer_5) and [Node.js](http://nodejs.org) platforms.
 * Detects the presence of [CommonJS](http://www.commonjs.org/) and [AMD](https://www.google.com/search?q=advanced+module+definition) script loaders.
-* Available on [npm](https://npmjs.org/package/httpinvoke) and [GitHub](https://github.com/jakutis/httpinvoke).
 * Supports [npm](https://npmjs.org/), [Bower](http://bower.io/) and [Component](http://component.io/) package managers.
 * Tested on these web browsers:
-  * Internet Explorer 6 and later
-  * Firefox 1.5 and later
-  * Chrome 1 and later
-  * Safari 4.0 and later
-  * Opera 10.50 and later
-  * Mobile Safari 7.0.0
-  * Kindle 3.0.0
-  * Android 2.3.7
+  * Internet Explorer 6 and later;
+  * Firefox 1.5 and later;
+  * Chrome 1 and later;
+  * Safari 4.0 and later;
+  * Opera 10.50 and later;
+  * Mobile Safari 7.0.0;
+  * Kindle 3.0.0;
+  * Android 2.3.7.
 
 ## Installation
 
@@ -46,7 +43,7 @@ Adding to your HTML file:
 
     bower install --save httpinvoke
 
-#### with [Component](https://github.com/component/component)
+#### with [Component](http://component.io/jakutis/httpinvoke)
 
     component install jakutis/httpinvoke
 
