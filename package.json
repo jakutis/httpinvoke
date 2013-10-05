@@ -37,7 +37,7 @@
     "grunt-mocha-test": "0.7.x",
     "daemon": "1.1.x",
     "mocha": "1.13.x",
-    "karma": "0.10.x",
+    "karma": "0.11.x",
     "karma-mocha": "0.1.x"
   },
   "scripts": {
