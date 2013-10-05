@@ -67,7 +67,7 @@ Adding to your HTML file:
     });
 
     // Demonstration of most of options.
-    httpinvoke('https://raw.github.com/jakutis/httpinvoke/master/package.json', 'GET', {
+    httpinvoke('https://bower-component-list.herokuapp.com/', 'GET', {
         outputType: 'json',
         converters: {
             'text json': JSON.parse
@@ -79,11 +79,11 @@ Adding to your HTML file:
             console.log('Downloaded ', current, ' bytes of ', total, ' total');
         },
         timeout: 10000,
-        finished: function(err, package) {
+        finished: function(err, packages) {
             if(err) {
-                return alert('Error getting package: ' + err.message);
+                return alert('Error getting package list: ' + err.message);
             }
-            alert('httpinvoke is a ' + package.description);
+            alert('There are ' + packages.length + ' bower packages.');
         }
     });
 
@@ -137,7 +137,7 @@ All options are optional.
 * **converters** is an object to convert custom **inputType** and **outputType** values to `"bytearray"` or `"text"`. Example: `{"json text": JSON.stringify, "text json": JSON.parse}`. If you use custom **inputType**, then there must be at least one converter from that type to `"text"` or `"bytearray"`, and the other way around for **outputType**.
 * **corsExposedHeaders** is an array of HTTP response headers to be extracted in **gotStatus** call. Default simple headers like "Content-Type" are always extracted. Applicable only for cross-origin requests.
 * **corsCredentials** is a boolean for requesting to send credentials. Applicable only for a cross-origin request. See Feature Flags section. Defaults to `false`.
-* **corsOriginHeader** is a string for the request header name for browsers with buggy CORS implementations (e.g. Android Browser 2.3.7) - which do not send the Origin request header in actual request, defaults to `"X-Httpinvoke-Origin"`, see `dummyserver.js` for an example of server-side part of the workaround implementation.
+* **corsOriginHeader** is a string for the request header name for browsers with buggy CORS implementations (e.g. Android Browser 2.3.7) - which do not send the Origin request header in actual request. By default **corsOriginHeader** is not set, as it needs a proper `Access-Control-Allow-Headers` server-side header, see `dummyserver.js` for an example of server-side part of the workaround implementation.
 
 #### Error Conditions
 

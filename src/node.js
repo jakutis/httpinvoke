@@ -23,7 +23,7 @@ var validateInputHeaders = function(headers) {
 };
 
 var httpinvoke = function(uri, method, options, cb) {
-    var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+    var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
     /*************** initialize helper variables **************/
     try {
         validateInputHeaders(inputHeaders);

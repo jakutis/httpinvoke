@@ -115,7 +115,7 @@
     };
     var createXHR;
     var httpinvoke = function(uri, method, options, cb) {
-        var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+        var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
         /*************** initialize helper variables **************/
         var getOutput = outputBinary ? getOutputBinary : getOutputText;
         var getOutputLength = outputBinary ? getOutputLengthBinary : getOutputLengthText;
@@ -182,7 +182,7 @@
         if(options.corsCredentials && httpinvoke.corsCredentials && typeof xhr.withCredentials === 'boolean') {
             xhr.withCredentials = true;
         }
-        if(crossDomain) {
+        if(crossDomain && options.corsOriginHeader) {
             // on some Android devices CORS implementations are buggy
             // that is why there needs to be two workarounds:
             // 1. custom header with origin has to be passed, because they do not send Origin header on the actual request
@@ -190,7 +190,7 @@
             // read more: http://www.kinvey.com/blog/107/how-to-build-a-service-that-supports-every-android-browser
 
             // workaraound for #1: sending origin in custom header, also see the server-side part of the workaround in dummyserver.js
-            inputHeaders[corsOriginHeader] = global.location.protocol + '//' + global.location.host;
+            inputHeaders[options.corsOriginHeader] = global.location.protocol + '//' + global.location.host;
         }
 
         /*************** bind XHR event listeners **************/
