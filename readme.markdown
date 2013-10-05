@@ -14,7 +14,7 @@ httpinvoke is a 4.6kb no-dependencies HTTP client library for **browsers** and *
   * Emits the HTTP response status code and headers as soon as they are available.
   * Gives you HTTP status code instead of an error, that is for example HTTP 404 would just return success, with status 404.
   * Throws an error only when the HTTP request did not actually completely finished.
-* Well tested - over 257 unit tests.
+* Well tested - over 277 unit tests.
 * Has no runtime dependencies.
 * Works on [web browser](http://en.wikipedia.org/wiki/Internet_Explorer_5) and [Node.js](http://nodejs.org) platforms.
 * Detects the presence of [CommonJS](http://www.commonjs.org/) and [AMD](https://www.google.com/search?q=advanced+module+definition) script loaders.

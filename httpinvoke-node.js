@@ -30,18 +30,7 @@ var isByteArray = function(input) {
 };
 var bytearrayMessage = 'an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array';
 
-var supportedMethods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'];
-var indexOf = [].indexOf ? function(array, item) {
-    return array.indexOf(item);
-} : function(array, item) {
-    var i = -1;
-    while(++i < array.length) {
-        if(array[i] === item) {
-            return i;
-        }
-    }
-    return -1;
-};
+var supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,';
 
 var pass = function(value) {
     return value;
@@ -123,64 +112,60 @@ var safeCallback = function(name, aspect) {
     }
     return aspect;
 };
+var chain = function(a, b) {
+    a && a.then && a.then(function() {
+        b[resolve].apply(null, arguments);
+    }, function() {
+        b[reject].apply(null, arguments);
+    }, function() {
+        b[progress].apply(null, arguments);
+    });
+};
+var resolve = 0, reject = 1, progress = 2;
 mixInPromise = function(o) {
-    var state = [];
-    var chain = function(p, promise) {
-        if(p && p.then) {
-            p.then(promise.resolve.bind(promise), promise.reject.bind(promise), promise.notify.bind(promise));
-        }
-    };
-    var loop = function(value) {
-        if(!isArray(state)) {
-            return;
-        }
-        var name, after = function() {
-            state = value;
-        };
-        if(value instanceof Error) {
-            name = 'onreject';
-        } else if(value.type) {
-            name = 'onnotify';
-            after = pass;
-        } else {
-            name = 'onresolve';
-        }
-        var p;
-        for(var i = 0; i < state.length; i++) {
-            try {
-                p = state[i][name](value);
-                if(after !== pass) {
-                    chain(p, state[i].promise);
+    var value, queue = [], state = progress;
+    var makeState = function(newstate) {
+        o[newstate] = function(newvalue) {
+            var i, p;
+            if(queue) {
+                value = newvalue;
+                state = newstate;
+
+                for(i = 0; i < queue.length; i++) {
+                    if(typeof queue[i][state] === 'function') {
+                        try {
+                            p = queue[i][state].call(null, value);
+                            if(state < progress) {
+                                chain(p, queue[i]._);
+                            }
+                        } catch(err) {
+                            queue[i]._[reject](err);
+                        }
+                    } else if(state < progress) {
+                        queue[i]._[state](value);
+                    }
                 }
-            } catch(_) {
+                if(state < progress) {
+                    queue = null;
+                }
             }
-        }
-        after();
+        };
     };
-    o.then = function(onresolve, onreject, onnotify) {
-        var promise = mixInPromise({});
-        if(isArray(state)) {
-            // TODO see if the property names are minifed
-            state.push({
-                onresolve: onresolve,
-                onreject: onreject,
-                onnotify: onnotify,
-                promise: promise
-            });
-        } else if(state instanceof Error) {
+    makeState(progress);
+    makeState(resolve);
+    makeState(reject);
+    o.then = function() {
+        var item = [].slice.call(arguments);
+        item._ = mixInPromise({});
+        if(queue) {
+            queue.push(item);
+        } else if(typeof item[state] === 'function') {
             nextTick(function() {
-                chain(onreject(state), promise);
-            });
-        } else {
-            nextTick(function() {
-                chain(onresolve(state), promise);
+                chain(item[state](value), item._);
             });
         }
-        return promise;
+        return item._;
     };
-    o.notify = loop;
-    o.resolve = loop;
-    o.reject = loop;
     return o;
 };
 failWithoutRequest = function(cb, err) {
@@ -196,21 +181,21 @@ failWithoutRequest = function(cb, err) {
 };
 
 uploadProgressCb = safeCallback('uploading', function(current, total) {
-    promise.notify({
+    promise[progress]({
         type: 'upload',
         current: current,
         total: total
     });
 });
 var downloadProgressCb = safeCallback('downloading', function(current, total) {
-    promise.notify({
+    promise[progress]({
         type: 'download',
         current: current,
         total: total
     });
 });
 statusCb = safeCallback('gotStatus', function(statusCode, headers) {
-    promise.notify({
+    promise[progress]({
         type: 'headers',
         statusCode: statusCode,
         headers: headers
@@ -218,9 +203,9 @@ statusCb = safeCallback('gotStatus', function(statusCode, headers) {
 });
 cb = safeCallback('finished', function(err, body, statusCode, headers) {
     if(err) {
-        return promise.reject(err);
+        return promise[reject](err);
     }
-    promise.resolve({
+    promise[resolve]({
         body: body,
         statusCode: statusCode,
         headers: headers
@@ -236,7 +221,7 @@ exposedHeaders = options.corsExposedHeaders || [];
 exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma', 'Content-Range']);
 corsOriginHeader = options.corsOriginHeader || 'X-Httpinvoke-Origin';
 /*************** COMMON convert and validate parameters **************/
-if(indexOf(supportedMethods, method) < 0) {
+if(method.indexOf(',') >= 0 || supportedMethods.indexOf(',' + method + ',') < 0) {
     return failWithoutRequest(cb, new Error('Unsupported method ' + method));
 }
 outputBinary = options.outputType === 'bytearray';
@@ -457,6 +442,7 @@ httpinvoke.corsCredentials = true;
 httpinvoke.cors = true;
 httpinvoke.corsDELETE = true;
 httpinvoke.corsHEAD = true;
+httpinvoke.corsPATCH = true;
 httpinvoke.corsPUT = true;
 httpinvoke.corsStatus = true;
 httpinvoke.corsResponseTextOnly = false;
