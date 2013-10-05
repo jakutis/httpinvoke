@@ -159,6 +159,7 @@ httpinvoke.corsCredentials = true;
 httpinvoke.cors = true;
 httpinvoke.corsDELETE = true;
 httpinvoke.corsHEAD = true;
+httpinvoke.corsPATCH = true;
 httpinvoke.corsPUT = true;
 httpinvoke.corsStatus = true;
 httpinvoke.corsResponseTextOnly = false;

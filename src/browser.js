@@ -158,7 +158,7 @@
         if(crossDomain && !httpinvoke.cors) {
             return failWithoutRequest(cb, new Error('Cross-origin requests are not supported'));
         }
-        j = ['DELETE', 'PUT', 'HEAD'];
+        j = ['DELETE', 'PATCH', 'PUT', 'HEAD'];
         for(i = j.length;i-- > 0;) {
             if(crossDomain && method === j[i] && !httpinvoke['cors' + j[i]]) {
                 return failWithoutRequest(cb, new Error(j[i] + ' method in cross-origin requests is not supported in this browser'));
@@ -691,6 +691,7 @@
     httpinvoke.cors = false;
     httpinvoke.corsDELETE = false;
     httpinvoke.corsHEAD = false;
+    httpinvoke.corsPATCH = false;
     httpinvoke.corsPUT = false;
     httpinvoke.corsStatus = false;
     httpinvoke.corsResponseTextOnly = false;
@@ -707,6 +708,7 @@
                 httpinvoke.corsRequestHeaders = true;
                 httpinvoke.corsCredentials = true;
                 httpinvoke.corsDELETE = true;
+                httpinvoke.corsPATCH = true;
                 httpinvoke.corsPUT = true;
                 httpinvoke.corsHEAD = true;
                 httpinvoke.corsStatus = true;

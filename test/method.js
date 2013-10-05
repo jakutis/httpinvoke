@@ -10,6 +10,9 @@ describe('supported HTTP methods', function() {
             if(crossDomain && method === 'DELETE' && !httpinvoke.corsDELETE) {
                 return;
             }
+            if(crossDomain && method === 'PATCH' && !httpinvoke.corsPATCH) {
+                return;
+            }
             if(crossDomain && method === 'PUT' && !httpinvoke.corsPUT) {
                 return;
             }
@@ -20,7 +23,7 @@ describe('supported HTTP methods', function() {
                 httpinvoke(url, method, done);
             });
         };
-        var methods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'];
+        var methods = ['GET', 'HEAD', 'PATCH', 'POST', 'PUT', 'DELETE'];
         for(i = 0; i < methods.length; i += 1) {
             method(methods[i]);
         }

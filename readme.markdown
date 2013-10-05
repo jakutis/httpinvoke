@@ -95,7 +95,7 @@ Any one, two or three arguments can be skipped, except the **url**.
 
 * **abort** is a function for aborting the HTTP request. It is also a [Promise/A+](http://promisesaplus.com/)-compliant promise (has the `then()` method) that receives all the same events as the callbacks - **uploading**, **downloading**, **gotStatus** and **finished** - see [an example](https://github.com/jakutis/httpinvoke/blob/master/test/promiseSpec.js). When invoked as a function, it immediately calls the "finished" callback with an Error. If "finished" callback is already called before the "abort", nothing happens.
 * **url** is a string for URL, e.g. `"http://example.org/"`.
-* **method** is a string for HTTP method, one of `"HEAD"`, `"GET"`, `"POST"`, `"PUT"`, `"DELETE"`.
+* **method** is a string for HTTP method, one of `"HEAD"`, `"GET"`, `"PATCH"`, `"POST"`, `"PUT"`, `"DELETE"`.
 * **options** is an object for various options (see the Options section below) or a function, which is used as a "finished" option (see the first example).
 * **cb** is a function that is used as an option **finished** (read below).
 
@@ -178,6 +178,7 @@ There are feature flags to be queried for platform-specific features.
 * **corsRequestHeaders** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports setting request headers
 * **corsDELETE** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports `"DELETE"` **method**
 * **corsHEAD** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports `"HEAD"` **method**
+* **corsPATCH** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports `"PATCH"` **method**
 * **corsPUT** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports `"PUT"` **method**
 * **corsStatus** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports **status** argument in **gotStatus** option
 * **corsResponseTextOnly** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports only **outputType** `"text"`

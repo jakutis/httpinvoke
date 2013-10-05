@@ -56,7 +56,7 @@ var endsWith = function(str, substr) {
 var corsHeaders = function(headers, req) {
     headers['Access-Control-Allow-Credentials'] = 'true';
     headers['Access-Control-Allow-Origin'] = '*';
-    headers['Access-Control-Allow-Methods'] = 'OPTIONS, POST, HEAD, PUT, DELETE, GET';
+    headers['Access-Control-Allow-Methods'] = 'OPTIONS, POST, HEAD, PATCH, PUT, DELETE, GET';
     // workaround for #1: the server-side part: need X-Httpinvoke-Origin header
     // workaround for Safari 4.0: need Content-Type header
     headers['Access-Control-Allow-Headers'] = 'Content-Type, If-Modified-Since, Range, X-Httpinvoke-Origin';

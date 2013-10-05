@@ -98,6 +98,11 @@ window._cfg = {
                 requestEntity: false,
                 partialResponse: false,
                 responseEntity: false
+            }],
+            PATCH: [{
+                requestEntity: true,
+                partialResponse: false,
+                responseEntity: false
             }]
         },
         // Partial Content

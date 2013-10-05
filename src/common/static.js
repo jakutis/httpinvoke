@@ -27,7 +27,7 @@ var isByteArray = function(input) {
 };
 var bytearrayMessage = 'an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array';
 
-var supportedMethods = ',GET,HEAD,POST,PUT,DELETE,';
+var supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,';
 
 var pass = function(value) {
     return value;
