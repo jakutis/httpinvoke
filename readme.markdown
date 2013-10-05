@@ -1,25 +1,25 @@
 # httpinvoke
 
-The perfect JavaScript HTTP client. [Check out the demo.](http://jakut.is:1337/)
+httpinvoke is a 4.6kb no-dependencies HTTP client library for **browsers** and **Node.js** with a **promise**-based or Node.js-style callback-based API to **progress events**, text and **binary** file **upload** and **download**, request and response headers, status code.
 
 * Gracefully upgrades to latest platform-specific features:
-  * [cross-origin resource sharing](http://www.w3.org/TR/cors/)
-  * [progress events](http://www.w3.org/TR/progress-events/)
-  * [binary file uploads and downloads](http://www.w3.org/TR/XMLHttpRequest/)
+  * [cross-origin resource sharing](http://www.w3.org/TR/cors/) - do cross-domain requests with confidence
+  * [progress events](http://www.w3.org/TR/progress-events/) - get current and total bytes downloaded or uploaded
+  * [binary file uploads and downloads](http://www.w3.org/TR/XMLHttpRequest/) - easily use Blob, FormData, ArrayBuffer, Uint8Array or a simple array of bytes
 * Supports both NodeJS style callbacks and [promises](http://wiki.commonjs.org/wiki/Promises/A) (with progress events, see [an example](https://github.com/jakutis/httpinvoke/blob/master/test/promiseSpec.js)).
 * Handles HTTP responses The Right Way™:
   * Tries hard to get the HTTP response status code in all cases.
   * Emits the HTTP response status code and headers as soon as they are available.
   * Gives you HTTP status code instead of an error, that is for example HTTP 404 would just return success, with status 404.
   * Throws an error only when the HTTP request did not actually completely finished.
-* Thoroughly unit-tested - over 257 unit tests.
+* Well tested - over 257 unit tests.
 * Weighs 4715 bytes.
+* Has no runtime dependencies.
 * Works on [web browser](http://en.wikipedia.org/wiki/Internet_Explorer_5) and [Node.js](http://nodejs.org) platforms.
 * Detects the presence of [CommonJS](http://www.commonjs.org/) and [AMD](https://www.google.com/search?q=advanced+module+definition) script loaders.
 * Available on [npm](https://npmjs.org/package/httpinvoke) and [GitHub](https://github.com/jakutis/httpinvoke).
 * Supports [npm](https://npmjs.org/), [Bower](http://bower.io/) and [Component](http://component.io/) package managers.
-* Tested on:
-  * NodeJS 0.10.20
+* Tested on these web browsers:
   * Internet Explorer 6 and later
   * Firefox 1.5 and later
   * Chrome 1 and later
@@ -29,15 +29,29 @@ The perfect JavaScript HTTP client. [Check out the demo.](http://jakut.is:1337/)
   * Kindle 3.0.0
   * Android 2.3.7
 
-# Usage
+## Installation
 
-## Loading
+#### manually
 
-Load using your package manager, or use directly in web browser by adding `<script src="/path_to_http_invoke/httpinvoke-browser.js"></script>` to your HTML file.
+Adding to your HTML file:
+
+    <script src="/path_to_http_invoke/httpinvoke-browser.js"></script>
+
+#### with [npm](https://npmjs.org/package/httpinvoke)
+
+    npm install --save httpinvoke
+
+#### with [Bower](http://bower.io)
+
+    bower install --save httpinvoke
+
+#### with [Component](https://github.com/component/component)
+
+    component install jakutis/httpinvoke
 
 ## Examples
 
-    httpinvoke('http://example.org', function(err, html) {
+    httpinvoke('http://example.org', 'GET', function(err, html) {
         if(err) {
             return console.log('Failure', err);
         }
@@ -45,21 +59,17 @@ Load using your package manager, or use directly in web browser by adding `<scri
     });
 
     // same as above, but using promise
-    httpinvoke('http://example.org').then(function(html) {
+    httpinvoke('http://example.org', 'GET').then(function(html) {
         console.log('Success', html);
     }, function(err) {
         console.log('Failure', err);
     });
 
-    httpinvoke('http://updates.html5rocks.com', 'POST', {
-        inputType: 'bytearray',
-        outputType: 'text',
-        input: [0, 1, 2, 253, 254, 255],
-        headers: {
-            'X-SomeHeader': 'ehlo'
-        },
-        uploading: function(current, total) {
-            console.log('Uploaded ', current, ' bytes of ', total, ' total');
+    // Demonstration of most of options.
+    httpinvoke('https://rawgithub.com/jakutis/httpinvoke/master/package.json', 'GET', {
+        outputType: 'json',
+        converters: {
+            'text json': JSON.parse
         },
         gotStatus: function(status, headers) {
             console.log('Got status', status, headers);
@@ -67,15 +77,16 @@ Load using your package manager, or use directly in web browser by adding `<scri
         downloading: function(current, total) {
             console.log('Downloaded ', current, ' bytes of ', total, ' total');
         },
-        finished: function(err, output) {
+        timeout: 10000,
+        finished: function(err, package) {
             if(err) {
-                return console.log('Failure', err);
+                return alert('Error getting package: ' + err.message);
             }
-            console.log('Success', output);
+            alert('httpinvoke is a ' + package.description);
         }
     });
 
-# API Reference
+## API
 
     var abort = httpinvoke(url, method, options, cb)
 
@@ -87,7 +98,7 @@ Any one, two or three arguments can be skipped, except the **url**.
 * **options** is an object for various options (see the Options section below) or a function, which is used as a "finished" option (see the first example).
 * **cb** is a function that is used as an option **finished** (read below).
 
-## Options
+#### Options
 
 See the Examples section for all the options being used.
 All options are optional.
@@ -127,7 +138,7 @@ All options are optional.
 * **corsCredentials** is a boolean for requesting to send credentials. Applicable only for a cross-origin request. See Feature Flags section. Defaults to `false`.
 * **corsOriginHeader** is a string for the request header name for browsers with buggy CORS implementations (e.g. Android Browser 2.3.7) - which do not send the Origin request header in actual request, defaults to `"X-Httpinvoke-Origin"`, see `dummyserver.js` for an example of server-side part of the workaround implementation.
 
-## Error Conditions
+#### Error Conditions
 
 The **finished** callback will be called with an instance of Error only when strictly either one of these things happen:
 
@@ -142,7 +153,7 @@ The **finished** callback will be called with an instance of Error only when str
 So generally, finishing with an error means that a response has not been received.
 Please note that a request can finish successfully, with an **err** set to `null`, but also with an undefined **status**, undefined **output** and an empty **headers** object - generally **status** is defined at all times, but some older browsers provide status code only for 2XX responses - e.g. Opera 11.50.
 
-## Callback Sequence
+#### Callback Sequence
 
 The callbacks are called in this strict sequence:
 
@@ -151,7 +162,7 @@ The callbacks are called in this strict sequence:
 0. **downloading** (two or more times);
 0. **finished** (one time), except the case that **finished** can be called with Error any time, and then no callbacks will be called.
 
-## Feature Flags
+#### Feature Flags
 
 There are feature flags to be queried for platform-specific features.
 
@@ -170,13 +181,13 @@ There are feature flags to be queried for platform-specific features.
 * **corsStatus** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports **status** argument in **gotStatus** option
 * **corsResponseTextOnly** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports only **outputType** `"text"`
 
-# Development
+## Development
 
 To test for NodeJS functionality run `npm run test-node`.
 
 To test for web browser functionality run `npm run test-browser`, copy the URL link that is displayed in console and open it in any web browser.
 
-# License
+## License
 
     The MIT License (MIT)
 
