@@ -21,11 +21,9 @@
         (global.Float32Array && input instanceof Float32Array) ||
         (global.Float64Array && input instanceof Float64Array)
     );
-};
-var isArray = function(object) {
+}, isArray = function(object) {
     return Object.prototype.toString.call(object) === '[object Array]';
-};
-var isByteArray = function(input) {
+}, isByteArray = function(input) {
     return typeof input === 'object' && input !== null && (
         (global.Buffer && input instanceof Buffer) ||
         (global.Blob && input instanceof Blob) ||
@@ -34,23 +32,14 @@ var isByteArray = function(input) {
         isArrayBufferView(input) ||
         isArray(input)
     );
-};
-var bytearrayMessage = 'an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array';
-
-var supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,';
-
-var pass = function(value) {
+}, bytearrayMessage = 'an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array', supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,', pass = function(value) {
     return value;
-};
-var nextTick = (global.process && global.process.nextTick) || global.setImmediate || global.setTimeout;
-var _undefined;
+}, nextTick = (global.process && global.process.nextTick) || global.setImmediate || global.setTimeout, _undefined;
 ;
     // this could be a simple map, but with this "compression" we save about 100 bytes, if minified (50 bytes, if also gzipped)
     var statusTextToCode = (function() {
-        var group = arguments.length, map = {};
-        while(group--) {
-            var texts = arguments[group].split(','), index = texts.length;
-            while(index--) {
+        for(var group = arguments.length, map = {};group--;) {
+            for(var texts = arguments[group].split(','), index = texts.length;index--;) {
                 map[texts[index]] = (group + 1) * 100 + index;
             }
         }
@@ -88,8 +77,7 @@ var _undefined;
         return xhr.response || xhr.responseText;
     };
     var binaryStringToByteArray = function(str) {
-        var n = str.length, bytearray = new Array(n);
-        while(n--) {
+        for(var n = str.length, bytearray = new Array(n);n--;) {
             bytearray[n] = str.charCodeAt(n) & 255;
         }
         return bytearray;
@@ -125,8 +113,7 @@ var _undefined;
     };
 
     var countStringBytes = function(string) {
-        var c, n = 0, i = string.length;
-        while(i--) {
+        for(var c, n = 0, i = string.length;i--;) {
             c = string.charCodeAt(i);
             n += c < 128 ? 1 : (c < 2048 ? 2 : 3);
         }
@@ -134,10 +121,8 @@ var _undefined;
     };
 
     var fillOutputHeaders = function(xhr, headers, outputHeaders) {
-        var i, colon, header;
         headers = xhr.getAllResponseHeaders().split(/\r?\n/);
-        i = headers.length;
-        while(i-- && (colon = headers[i].indexOf(':')) >= 0) {
+        for(var i = headers.length, colon, header; i-- && (colon = headers[i].indexOf(':')) >= 0;) {
             outputHeaders[headers[i].slice(0, colon).toLowerCase()] = header.slice(colon + 2);
         }
         return i + 1 !== headers.length;
@@ -151,7 +136,7 @@ var _undefined;
     };
     var createXHR;
     var httpinvoke = function(uri, method, options, cb) {
-        ;var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+        ;var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
 /*************** COMMON initialize parameters **************/
 if(!method) {
     // 1 argument
@@ -311,7 +296,6 @@ inputHeaders = options.headers || {};
 outputHeaders = {};
 exposedHeaders = options.corsExposedHeaders || [];
 exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma', 'Content-Range']);
-corsOriginHeader = options.corsOriginHeader || 'X-Httpinvoke-Origin';
 /*************** COMMON convert and validate parameters **************/
 if(method.indexOf(',') >= 0 || supportedMethods.indexOf(',' + method + ',') < 0) {
     return failWithoutRequest(cb, new Error('Unsupported method ' + method));
@@ -400,10 +384,11 @@ noData = function() {
 };
 ;
         /*************** initialize helper variables **************/
-        var getOutput = outputBinary ? getOutputBinary : getOutputText;
-        var getOutputLength = outputBinary ? getOutputLengthBinary : getOutputLengthText;
-        var uploadProgressCbCalled = false;
-        var uploadProgress = function(uploaded) {
+        var xhr, i, j, currentLocation, crossDomain, output,
+            getOutput = outputBinary ? getOutputBinary : getOutputText,
+            getOutputLength = outputBinary ? getOutputLengthBinary : getOutputLengthText,
+            uploadProgressCbCalled = false,
+            uploadProgress = function(uploaded) {
             if(!uploadProgressCb) {
                 return;
             }
@@ -419,21 +404,18 @@ noData = function() {
                 uploadProgressCb = null;
             }
         };
-        var output;
-        var i, j;
-        var currentLocation;
         try {
             // IE may throw an exception when accessing
-            // a field from global.location if global.document.domain has been set
-            currentLocation = global.location.href;
+            // a field from location if document.domain has been set
+            currentLocation = location.href;
         } catch(_) {
             // Use the href attribute of an A element
             // since IE will modify it given document.location
-            currentLocation = global.document.createElement('a');
+            currentLocation = document.createElement('a');
             currentLocation.href = '';
             currentLocation = currentLocation.href;
         }
-        var crossDomain = isCrossDomain(currentLocation, uri);
+        crossDomain = isCrossDomain(currentLocation, uri);
         /*************** start XHR **************/
         if(typeof input === 'object' && httpinvoke.requestTextOnly) {
             return failWithoutRequest(cb, new Error('bytearray inputType is not supported on this platform, please always test using requestTextOnly feature flag'));
@@ -441,8 +423,7 @@ noData = function() {
         if(crossDomain && !httpinvoke.cors) {
             return failWithoutRequest(cb, new Error('Cross-origin requests are not supported'));
         }
-        j = ['DELETE', 'PATCH', 'PUT', 'HEAD'];
-        for(i = j.length;i-- > 0;) {
+        for(j = ['DELETE', 'PATCH', 'PUT', 'HEAD'], i = j.length;i-- > 0;) {
             if(crossDomain && method === j[i] && !httpinvoke['cors' + j[i]]) {
                 return failWithoutRequest(cb, new Error(j[i] + ' method in cross-origin requests is not supported in this browser'));
             }
@@ -450,7 +431,7 @@ noData = function() {
         if(!createXHR) {
             return failWithoutRequest(cb, new Error('unable to construct XMLHttpRequest object'));
         }
-        var xhr = createXHR(crossDomain);
+        xhr = createXHR(crossDomain);
         xhr.open(method, uri, true);
         if(timeout > 0) {
             if('timeout' in xhr) {
@@ -465,7 +446,7 @@ noData = function() {
         if(options.corsCredentials && httpinvoke.corsCredentials && typeof xhr.withCredentials === 'boolean') {
             xhr.withCredentials = true;
         }
-        if(crossDomain) {
+        if(crossDomain && options.corsOriginHeader) {
             // on some Android devices CORS implementations are buggy
             // that is why there needs to be two workarounds:
             // 1. custom header with origin has to be passed, because they do not send Origin header on the actual request
@@ -473,7 +454,7 @@ noData = function() {
             // read more: http://www.kinvey.com/blog/107/how-to-build-a-service-that-supports-every-android-browser
 
             // workaraound for #1: sending origin in custom header, also see the server-side part of the workaround in dummyserver.js
-            inputHeaders[corsOriginHeader] = global.location.protocol + '//' + global.location.host;
+            inputHeaders[options.corsOriginHeader] = location.protocol + '//' + location.host;
         }
 
         /*************** bind XHR event listeners **************/
@@ -536,8 +517,8 @@ noData = function() {
                 // 'total', 12, 'totalSize', 12, 'loaded', 5, 'position', 5, 'lengthComputable', true, 'status', 206
                 // console.log('total', progressEvent.total, 'totalSize', progressEvent.totalSize, 'loaded', progressEvent.loaded, 'position', progressEvent.position, 'lengthComputable', progressEvent.lengthComputable, 'status', status);
                 // httpinvoke does not work around this bug, because Chrome 10 is practically not used at all, as Chrome agressively auto-updates itself to latest version
-                var total = progressEvent.total || progressEvent.totalSize || 0;
-                var current = progressEvent.loaded || progressEvent.position || 0;
+                var total = progressEvent.total || progressEvent.totalSize || 0,
+                    current = progressEvent.loaded || progressEvent.position || 0;
                 if(progressEvent.lengthComputable) {
                     initDownload(total);
                 }
@@ -982,7 +963,7 @@ noData = function() {
     (function() {
         try {
             createXHR = function() {
-                return new global.XMLHttpRequest();
+                return new XMLHttpRequest();
             };
             var tmpxhr = createXHR();
             httpinvoke.requestTextOnly = typeof Uint8Array === 'undefined' && typeof tmpxhr.sendAsBinary === 'undefined';
@@ -1002,12 +983,12 @@ noData = function() {
         try {
             if(typeof XDomainRequest === 'undefined') {
                 createXHR = function() {
-                    return new global.XMLHttpRequest();
+                    return new XMLHttpRequest();
                 };
                 createXHR();
             } else {
                 createXHR = function(cors) {
-                    return cors ? new global.XDomainRequest() : new global.XMLHttpRequest();
+                    return cors ? new XDomainRequest() : new XMLHttpRequest();
                 };
                 createXHR(true);
                 httpinvoke.cors = true;
@@ -1023,11 +1004,10 @@ noData = function() {
         } catch(err) {
         }
         var candidates = ['Microsoft.XMLHTTP', 'Msxml2.XMLHTTP.6.0', 'Msxml2.XMLHTTP.3.0', 'Msxml2.XMLHTTP'];
-        var i = candidates.length - 1;
-        while(i >= 0) {
+        for(var i = candidates.length; i--;) {
             try {
                 createXHR = function() {
-                    return new global.ActiveXObject(candidates[i]);
+                    return new ActiveXObject(candidates[i]);
                 };
                 createXHR();
                 httpinvoke.requestTextOnly = true;

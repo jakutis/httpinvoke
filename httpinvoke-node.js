@@ -14,11 +14,9 @@ var url = require('url');
         (global.Float32Array && input instanceof Float32Array) ||
         (global.Float64Array && input instanceof Float64Array)
     );
-};
-var isArray = function(object) {
+}, isArray = function(object) {
     return Object.prototype.toString.call(object) === '[object Array]';
-};
-var isByteArray = function(input) {
+}, isByteArray = function(input) {
     return typeof input === 'object' && input !== null && (
         (global.Buffer && input instanceof Buffer) ||
         (global.Blob && input instanceof Blob) ||
@@ -27,16 +25,9 @@ var isByteArray = function(input) {
         isArrayBufferView(input) ||
         isArray(input)
     );
-};
-var bytearrayMessage = 'an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array';
-
-var supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,';
-
-var pass = function(value) {
+}, bytearrayMessage = 'an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array', supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,', pass = function(value) {
     return value;
-};
-var nextTick = (global.process && global.process.nextTick) || global.setImmediate || global.setTimeout;
-var _undefined;
+}, nextTick = (global.process && global.process.nextTick) || global.setImmediate || global.setTimeout, _undefined;
 ;
 
 // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
@@ -59,7 +50,7 @@ var validateInputHeaders = function(headers) {
 };
 
 var httpinvoke = function(uri, method, options, cb) {
-    ;var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, corsOriginHeader, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+    ;var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
 /*************** COMMON initialize parameters **************/
 if(!method) {
     // 1 argument
@@ -219,7 +210,6 @@ inputHeaders = options.headers || {};
 outputHeaders = {};
 exposedHeaders = options.corsExposedHeaders || [];
 exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma', 'Content-Range']);
-corsOriginHeader = options.corsOriginHeader || 'X-Httpinvoke-Origin';
 /*************** COMMON convert and validate parameters **************/
 if(method.indexOf(',') >= 0 || supportedMethods.indexOf(',' + method + ',') < 0) {
     return failWithoutRequest(cb, new Error('Unsupported method ' + method));
