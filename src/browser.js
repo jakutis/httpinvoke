@@ -531,11 +531,11 @@
                 var toBlob = BlobBuilder ? function() {
                     var bb = new BlobBuilder();
                     bb.append(input);
-                    input = bb.getBlob(inputHeaders['Content-Type']);
+                    input = bb.getBlob(inputHeaders['Content-Type'] || 'application/octet-stream');
                 } : function() {
                     try {
                         input = new Blob([input], {
-                            type: inputHeaders['Content-Type']
+                            type: inputHeaders['Content-Type'] || 'application/octet-stream'
                         });
                     } catch(_) {
                         triedSendBlob = true;

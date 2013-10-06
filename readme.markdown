@@ -63,26 +63,41 @@ Adding to your HTML file:
         console.log('Failure', err);
     });
 
-    // Demonstration of most of options.
+    // Demonstration of uploading and downloading
+    var converters = {
+        'text json': JSON.parse,
+        'json text': JSON.stringify
+    };
     httpinvoke('https://bower-component-list.herokuapp.com/', 'GET', {
         outputType: 'json',
-        converters: {
-            'text json': JSON.parse
-        },
+        converters: converters,
         gotStatus: function(status, headers) {
             console.log('Got status', status, headers);
         },
         downloading: function(current, total) {
             console.log('Downloaded ', current, ' bytes of ', total, ' total');
         },
-        timeout: 10000,
         finished: function(err, packages) {
             if(err) {
-                return alert('Error getting package list: ' + err.message);
+                return console.log('Error getting package list', err);
             }
-            alert('There are ' + packages.length + ' bower packages.');
+            console.log('There are ' + packages.length + ' bower packages.');
+            httpinvoke('http://server.cors-api.appspot.com/server?id=9285649&enable=true&status=200&credentials=false&methods=POST', 'POST', {
+                uploading: function(current, total) {
+                    console.log('Uploaded ', current, ' bytes of ', total, ' total');
+                },
+                input: packages,
+                inputType: 'json',
+                converters: converters
+            }, function(err, output) {
+                if(err) {
+                    return console.log('Uploading error', err);
+                }
+                console.log('Uploading result', output);
+            });
         }
     });
+
 
 ## API
 
@@ -130,7 +145,7 @@ All options are optional.
   * undefined (default), if **inputType** is `"auto"` and request **headers** does not have `Content-Type`,
   * a string, if **inputType** is `"text"` or `"auto"`,
   * a bytearray - instance of [ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/ArrayBuffer) or instance of [ArrayBufferView](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/ArrayBufferView) or instance of [Blob](https://developer.mozilla.org/en-US/docs/Web/API/Blob) or instance of [File](https://developer.mozilla.org/en-US/docs/Web/API/File) or instance of [Buffer](http://nodejs.org/api/buffer.html) or instance of [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) that has elements of type "number" with values ranging from `0` to `255` - if **inputType** is `"bytearray"` or `"auto"`.
-* **headers** is an object for HTTP request headers. Keys are header names, values are strings. If **input** is not undefined, omitting the Content-Type requires **inputType** be not equal to `"auto"`.
+* **headers** is an object for HTTP request headers. Keys are header names, values are strings.
 * **converters** is an object to convert custom **inputType** and **outputType** values to `"bytearray"` or `"text"`. Example: `{"json text": JSON.stringify, "text json": JSON.parse}`. If you use custom **inputType**, then there must be at least one converter from that type to `"text"` or `"bytearray"`, and the other way around for **outputType**.
 * **corsExposedHeaders** is an array of HTTP response headers to be extracted in **gotStatus** call. Default simple headers like "Content-Type" are always extracted. Applicable only for cross-origin requests.
 * **corsCredentials** is a boolean for requesting to send credentials. Applicable only for a cross-origin request. See Feature Flags section. Defaults to `false`.
