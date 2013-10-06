@@ -93,11 +93,10 @@ Adding to your HTML file:
                 if(err) {
                     return console.log('Uploading error', err);
                 }
-                console.log('Uploading result', output);
+                console.log('Uploading succeeded', output);
             });
         }
     });
-
 
 ## API
 
@@ -204,7 +203,7 @@ To test for web browser functionality run `npm run test-browser`, copy the URL l
 #### Checklist before releasing
 
 * package.json, bower.json and component.json version number bumped
-* file size, test number in readme.markdown updated
+* file size, number of tests in readme.markdown updated
 * httpinvoke-* files regenerated
 
 ## License

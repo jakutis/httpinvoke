@@ -248,14 +248,7 @@ if('input' in options) {
     } else {
         return failWithoutRequest(cb, new Error('There is no converter for specified inputType'));
     }
-    if(typeof input === 'string') {
-        if(!inputHeaders['Content-Type']) {
-            inputHeaders['Content-Type'] = 'text/plain; charset=UTF-8';
-        }
-    } else {
-        if(!inputHeaders['Content-Type']) {
-            inputHeaders['Content-Type'] = 'application/octet-stream';
-        }
+    if(typeof input === 'object') {
         if(global.ArrayBuffer && input instanceof ArrayBuffer) {
             input = new Uint8Array(input);
         } else if(isArrayBufferView(input)) {

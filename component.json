@@ -1,7 +1,7 @@
 {
   "name": "httpinvoke",
   "repo": "jakutis/httpinvoke",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "a small, no-dependencies HTTP client library for browsers and Node.js with a promise-based or Node.js-style callback-based API to progress events, text and binary file upload and download, request and response headers, status code.",
   "keywords": [
     "http",

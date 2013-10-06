@@ -249,14 +249,7 @@ if('input' in options) {
     } else {
         return failWithoutRequest(cb, new Error('There is no converter for specified inputType'));
     }
-    if(typeof input === 'string') {
-        if(!inputHeaders['Content-Type']) {
-            inputHeaders['Content-Type'] = 'text/plain; charset=UTF-8';
-        }
-    } else {
-        if(!inputHeaders['Content-Type']) {
-            inputHeaders['Content-Type'] = 'application/octet-stream';
-        }
+    if(typeof input === 'object') {
         if(global.ArrayBuffer && input instanceof ArrayBuffer) {
             input = new Uint8Array(input);
         } else if(isArrayBufferView(input)) {
@@ -502,21 +495,19 @@ module.exports = httpinvoke;
         return buffer.slice ? buffer.slice(begin, end) : new Uint8Array(Array.prototype.slice.call(new Uint8Array(buffer), begin, end)).buffer;
     };
     var responseBodyToBytes, responseBodyLength;
-    (function() {
-        try {
-            execScript('Function httpinvoke0(B,A)\r\nDim i\r\nFor i=1 to LenB(B)\r\nA.push(AscB(MidB(B,i,1)))\r\nNext\r\nEnd Function\r\nFunction httpinvoke1(B)\r\nhttpinvoke1=LenB(B)\r\nEnd Function', 'vbscript');
-            responseBodyToBytes = function(binary) {
-                var bytes = [];
-                httpinvoke0(binary, bytes);
-                return bytes;
-            };
-            // cannot just assign the function, because httpinvoke1 is not a javascript 'function'
-            responseBodyLength = function(binary) {
-                return httpinvoke1(binary);
-            };
-        } catch(err) {
-        }
-    })();
+    try {
+        execScript('Function httpinvoke0(B,A)\r\nDim i\r\nFor i=1 to LenB(B)\r\nA.push(AscB(MidB(B,i,1)))\r\nNext\r\nEnd Function\r\nFunction httpinvoke1(B)\r\nhttpinvoke1=LenB(B)\r\nEnd Function', 'vbscript');
+        responseBodyToBytes = function(binary) {
+            var bytes = [];
+            httpinvoke0(binary, bytes);
+            return bytes;
+        };
+        // cannot just assign the function, because httpinvoke1 is not a javascript 'function'
+        responseBodyLength = function(binary) {
+            return httpinvoke1(binary);
+        };
+    } catch(err) {
+    }
     var getOutputText = function(xhr) {
         return xhr.response || xhr.responseText;
     };
@@ -778,14 +769,7 @@ if('input' in options) {
     } else {
         return failWithoutRequest(cb, new Error('There is no converter for specified inputType'));
     }
-    if(typeof input === 'string') {
-        if(!inputHeaders['Content-Type']) {
-            inputHeaders['Content-Type'] = 'text/plain; charset=UTF-8';
-        }
-    } else {
-        if(!inputHeaders['Content-Type']) {
-            inputHeaders['Content-Type'] = 'application/octet-stream';
-        }
+    if(typeof input === 'object') {
         if(global.ArrayBuffer && input instanceof ArrayBuffer) {
             input = new Uint8Array(input);
         } else if(isArrayBufferView(input)) {
@@ -831,8 +815,8 @@ noData = function() {
         var xhr, i, j, currentLocation, crossDomain, output,
             getOutput = outputBinary ? getOutputBinary : getOutputText,
             getOutputLength = outputBinary ? getOutputLengthBinary : getOutputLengthText,
-            uploadProgressCbCalled = false,
-            uploadProgress = function(uploaded) {
+            uploadProgressCbCalled = false;
+        var uploadProgress = function(uploaded) {
             if(!uploadProgressCb) {
                 return;
             }
@@ -1250,11 +1234,11 @@ noData = function() {
                 var toBlob = BlobBuilder ? function() {
                     var bb = new BlobBuilder();
                     bb.append(input);
-                    input = bb.getBlob(inputHeaders['Content-Type']);
+                    input = bb.getBlob(inputHeaders['Content-Type'] || 'application/octet-stream');
                 } : function() {
                     try {
                         input = new Blob([input], {
-                            type: inputHeaders['Content-Type']
+                            type: inputHeaders['Content-Type'] || 'application/octet-stream'
                         });
                     } catch(_) {
                         triedSendBlob = true;
