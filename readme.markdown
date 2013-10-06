@@ -85,7 +85,7 @@ Adding to your HTML file:
     }).then(function(response) {
         console.log('Uploading finished', response);
     }, function(err) {
-        return console.log('Error sending package list', err);
+        console.log('Error sending package list', err);
     }, function(progress) {
         console.log('Sending package list progress', progress);
     });
