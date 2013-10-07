@@ -57,8 +57,6 @@ window._cfg = {
      * - By RFC2616 impossible
      *
      */
-    // TODO PUT POST - verify headers and input on server
-    // TODO HEAD POST PUT DELETE
     status: {
         // OK
         '200': {

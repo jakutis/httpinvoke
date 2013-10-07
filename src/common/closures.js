@@ -232,7 +232,6 @@ updateDownload = function(value) {
 noData = function() {
     initDownload(0);
     if(cb) {
-        // TODO what happens if we try to call abort in cb?
         cb(null, _undefined, status, outputHeaders);
         cb = null;
     }
