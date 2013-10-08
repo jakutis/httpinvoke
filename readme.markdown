@@ -49,46 +49,48 @@ Adding to your HTML file:
 
 ## Examples
 
-    httpinvoke('http://example.org', 'GET', function(err, body, statusCode, headers) {
-        if(err) {
-            return console.log('Failure', err);
-        }
-        console.log('Success', body, statusCode, headers);
-    });
+```javascript
+httpinvoke('http://example.org', 'GET', function(err, body, statusCode, headers) {
+    if(err) {
+        return console.log('Failure', err);
+    }
+    console.log('Success', body, statusCode, headers);
+});
 
-    // same as above, but using promise
-    httpinvoke('http://example.org', 'GET').then(function(res) {
-        console.log('Success', res.body, res.statusCode, res.headers);
-    }, function(err) {
-        console.log('Failure', err);
-    });
+// same as above, but using promise
+httpinvoke('http://example.org', 'GET').then(function(res) {
+    console.log('Success', res.body, res.statusCode, res.headers);
+}, function(err) {
+    console.log('Failure', err);
+});
 
-    // Demonstration of downloading and uploading a file
-    var converters = {
-        'text json': JSON.parse,
-        'json text': JSON.stringify
-    };
-    httpinvoke('https://bower-component-list.herokuapp.com/', 'GET', {
-        outputType: 'json',
+// Demonstration of downloading and uploading a file
+var converters = {
+    'text json': JSON.parse,
+    'json text': JSON.stringify
+};
+httpinvoke('https://bower-component-list.herokuapp.com/', 'GET', {
+    outputType: 'json',
+    converters: converters
+}).then(function(response) {
+    console.log('There are ' + response.body.length + ' bower packages.');
+    return httpinvoke('http://server.cors-api.appspot.com/server?id=9285649&enable=true&status=200&credentials=false&methods=POST', 'POST', {
+        input: response.body,
+        inputType: 'json',
         converters: converters
-    }).then(function(response) {
-        console.log('There are ' + response.body.length + ' bower packages.');
-        return httpinvoke('http://server.cors-api.appspot.com/server?id=9285649&enable=true&status=200&credentials=false&methods=POST', 'POST', {
-            input: response.body,
-            inputType: 'json',
-            converters: converters
-        });
-    }, function(err) {
-        console.log('Error receiving package list', err);
-    }, function(progress) {
-        console.log('Receiving package list progress', progress);
-    }).then(function(response) {
-        console.log('Uploading finished', response);
-    }, function(err) {
-        console.log('Error sending package list', err);
-    }, function(progress) {
-        console.log('Sending package list progress', progress);
     });
+}, function(err) {
+    console.log('Error receiving package list', err);
+}, function(progress) {
+    console.log('Receiving package list progress', progress);
+}).then(function(response) {
+    console.log('Uploading finished', response);
+}, function(err) {
+    console.log('Error sending package list', err);
+}, function(progress) {
+    console.log('Sending package list progress', progress);
+});
+```
 
 ## API
 
