@@ -3,8 +3,25 @@ var cfg = require('./dummyserver-config');
 var daemon = require('daemon');
 var fs = require('fs');
 var mime = require('mime');
+var zlib = require('zlib');
 
 var hello = new Buffer('Hello World\n', 'utf8');
+
+var compress = function(output, encoding, cb) {
+    if(encoding === 'gzip') {
+        zlib.gzip(output, cb);
+    } else if(encoding === 'deflate') {
+        zlib.deflate(output, cb);
+    } else if(encoding === 'identity'){
+        process.nextTick(function() {
+            cb(null, output);
+        });
+    } else {
+        process.nextTick(function() {
+            cb(new Error('unsupported encoding ' + encoding));
+        });
+    }
+};
 
 var bigslowHello = function(res) {
     var entity = 'This School Is Not Falling Apart.\n';
@@ -45,6 +62,10 @@ var readEntityBody = function(req, text, cb) {
 
 var endsWith = function(str, substr) {
     return str.substr(str.length - substr.length) === substr;
+};
+
+var beginsWith = function(str, substr) {
+    return str.substr(0, substr.length) === substr;
 };
 
 // on some Android devices CORS implementations are buggy
@@ -137,9 +158,8 @@ var listen = function (req, res) {
     req.proxyPath = req.url.substr(0, cfg.proxyPath.length) === cfg.proxyPath ? cfg.proxyPath : '';
     res.useChunkedEncodingByDefault = false;
 
-    var output = function(status, body, head, mimeType) {
-        var headers = {
-        };
+    var output = function(status, body, head, mimeType, headers) {
+        headers = headers || {};
         if(body !== null) {
             entityHeaders(headers);
             headers['Content-Type'] = mimeType;
@@ -152,6 +172,18 @@ var listen = function (req, res) {
         } else {
             res.end(body);
         }
+    };
+    var contentEncoding = function(encoding) {
+        compress(hello, encoding, function(err, buffer) {
+            if(err) {
+                return output(200, hello, false, 'text/plain; charset=UTF-8', {
+                    'Content-Encoding': encoding
+                });
+            }
+            output(200, buffer, false, 'text/plain; charset=UTF-8', {
+                'Content-Encoding': encoding
+            });
+        });
     };
     var reportTest = function(err) {
         if(err) {
@@ -193,6 +225,8 @@ var listen = function (req, res) {
             output(200, hello, false, 'text/plain; charset=UTF-8');
         } else if(req.url === req.proxyPath + '/bigslow') {
             bigslowHello(res);
+        } else if(beginsWith(req.url, req.proxyPath + '/contentEncoding/')) {
+            contentEncoding(req.url.substr((req.proxyPath + '/contentEncoding/').length));
         } else if(req.url === req.proxyPath + '/text/utf8') {
             output(200, new Buffer(cfg.textTest(), 'utf8'), false, 'text/plain; charset=UTF-8');
         } else if(req.url === req.proxyPath + '/text/utf8/empty') {
