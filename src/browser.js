@@ -402,7 +402,7 @@
                 return;
             }
 
-            if('content-length' in outputHeaders) {
+            if('content-length' in outputHeaders && (!crossDomain || 'content-encoding' in outputHeaders) && (!outputHeaders['content-encoding'] || outputHeaders['content-encoding'] === 'identity')) {
                 initDownload(Number(outputHeaders['content-length']));
                 if(!cb) {
                     return;
