@@ -91,12 +91,16 @@
         return n;
     };
 
-    var fillOutputHeaders = function(xhr, headers, outputHeaders) {
-        headers = xhr.getAllResponseHeaders().split(/\r?\n/);
-        for(var i = headers.length, colon, header; i-- && (colon = headers[i].indexOf(':')) >= 0;) {
-            outputHeaders[headers[i].slice(0, colon).toLowerCase()] = header.slice(colon + 2);
+    var fillOutputHeaders = function(xhr, outputHeaders) {
+        var headers = xhr.getAllResponseHeaders().split(/\r?\n/);
+        var atLeastOne = false;
+        for(var i = headers.length, colon, header; i--;) {
+            if((colon = headers[i].indexOf(':')) >= 0) {
+                outputHeaders[headers[i].substr(0, colon).toLowerCase()] = headers[i].substr(colon + 2);
+                atLeastOne = true;
+            }
         }
-        return i + 1 !== headers.length;
+        return atLeastOne;
     };
 
     var urlPartitioningRegExp = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/;
