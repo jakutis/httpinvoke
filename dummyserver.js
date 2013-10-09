@@ -11,7 +11,7 @@ var compress = function(output, encoding, cb) {
     if(encoding === 'gzip') {
         zlib.gzip(output, cb);
     } else if(encoding === 'deflate') {
-        zlib.deflate(output, cb);
+        zlib.deflateRaw(output, cb);
     } else if(encoding === 'identity'){
         process.nextTick(function() {
             cb(null, output);
