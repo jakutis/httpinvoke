@@ -118,12 +118,16 @@
         return n;
     };
 
-    var fillOutputHeaders = function(xhr, headers, outputHeaders) {
-        headers = xhr.getAllResponseHeaders().split(/\r?\n/);
-        for(var i = headers.length, colon, header; i-- && (colon = headers[i].indexOf(':')) >= 0;) {
-            outputHeaders[headers[i].slice(0, colon).toLowerCase()] = header.slice(colon + 2);
+    var fillOutputHeaders = function(xhr, outputHeaders) {
+        var headers = xhr.getAllResponseHeaders().split(/\r?\n/);
+        var atLeastOne = false;
+        for(var i = headers.length, colon, header; i--;) {
+            if((colon = headers[i].indexOf(':')) >= 0) {
+                outputHeaders[headers[i].substr(0, colon).toLowerCase()] = headers[i].substr(colon + 2);
+                atLeastOne = true;
+            }
         }
-        return i + 1 !== headers.length;
+        return atLeastOne;
     };
 
     var urlPartitioningRegExp = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/;
@@ -368,7 +372,6 @@ updateDownload = function(value) {
 noData = function() {
     initDownload(0);
     if(cb) {
-        // TODO what happens if we try to call abort in cb?
         cb(null, _undefined, status, outputHeaders);
         cb = null;
     }
@@ -664,7 +667,7 @@ noData = function() {
                 return;
             }
 
-            if('content-length' in outputHeaders) {
+            if('content-length' in outputHeaders && (!crossDomain || 'content-encoding' in outputHeaders) && (!outputHeaders['content-encoding'] || outputHeaders['content-encoding'] === 'identity')) {
                 initDownload(Number(outputHeaders['content-length']));
                 if(!cb) {
                     return;

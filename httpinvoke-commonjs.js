@@ -1,6 +1,7 @@
 if(typeof process !== 'undefined' && typeof process.versions !== 'undefined' && typeof process.versions.node !== 'undefined') {
 ;var http = require('http');
 var url = require('url');
+var zlib = require('zlib');
 
 ;;var isArrayBufferView = function(input) {
     return typeof input === 'object' && input !== null && (
@@ -31,6 +32,27 @@ var url = require('url');
 }, nextTick = (global.process && global.process.nextTick) || global.setImmediate || global.setTimeout, _undefined;
 ;
 
+var decompress = function(output, encoding, cb) {
+    if(encoding === 'gzip') {
+        zlib.gunzip(output, cb);
+    } else if(encoding === 'deflate') {
+        zlib.inflate(output, function(err, out) {
+            if(err) {
+                return zlib.inflateRaw(output, cb);
+            }
+            cb(null, out);
+        });
+    } else if(encoding === 'identity') {
+        process.nextTick(function() {
+            cb(null, output);
+        });
+    } else {
+        process.nextTick(function() {
+            cb(new Error('unsupported encoding ' + encoding));
+        });
+    }
+};
+
 // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
 var forbiddenInputHeaders = ['accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'content-transfer-encoding', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
 var validateInputHeaders = function(headers) {
@@ -48,6 +70,13 @@ var validateInputHeaders = function(headers) {
             }
         }
     }
+};
+
+var copy = function(from, to) {
+    Object.keys(from).forEach(function(key) {
+        to[key] = from[key];
+    });
+    return to;
 };
 
 var httpinvoke = function(uri, method, options, cb) {
@@ -285,7 +314,6 @@ updateDownload = function(value) {
 noData = function() {
     initDownload(0);
     if(cb) {
-        // TODO what happens if we try to call abort in cb?
         cb(null, _undefined, status, outputHeaders);
         cb = null;
     }
@@ -297,6 +325,9 @@ noData = function() {
     } catch(err) {
         return failWithoutRequest(cb, err);
     }
+    inputHeaders = copy(inputHeaders, {});
+    inputHeaders['Accept-Encoding'] = 'gzip, deflate, identity';
+
     var ignorantlyConsume = function(res) {
         res.on('data', pass);
         res.on('end', pass);
@@ -315,11 +346,20 @@ noData = function() {
         method: method,
         headers: inputHeaders
     }, function(res) {
+        var contentEncoding;
         if(cb === null) {
             ignorantlyConsume(res);
             return;
         }
+
         outputHeaders = res.headers;
+        if('content-encoding' in outputHeaders) {
+            contentEncoding = outputHeaders['content-encoding'];
+            delete outputHeaders['content-encoding'];
+        } else {
+            contentEncoding = 'identity';
+        }
+
         status = res.statusCode;
 
         uploadProgressCb(inputLength, inputLength);
@@ -376,16 +416,25 @@ noData = function() {
                 outputLength = downloaded;
             }
 
-            output = Buffer.concat(output, downloaded);
-            if(!outputBinary) {
-                output = output.toString('utf8');
-            }
-            try {
-                cb(null, outputConverter(output), status, outputHeaders);
-            } catch(err) {
-                cb(err);
-            }
-            cb = null;
+            decompress(Buffer.concat(output, downloaded), contentEncoding, function(err, output) {
+                if(!cb) {
+                    return;
+                }
+                if(err) {
+                    cb(err);
+                    cb = null;
+                    return;
+                }
+                if(!outputBinary) {
+                    output = output.toString('utf8');
+                }
+                try {
+                    cb(null, outputConverter(output), status, outputHeaders);
+                } catch(err) {
+                    cb(err);
+                }
+                cb = null;
+            });
         });
     });
 
@@ -555,12 +604,16 @@ module.exports = httpinvoke;
         return n;
     };
 
-    var fillOutputHeaders = function(xhr, headers, outputHeaders) {
-        headers = xhr.getAllResponseHeaders().split(/\r?\n/);
-        for(var i = headers.length, colon, header; i-- && (colon = headers[i].indexOf(':')) >= 0;) {
-            outputHeaders[headers[i].slice(0, colon).toLowerCase()] = header.slice(colon + 2);
+    var fillOutputHeaders = function(xhr, outputHeaders) {
+        var headers = xhr.getAllResponseHeaders().split(/\r?\n/);
+        var atLeastOne = false;
+        for(var i = headers.length, colon, header; i--;) {
+            if((colon = headers[i].indexOf(':')) >= 0) {
+                outputHeaders[headers[i].substr(0, colon).toLowerCase()] = headers[i].substr(colon + 2);
+                atLeastOne = true;
+            }
         }
-        return i + 1 !== headers.length;
+        return atLeastOne;
     };
 
     var urlPartitioningRegExp = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/;
@@ -805,7 +858,6 @@ updateDownload = function(value) {
 noData = function() {
     initDownload(0);
     if(cb) {
-        // TODO what happens if we try to call abort in cb?
         cb(null, _undefined, status, outputHeaders);
         cb = null;
     }
@@ -1101,7 +1153,7 @@ noData = function() {
                 return;
             }
 
-            if('content-length' in outputHeaders) {
+            if('content-length' in outputHeaders && (!crossDomain || 'content-encoding' in outputHeaders) && (!outputHeaders['content-encoding'] || outputHeaders['content-encoding'] === 'identity')) {
                 initDownload(Number(outputHeaders['content-length']));
                 if(!cb) {
                     return;
