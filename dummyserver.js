@@ -266,7 +266,9 @@ if(fs.existsSync('./dummyserver.pid')) {
     process.exit(1);
 } else {
     console.log('HTML test runner available at http://localhost:' + cfg.dummyserverPort + '/test/index.html');
-    daemon();
+    if(process.argv[2] !== 'nodaemon') {
+        daemon();
+    }
     fs.writeFileSync('./dummyserver.pid', String(process.pid));
     http.createServer(listen).listen(cfg.dummyserverPort, cfg.host);
     http.createServer(listen).listen(cfg.dummyserverPortAlternative, cfg.host);
