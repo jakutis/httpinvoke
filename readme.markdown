@@ -9,6 +9,7 @@ httpinvoke is a 4.6kb no-dependencies HTTP client library for **browsers** and *
   * [progress events](http://www.w3.org/TR/progress-events/) - get current and total bytes downloaded or uploaded;
   * [binary file uploads and downloads](http://www.w3.org/TR/XMLHttpRequest/) - easily use Blob, FormData, ArrayBuffer, Uint8Array or a simple array of bytes.
 * Supports both NodeJS style callbacks and [Promises/A+](http://promisesaplus.com/) (with progress events, see [an example](https://github.com/jakutis/httpinvoke/blob/master/test/promise.js)).
+* Supports transparent gzip/deflate content decoding.
 * Handles HTTP responses The Right Way™:
   * Tries hard to get the HTTP response status code in all cases.
   * Emits the HTTP response status code and headers as soon as they are available.
