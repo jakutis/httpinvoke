@@ -1,7 +1,24 @@
 var http = require('http');
 var url = require('url');
+var zlib = require('zlib');
 
 var pass, isArray, isArrayBufferView, _undefined, nextTick;
+
+var decompress = function(output, encoding, cb) {
+    if(encoding === 'gzip') {
+        zlib.gunzip(output, cb);
+    } else if(encoding === 'deflate') {
+        zlib.inflate(output, cb);
+    } else if(encoding === 'identity') {
+        process.nextTick(function() {
+            cb(null, output);
+        });
+    } else {
+        process.nextTick(function() {
+            cb(new Error('unsupported encoding ' + encoding));
+        });
+    }
+};
 
 // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
 var forbiddenInputHeaders = ['accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'content-transfer-encoding', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
@@ -22,6 +39,13 @@ var validateInputHeaders = function(headers) {
     }
 };
 
+var copy = function(from, to) {
+    Object.keys(from).forEach(function(key) {
+        to[key] = from[key];
+    });
+    return to;
+};
+
 var httpinvoke = function(uri, method, options, cb) {
     var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
     /*************** initialize helper variables **************/
@@ -30,6 +54,9 @@ var httpinvoke = function(uri, method, options, cb) {
     } catch(err) {
         return failWithoutRequest(cb, err);
     }
+    inputHeaders = copy(inputHeaders, {});
+    inputHeaders['Accept-Encoding'] = 'gzip, deflate, identity';
+
     var ignorantlyConsume = function(res) {
         res.on('data', pass);
         res.on('end', pass);
@@ -48,11 +75,20 @@ var httpinvoke = function(uri, method, options, cb) {
         method: method,
         headers: inputHeaders
     }, function(res) {
+        var contentEncoding;
         if(cb === null) {
             ignorantlyConsume(res);
             return;
         }
+
         outputHeaders = res.headers;
+        if('content-encoding' in outputHeaders) {
+            contentEncoding = outputHeaders['content-encoding'];
+            delete outputHeaders['content-encoding'];
+        } else {
+            contentEncoding = 'identity';
+        }
+
         status = res.statusCode;
 
         uploadProgressCb(inputLength, inputLength);
@@ -109,16 +145,25 @@ var httpinvoke = function(uri, method, options, cb) {
                 outputLength = downloaded;
             }
 
-            output = Buffer.concat(output, downloaded);
-            if(!outputBinary) {
-                output = output.toString('utf8');
-            }
-            try {
-                cb(null, outputConverter(output), status, outputHeaders);
-            } catch(err) {
-                cb(err);
-            }
-            cb = null;
+            decompress(Buffer.concat(output, downloaded), contentEncoding, function(err, output) {
+                if(!cb) {
+                    return;
+                }
+                if(err) {
+                    cb(err);
+                    cb = null;
+                    return;
+                }
+                if(!outputBinary) {
+                    output = output.toString('utf8');
+                }
+                try {
+                    cb(null, outputConverter(output), status, outputHeaders);
+                } catch(err) {
+                    cb(err);
+                }
+                cb = null;
+            });
         });
     });
 
