@@ -8,7 +8,12 @@ var decompress = function(output, encoding, cb) {
     if(encoding === 'gzip') {
         zlib.gunzip(output, cb);
     } else if(encoding === 'deflate') {
-        zlib.inflate(output, cb);
+        zlib.inflate(output, function(err, out) {
+            if(err) {
+                return zlib.inflateRaw(output, cb);
+            }
+            cb(null, out);
+        });
     } else if(encoding === 'identity') {
         process.nextTick(function() {
             cb(null, output);
