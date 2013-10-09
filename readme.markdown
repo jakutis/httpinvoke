@@ -65,6 +65,30 @@ httpinvoke('http://example.org', 'GET').then(function(res) {
     console.log('Failure', err);
 });
 
+// Demonstration of uploading an HTML form (`Content-Type: application/x-www-form-urlencoded`)
+var book = {
+    content: 'Hello World',
+    comment: 'initial version'
+};
+// convert the json object to application/x-www-form-urlencoded format string
+var encodedBook = Object.keys(book).map(function(key) {
+    return encodeURIComponent(key) + '=' + encodeURIComponent(book[key]);
+}).join('&');
+// upload to server
+httpinvoke('http://example.org', 'POST', {
+    headers: {
+        // remove this header if doing a cross-domain request
+        // or add a 'Content-Type' to 'Access-Control-Allow-Headers' server-side response header
+        'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    input: encodedBook
+}, function(err) {
+    if(err) {
+        return console.log('Failure', err);
+    }
+    console.log('Success');
+});
+
 // Demonstration of downloading and uploading a file
 var converters = {
     'text json': JSON.parse,
