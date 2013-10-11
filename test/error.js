@@ -1,7 +1,7 @@
 var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
-describe.only('"err" argument in "finished" callback', function() {
+describe('"err" argument in "finished" callback', function() {
     this.timeout(10000);
     cfg.eachBase(function(postfix, url) {
         it('is set to the same error that input converter threw', function(done) {
