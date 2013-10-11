@@ -13,6 +13,65 @@ describe('abort', function() {
                 done(err);
             }
         });
+        it('does not cause any trouble when calling in "downloading"' + postfix, function(done) {
+            var abort = httpinvoke(url, {
+                finished: function(err) {
+                    if(!err) {
+                        return done(new Error('did not end with error'));
+                    }
+                    if(err.message !== 'abort') {
+                        return done(new Error('message was not "abort"'));
+                    }
+                    done();
+                },
+                downloading: function() {
+                    abort();
+                }
+            });
+        });
+        it('does not cause any trouble when calling in "uploading"' + postfix, function(done) {
+            var abort = httpinvoke(url, {
+                finished: function(err) {
+                    if(!err) {
+                        return done(new Error('did not end with error'));
+                    }
+                    if(err.message !== 'abort') {
+                        return done(new Error('message was not "abort"'));
+                    }
+                    done();
+                },
+                uploading: function() {
+                    abort();
+                }
+            });
+        });
+        it('does not cause any trouble when calling in "gotStatus"' + postfix, function(done) {
+            var abort = httpinvoke(url, {
+                finished: function(err) {
+                    if(!err) {
+                        return done(new Error('did not end with error'));
+                    }
+                    if(err.message !== 'abort') {
+                        return done(new Error('message was not "abort"'));
+                    }
+                    done();
+                },
+                gotStatus: function() {
+                    abort();
+                }
+            });
+        });
+        it('does not cause any trouble when calling in "finished"' + postfix, function(done) {
+            var abort = httpinvoke(url, {
+                finished: function(err) {
+                    if(err) {
+                        return done(err);
+                    }
+                    abort();
+                    done();
+                }
+            });
+        });
         it('ensures that no callbacks, except finished with Error, are called when invoked immediately' + postfix, function(done) {
             var callback = function(callback) {
                 return function() {

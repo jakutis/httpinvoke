@@ -70,7 +70,6 @@ var httpinvoke = function(uri, method, options, cb) {
     if(timeout > 0) {
         setTimeout(function() {
             cb(new Error('Timeout of ' + timeout + 'ms exceeded'));
-            cb = null;
         }, timeout);
     }
     var req = http.request({
@@ -81,9 +80,8 @@ var httpinvoke = function(uri, method, options, cb) {
         headers: inputHeaders
     }, function(res) {
         var contentEncoding;
-        if(cb === null) {
-            ignorantlyConsume(res);
-            return;
+        if(!cb) {
+            return ignorantlyConsume(res);
         }
 
         outputHeaders = res.headers;
@@ -97,27 +95,23 @@ var httpinvoke = function(uri, method, options, cb) {
         status = res.statusCode;
 
         uploadProgressCb(inputLength, inputLength);
-        if(cb === null) {
-            ignorantlyConsume(res);
-            return;
+        if(!cb) {
+            return ignorantlyConsume(res);
         }
 
         statusCb(status, outputHeaders);
-        if(cb === null) {
-            ignorantlyConsume(res);
-            return;
+        if(!cb) {
+            return ignorantlyConsume(res);
         }
 
         updateDownload(0);
-        if(cb === null) {
-            ignorantlyConsume(res);
-            return;
+        if(!cb) {
+            return ignorantlyConsume(res);
         }
         if(typeof outputHeaders['content-length'] !== 'undefined') {
             initDownload(Number(outputHeaders['content-length']));
-            if(cb === null) {
-                ignorantlyConsume(res);
-                return;
+            if(!cb) {
+                return ignorantlyConsume(res);
             }
         }
         if(method === 'HEAD' || typeof outputHeaders['content-type'] === 'undefined') {
@@ -127,22 +121,19 @@ var httpinvoke = function(uri, method, options, cb) {
 
         var output = [], downloaded = 0;
         res.on('data', function(chunk) {
-            if(cb === null) {
+            if(!cb) {
                 return;
             }
             downloaded += chunk.length;
             output.push(chunk);
             updateDownload(downloaded);
-            if(cb === null) {
-                return;
-            }
         });
         res.on('end', function() {
-            if(cb === null) {
+            if(!cb) {
                 return;
             }
             updateDownload(downloaded);
-            if(cb === null) {
+            if(!cb) {
                 return;
             }
 
@@ -155,9 +146,7 @@ var httpinvoke = function(uri, method, options, cb) {
                     return;
                 }
                 if(err) {
-                    cb(err);
-                    cb = null;
-                    return;
+                    return cb(err);
                 }
                 if(!outputBinary) {
                     output = output.toString('utf8');
@@ -167,16 +156,12 @@ var httpinvoke = function(uri, method, options, cb) {
                 } catch(err) {
                     cb(err);
                 }
-                cb = null;
             });
         });
     });
 
     nextTick(function() {
-        if(cb === null) {
-            return;
-        }
-        uploadProgressCb(0, inputLength);
+        cb && uploadProgressCb(0, inputLength);
     });
     if(typeof input !== 'undefined') {
         input = new Buffer(input);
@@ -184,22 +169,11 @@ var httpinvoke = function(uri, method, options, cb) {
         req.write(input);
     }
     req.on('error', function(e) {
-        if(cb === null) {
-            return;
-        }
-        cb(e);
-        cb = null;
+        cb && cb(e);
     });
     req.end();
     promise = function() {
-        if(cb === null) {
-            return;
-        }
-
-        // these statements are in case "abort" is called in "finished" callback
-        var _cb = cb;
-        cb = null;
-        _cb(new Error('abort'));
+        cb && cb(new Error('abort'));
     };
     return mixInPromise(promise);
 };

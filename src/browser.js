@@ -168,7 +168,6 @@
             } else {
                 setTimeout(function() {
                     cb(new Error('download timeout'));
-                    cb = null;
                 }, timeout);
             }
         }
@@ -190,10 +189,7 @@
         var makeErrorCb = function(message) {
             return function() {
                 // must check, because some callbacks are called synchronously, thus throwing exceptions and breaking code
-                if(cb) {
-                    cb(new Error(message));
-                    cb = null;
-                }
+                cb && cb(new Error(message));
             };
         };
         var onuploadprogress = function(progressEvent) {
@@ -388,7 +384,6 @@
             }
 
             statusCb(status, outputHeaders);
-            statusCb = null;
             if(!cb) {
                 return;
             }
@@ -404,9 +399,6 @@
 
             if('content-length' in outputHeaders && (!crossDomain || 'content-encoding' in outputHeaders) && (!outputHeaders['content-encoding'] || outputHeaders['content-encoding'] === 'identity')) {
                 initDownload(Number(outputHeaders['content-length']));
-                if(!cb) {
-                    return;
-                }
             }
         };
         var onLoad = function() {
@@ -421,9 +413,7 @@
 
             if(!received.success && !status) {
                 // 'finished in onerror and status code is undefined'
-                cb(new Error('download error'));
-                cb = null;
-                return;
+                return cb(new Error('download error'));
             }
 
             var length;
@@ -437,7 +427,6 @@
             } else if(length !== outputLength) {
                 // 'output length ' + outputLength + ' is not equal to actually received entity length ' + length
                 cb(new Error('download error'));
-                cb = null;
             }
             if(!cb) {
                 return;
@@ -453,7 +442,6 @@
             } catch(err) {
                 cb(err);
             }
-            cb = null;
         };
         var onloadBound = false;
         if(typeof xhr.onload !== 'undefined') {
@@ -652,8 +640,6 @@
                         xhr.send(null);
                     }
                 } catch(err) {
-                    var _cb = cb;
-                    cb = null;
                     return failWithoutRequest(cb, new Error('Unable to send'));
                 }
             }
@@ -662,18 +648,13 @@
 
         /*************** return "abort" function **************/
         promise = function() {
-            if(!cb) {
-                return;
-            }
+            if(cb) {
+                cb(new Error('abort'));
 
-            // these statements are in case "abort" is called in "finished" callback
-            var _cb = cb;
-            cb = null;
-            _cb(new Error('abort'));
-
-            try {
-                xhr.abort();
-            } catch(err){
+                try {
+                    xhr.abort();
+                } catch(err){
+                }
             }
         };
         return mixInPromise(promise);

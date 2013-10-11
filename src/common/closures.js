@@ -1,4 +1,4 @@
-var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+var mixInPromise, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, noData, timeout, inputHeaders, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
 /*************** COMMON initialize parameters **************/
 if(!method) {
     // 1 argument
@@ -39,17 +39,15 @@ if(!method) {
     // 4 arguments
     options.finished = cb;
 }
-var safeCallback = function(name, aspect) {
-    if(name in options) {
-        return function(a, b, c, d) {
-            try {
-                options[name](a, b, c, d);
-            } catch(_) {
-            }
-            aspect(a, b, c, d);
-        };
-    }
-    return aspect;
+var safeCallback = function(name, aspectBefore, aspectAfter) {
+    return function(a, b, c, d) {
+        aspectBefore(a, b, c, d);
+        try {
+            options[name](a, b, c, d);
+        } catch(_) {
+        }
+        aspectAfter(a, b, c, d);
+    };
 };
 var chain = function(a, b) {
     a && a.then && a.then(function() {
@@ -119,28 +117,32 @@ failWithoutRequest = function(cb, err) {
     return mixInPromise(promise);
 };
 
-uploadProgressCb = safeCallback('uploading', function(current, total) {
+uploadProgressCb = safeCallback('uploading', pass, function(current, total) {
     promise[progress]({
         type: 'upload',
         current: current,
         total: total
     });
 });
-var downloadProgressCb = safeCallback('downloading', function(current, total) {
+downloadProgressCb = safeCallback('downloading', pass, function(current, total) {
     promise[progress]({
         type: 'download',
         current: current,
         total: total
     });
 });
-statusCb = safeCallback('gotStatus', function(statusCode, headers) {
+statusCb = safeCallback('gotStatus', function() {
+    statusCb = null;
+}, function(statusCode, headers) {
     promise[progress]({
         type: 'headers',
         statusCode: statusCode,
         headers: headers
     });
 });
-cb = safeCallback('finished', function(err, body, statusCode, headers) {
+cb = safeCallback('finished', function() {
+    cb = null;
+}, function(err, body, statusCode, headers) {
     if(err) {
         return promise[reject](err);
     }
@@ -231,8 +233,5 @@ updateDownload = function(value) {
 };
 noData = function() {
     initDownload(0);
-    if(cb) {
-        cb(null, _undefined, status, outputHeaders);
-        cb = null;
-    }
+    cb && cb(null, _undefined, status, outputHeaders);
 };
