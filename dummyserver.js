@@ -223,6 +223,10 @@ var listen = function (req, res) {
     } else if(req.method === 'GET') {
         if(req.url === req.proxyPath + '/') {
             output(200, hello, false, 'text/plain; charset=UTF-8');
+        } else if(req.url === req.proxyPath + '/timeout') {
+            setTimeout(function() {
+                output(200, hello, false, 'text/plain; charset=UTF-8');
+            }, 2000);
         } else if(req.url === req.proxyPath + '/bigslow') {
             bigslowHello(res);
         } else if(beginsWith(req.url, req.proxyPath + '/contentEncoding/')) {

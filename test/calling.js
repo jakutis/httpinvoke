@@ -49,12 +49,4 @@ describe('calling', function() {
             });
         });
     });
-    it('immediately errors-out when url is not reachable', function(done) {
-        httpinvoke('http://non-existant.url/foobar', 'GET', function(err) {
-            if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
-                return done(new Error('error was not received'));
-            }
-            done();
-        });
-    });
 });
