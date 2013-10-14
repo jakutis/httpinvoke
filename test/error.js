@@ -55,15 +55,41 @@ describe('"err" argument in "finished" callback', function() {
             });
             abort();
         });
-        it('is set to Error("download error") when url is not reachable', function(done) {
+        it('is set to Error("upload error") when url is not reachable', function(done) {
             httpinvoke('http://non-existant.url/foobar', 'GET', function(err) {
                 if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
                     return done(new Error('error was not received'));
                 }
-                if(err.message !== 'download error') {
-                    return done(new Error('expected message to be "download error", but got: ' + err.message));
+                if(err.message !== 'upload error') {
+                    return done(new Error('expected message to be "upload error", but got: ' + err.message));
                 }
                 done();
+            });
+        });
+        it('is set to Error("upload error") when connection ends before sending headers', function(done) {
+            httpinvoke(url + 'immediateEnd', 'GET', {
+                finished: function(err) {
+                    if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
+                        return done(new Error('error was not received'));
+                    }
+                    if(err.message !== 'upload error') {
+                        return done(new Error('expected message to be "upload error", but got: ' + err.message));
+                    }
+                    done();
+                }
+            });
+        });
+        it('is set to Error("download error") when connection ends after sending headers', function(done) {
+            httpinvoke(url + 'endAfterHeaders', 'GET', {
+                finished: function(err) {
+                    if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
+                        return done(new Error('error was not received'));
+                    }
+                    if(err.message !== 'download error') {
+                        return done(new Error('expected message to be "download error", but got: ' + err.message));
+                    }
+                    done();
+                }
             });
         });
         it('is set to Error("download timeout") when url is not responding in specified time', function(done) {
