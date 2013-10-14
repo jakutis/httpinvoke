@@ -1,4 +1,4 @@
-var mixInPromise, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, noData, timeout, inputHeaders, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, noData, timeout, inputHeaders, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
 /*************** COMMON initialize parameters **************/
 if(!method) {
     // 1 argument
@@ -48,62 +48,6 @@ var safeCallback = function(name, aspectBefore, aspectAfter) {
         }
         aspectAfter(a, b, c, d);
     };
-};
-var chain = function(a, b) {
-    a && a.then && a.then(function() {
-        b[resolve].apply(null, arguments);
-    }, function() {
-        b[reject].apply(null, arguments);
-    }, function() {
-        b[progress].apply(null, arguments);
-    });
-};
-var resolve = 0, reject = 1, progress = 2;
-mixInPromise = function(o) {
-    var value, queue = [], state = progress;
-    var makeState = function(newstate) {
-        o[newstate] = function(newvalue) {
-            var i, p;
-            if(queue) {
-                value = newvalue;
-                state = newstate;
-
-                for(i = 0; i < queue.length; i++) {
-                    if(typeof queue[i][state] === 'function') {
-                        try {
-                            p = queue[i][state].call(null, value);
-                            if(state < progress) {
-                                chain(p, queue[i]._);
-                            }
-                        } catch(err) {
-                            queue[i]._[reject](err);
-                        }
-                    } else if(state < progress) {
-                        queue[i]._[state](value);
-                    }
-                }
-                if(state < progress) {
-                    queue = null;
-                }
-            }
-        };
-    };
-    makeState(progress);
-    makeState(resolve);
-    makeState(reject);
-    o.then = function() {
-        var item = [].slice.call(arguments);
-        item._ = mixInPromise({});
-        if(queue) {
-            queue.push(item);
-        } else if(typeof item[state] === 'function') {
-            nextTick(function() {
-                chain(item[state](value), item._);
-            });
-        }
-        return item._;
-    };
-    return o;
 };
 failWithoutRequest = function(cb, err) {
     nextTick(function() {
