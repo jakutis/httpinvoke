@@ -223,6 +223,14 @@ var listen = function (req, res) {
     } else if(req.method === 'GET') {
         if(req.url === req.proxyPath + '/') {
             output(200, hello, false, 'text/plain; charset=UTF-8');
+        } else if(req.url === req.proxyPath + '/immediateEnd') {
+            res.socket.destroy();
+        } else if(req.url === req.proxyPath + '/endAfterHeaders') {
+            res.writeHead(200, {
+                'Content-Length': '1024'
+            });
+            res.write(new Buffer('test'));
+            res.socket.destroy();
         } else if(req.url === req.proxyPath + '/timeout') {
             setTimeout(function() {
                 output(200, hello, false, 'text/plain; charset=UTF-8');
