@@ -69,7 +69,7 @@ var httpinvoke = function(uri, method, options, cb) {
     uri = url.parse(uri);
     if(timeout > 0) {
         setTimeout(function() {
-            cb(new Error('Timeout of ' + timeout + 'ms exceeded'));
+            cb(new Error('download timeout'));
         }, timeout);
     }
     var req = http.request({
@@ -108,13 +108,13 @@ var httpinvoke = function(uri, method, options, cb) {
         if(!cb) {
             return ignorantlyConsume(res);
         }
-        if(typeof outputHeaders['content-length'] !== 'undefined') {
+        if('content-length' in outputHeaders && contentEncoding === 'identity') {
             initDownload(Number(outputHeaders['content-length']));
             if(!cb) {
                 return ignorantlyConsume(res);
             }
         }
-        if(method === 'HEAD' || typeof outputHeaders['content-type'] === 'undefined') {
+        if(method === 'HEAD') {
             ignorantlyConsume(res);
             return noData();
         }
@@ -136,9 +136,8 @@ var httpinvoke = function(uri, method, options, cb) {
             if(!cb) {
                 return;
             }
-
-            if(typeof outputLength === 'undefined') {
-                outputLength = downloaded;
+            if(downloaded === 0 && typeof outputHeaders['content-type'] === 'undefined') {
+                return cb(null, _undefined, status, outputHeaders);
             }
 
             decompress(Buffer.concat(output, downloaded), contentEncoding, function(err, output) {
@@ -146,7 +145,13 @@ var httpinvoke = function(uri, method, options, cb) {
                     return;
                 }
                 if(err) {
-                    return cb(err);
+                    return cb(new Error('download error'));
+                }
+                if(typeof outputLength === 'undefined') {
+                    outputLength = output.length;
+                }
+                if(outputLength !== output.length) {
+                    return cb(new Error('download error'));
                 }
                 if(!outputBinary) {
                     output = output.toString('utf8');
@@ -169,7 +174,10 @@ var httpinvoke = function(uri, method, options, cb) {
         req.write(input);
     }
     req.on('error', function(e) {
-        cb && cb(e);
+        if(e.syscall === 'write' && status === 204) {
+            return;
+        }
+        cb && cb(new Error(e.syscall === 'read' ? 'download error' : 'upload error'));
     });
     req.end();
     promise = function() {
