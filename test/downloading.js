@@ -237,25 +237,6 @@ describe('"downloading" option', function() {
                 }
             });
         });
-        it('has the last "total" be equal to output length, when outputType="bytearray"' + postfix, function(done) {
-            var total = null;
-            httpinvoke(url, {
-                outputType: 'bytearray',
-                downloading: function(_, _total) {
-                    total = _total;
-                },
-                finished: function(err, output) {
-                    if(err) {
-                        return done(err);
-                    }
-                    if(typeof output !== 'undefined' && output.length !== total) {
-                        done(new Error('The last "total"=' + total + ' was not equal to output length = ' + output.length));
-                    } else {
-                        done();
-                    }
-                }
-            });
-        });
         it('has "current" be non-decreasing' + postfix, function(done) {
             var current = null;
             httpinvoke(url, {
