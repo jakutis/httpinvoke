@@ -158,6 +158,8 @@ var outputStatus = function(req, res) {
 };
 
 var listen = function (req, res) {
+    var headers;
+
     req.proxyPath = req.url.substr(0, cfg.proxyPath.length) === cfg.proxyPath ? cfg.proxyPath : '';
     res.useChunkedEncodingByDefault = false;
 
@@ -231,9 +233,12 @@ var listen = function (req, res) {
         } else if(req.url === req.proxyPath + '/immediateEnd') {
             res.socket.destroy();
         } else if(req.url === req.proxyPath + '/endAfterHeaders') {
-            res.writeHead(200, {
-                'Content-Length': '1024'
-            });
+            headers = {
+                'Content-Length': '1024',
+                'Content-Type': 'text/plain'
+            };
+            corsHeaders(headers, req);
+            res.writeHead(200, headers);
             res.write(new Buffer('test'));
             res.socket.destroy();
         } else if(req.url === req.proxyPath + '/timeout') {
