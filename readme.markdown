@@ -201,6 +201,7 @@ There are feature flags to be queried for platform-specific features.
     }
 
 * **requestTextOnly** - **inputType** `"bytearray"` is not supported
+* **PATCH** - `"PATCH"` **method** is supported
 * **cors** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) is available
 * **corsCredentials** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports sending cookies and HTTP authentication credentials
 * **corsResponseContentTypeOnly** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports only Content-Type response header
