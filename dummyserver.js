@@ -121,34 +121,36 @@ var outputStatus = function(req, res) {
         }
     })) {
         if(typeof cfg.status[code][req.method] !== 'undefined') {
-            var params = cfg.status[code][req.method][i];
-            var headers = {};
-            corsHeaders(headers, req);
-            if(params.location) {
-                headers.Location = 'http://' + req.headers.host + req.proxyPath + '/';
-                res.writeHead(Number(code), headers);
-                res.end();
-            } else if(params.responseEntity) {
-                entityHeaders(headers);
-                headers['Content-Type'] = 'text/plain';
-                if(params.partialResponse) {
-                    headers['Accept-Ranges'] = 'bytes';
-                    headers['Content-Range'] = 'bytes 0-4/' + hello.length;
-                    headers['Content-Length'] = '5';
+            readEntityBody(req, false, function(err, input) {
+                var params = cfg.status[code][req.method][i];
+                var headers = {};
+                corsHeaders(headers, req);
+                if(params.location) {
+                    headers.Location = 'http://' + req.headers.host + req.proxyPath + '/';
                     res.writeHead(Number(code), headers);
-                    res.end(hello.slice(0, 5));
+                    res.end();
+                } else if(params.responseEntity) {
+                    entityHeaders(headers);
+                    headers['Content-Type'] = 'text/plain';
+                    if(params.partialResponse) {
+                        headers['Accept-Ranges'] = 'bytes';
+                        headers['Content-Range'] = 'bytes 0-4/' + hello.length;
+                        headers['Content-Length'] = '5';
+                        res.writeHead(Number(code), headers);
+                        res.end(hello.slice(0, 5));
+                    } else {
+                        headers['Content-Length'] = String(hello.length);
+                        res.writeHead(Number(code), headers);
+                        res.end(hello);
+                    }
                 } else {
-                    headers['Content-Length'] = String(hello.length);
+                    if(code === '407') {
+                        headers['Proxy-Authenticate'] = 'Basic realm="httpinvoke"';
+                    }
                     res.writeHead(Number(code), headers);
-                    res.end(hello);
+                    res.end();
                 }
-            } else {
-                if(code === '407') {
-                    headers['Proxy-Authenticate'] = 'Basic realm="httpinvoke"';
-                }
-                res.writeHead(Number(code), headers);
-                res.end();
-            }
+            });
         }
         return true;
     }
