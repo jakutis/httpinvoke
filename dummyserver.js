@@ -23,28 +23,6 @@ var compress = function(output, encoding, cb) {
     }
 };
 
-var bigslowHello = function(res) {
-    var entity = 'This School Is Not Falling Apart.\n';
-    var n = 100;
-    res.writeHead(200, {
-        'Content-Type': 'text/plain; charset=UTF-8',
-        'Content-Length': entity.length * n * 100
-    });
-
-    var i = 0;
-    var interval = setInterval(function() {
-        if(i < n) {
-            for(var j = 0; j < 100; j+=1) {
-                res.write(entity);
-            }
-            i += 1;
-        } else {
-            clearInterval(interval);
-            res.end();
-        }
-    }, 1000);
-};
-
 var readEntityBody = function(req, text, cb) {
     var chunks = [];
     req.on('data', function(chunk) {
@@ -97,6 +75,29 @@ var entityHeaders = function(headers) {
     headers.Expires = 'Thu, 01 Jan 1970 00:00:00 GMT';
     headers['Last-Modified'] = new Date().toGMTString();
     headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0';
+};
+
+var bigslowHello = function(req, res) {
+    var entity = 'This School Is Not Falling Apart.\n';
+    var n = 100, headers = {
+        'Content-Type': 'text/plain; charset=UTF-8',
+        'Content-Length': entity.length * n * 100
+    };
+    corsHeaders(headers, req);
+    res.writeHead(200, headers);
+
+    var i = 0;
+    var interval = setInterval(function() {
+        if(i < n) {
+            for(var j = 0; j < 100; j+=1) {
+                res.write(entity);
+            }
+            i += 1;
+        } else {
+            clearInterval(interval);
+            res.end();
+        }
+    }, 1000);
 };
 
 var outputStatus = function(req, res) {
@@ -236,7 +237,7 @@ var listen = function (req, res) {
                 output(200, hello, false, 'text/plain; charset=UTF-8');
             }, 2000);
         } else if(req.url === req.proxyPath + '/bigslow') {
-            bigslowHello(res);
+            bigslowHello(req, res);
         } else if(beginsWith(req.url, req.proxyPath + '/contentEncoding/')) {
             contentEncoding(req.url.substr((req.proxyPath + '/contentEncoding/').length));
         } else if(req.url === req.proxyPath + '/text/utf8') {
