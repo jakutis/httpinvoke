@@ -1,4 +1,4 @@
-var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, timeout, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
 /*************** COMMON initialize parameters **************/
 if(!method) {
     // 1 argument
@@ -77,6 +77,11 @@ downloadProgressCb = safeCallback('downloading', pass, function(current, total) 
 });
 statusCb = safeCallback('gotStatus', function() {
     statusCb = null;
+    if(options.downloadTimeout) {
+        setTimeout(function() {
+            cb && cb(new Error('download timeout'));
+        }, options.downloadTimeout);
+    }
 }, function(statusCode, headers) {
     promise[progress]({
         type: 'headers',
@@ -86,6 +91,7 @@ statusCb = safeCallback('gotStatus', function() {
 });
 cb = safeCallback('finished', function() {
     cb = null;
+    promise();
 }, function(err, body, statusCode, headers) {
     if(err) {
         return promise[reject](err);
@@ -96,7 +102,16 @@ cb = safeCallback('finished', function() {
         headers: headers
     });
 });
-timeout = options.timeout || 0;
+if(options.uploadTimeout) {
+    setTimeout(function() {
+        statusCb && cb(new Error('upload timeout'));
+    }, options.uploadTimeout);
+}
+if(options.timeout) {
+    setTimeout(function() {
+        cb && cb(new Error('timeout'));
+    }, options.timeout);
+}
 var converters = options.converters || {};
 var inputConverter;
 inputLength = 0;

@@ -135,6 +135,8 @@ See the Examples section for all the options being used.
 All options are optional.
 
 * **timeout** is a number of milliseconds that specifies when **finished** has to be called with an Error if it was not yet called, default is `0`, which means timeout errors are disabled (network stack timeouts result in network errors).
+* **uploadTimeout** is a number of milliseconds that specifies when **gotStatus** has to be called with an Error if it was not yet called, default is `0`, which means timeout errors are disabled (network stack timeouts result in network errors).
+* **downloadTimeout** is a number of milliseconds that specifies when **finished** has to be called with an Error after **gotStatus** was called if it was not yet called, default is `0`, which means timeout errors are disabled (network stack timeouts result in network errors).
 * **uploading** is a function that is called when HTTP request upload progress event happens. It is called with these arguments:
   0. **current** is a number for the number of bytes currently sent;
   0. **total** is a number for the total number of bytes to be sent.
@@ -174,9 +176,10 @@ All options are optional.
 The **finished** callback will be called with an instance of Error only when strictly either one of these things happen:
 
 * **abort** function was called (error message "abort");
-* sending request timed out (error message "upload timeout");
 * number of received bytes does not equal the Content-Type value or native XMLHttpRequest called .onerror without a .status or .statusText (error message "network error") - this can happen due to various network errors, server response sending or request receiving errors, or simply an unsupported status code - e.g. Firefox 3.0 ends up here after a status 408 response;
-* receiving request timed out (error message "download timeout");
+* sending request timed out (error message "upload timeout");
+* receiving response timed out (error message "download timeout");
+* sending request and receiving response timed out (error message "timeout");
 * converter from **converters** option threw an error (the thrown error message is passed);
 * request did not even start - calling options validation failed or a feature that is not supported by the platform was used (various error messages are passed, e.g. "Unsupported method TRACE").
 

@@ -52,7 +52,7 @@ var copy = function(from, to) {
 };
 
 var httpinvoke = function(uri, method, options, cb) {
-    var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, timeout, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+    var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
     /*************** initialize helper variables **************/
     try {
         validateInputHeaders(inputHeaders);
@@ -67,11 +67,6 @@ var httpinvoke = function(uri, method, options, cb) {
         res.on('end', pass);
     };
     uri = url.parse(uri);
-    if(timeout > 0) {
-        setTimeout(function() {
-            cb(new Error('download timeout'));
-        }, timeout);
-    }
     var req = http.request({
         hostname: uri.hostname,
         port: Number(uri.port),

@@ -94,19 +94,5 @@ describe('"err" argument in "finished" callback', function() {
                 }
             });
         });
-        it('is set to Error("download timeout") when url is not responding in specified time' + postfix, function(done) {
-            httpinvoke(url + 'timeout', 'GET', {
-                timeout: 50,
-                finished: function(err) {
-                    if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
-                        return done(new Error('error was not received'));
-                    }
-                    if(err.message !== 'download timeout') {
-                        return done(new Error('expected message to be "download timeout", but got: ' + err.message));
-                    }
-                    done();
-                }
-            });
-        });
     });
 });

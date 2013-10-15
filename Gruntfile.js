@@ -14,7 +14,7 @@ var processCommon = function(globalVar) {
             from: 'var mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick;',
             to: globalVar + ';' + fs.readFileSync('./src/common/static.js').toString()
         }, {
-            from: 'var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, timeout, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;',
+            from: 'var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;',
             to: fs.readFileSync('./src/common/closures.js').toString()
         }]);
     };

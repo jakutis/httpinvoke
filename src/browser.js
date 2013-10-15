@@ -111,7 +111,7 @@
     };
     var createXHR;
     var httpinvoke = function(uri, method, options, cb) {
-        var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, timeout, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+        var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
         /*************** initialize helper variables **************/
         var xhr, i, j, currentLocation, crossDomain, output,
             getOutput = outputBinary ? getOutputBinary : getOutputText,
@@ -165,15 +165,6 @@
         }
         xhr = createXHR(crossDomain);
         xhr.open(method, uri, true);
-        if(timeout > 0) {
-            if('timeout' in xhr) {
-                xhr.timeout = timeout;
-            } else {
-                setTimeout(function() {
-                    cb(new Error('download timeout'));
-                }, timeout);
-            }
-        }
         if(options.corsCredentials && httpinvoke.corsCredentials && typeof xhr.withCredentials === 'boolean') {
             xhr.withCredentials = true;
         }
@@ -189,29 +180,22 @@
         }
 
         /*************** bind XHR event listeners **************/
-        var makeErrorCb = function(message) {
-            return function() {
-                received.error = true;
-                // must check, because some callbacks are called synchronously, thus throwing exceptions and breaking code
-                cb && cb(new Error(message));
-            };
-        };
         var onuploadprogress = function(progressEvent) {
             if(cb && progressEvent.lengthComputable) {
                 uploadProgress(progressEvent.loaded);
             }
         };
         if('upload' in xhr) {
-            xhr.upload.ontimeout = makeErrorCb('upload timeout');
-            xhr.upload.onerror = makeErrorCb('network error');
+            xhr.upload.onerror = function() {
+                received.error = true;
+                // must check, because some callbacks are called synchronously, thus throwing exceptions and breaking code
+                cb && cb(new Error('network error'));
+            };
             xhr.upload.onprogress = onuploadprogress;
         } else if('onuploadprogress' in xhr) {
             xhr.onuploadprogress = onuploadprogress;
         }
 
-        if('ontimeout' in xhr) {
-            xhr.ontimeout = makeErrorCb('download timeout');
-        }
         if('onerror' in xhr) {
             xhr.onerror = function() {
                 received.error = true;
@@ -653,14 +637,11 @@
 
         /*************** return "abort" function **************/
         promise = function() {
-            if(cb) {
-                cb(new Error('abort'));
-
-                try {
-                    xhr.abort();
-                } catch(err){
-                }
+            try {
+                xhr.abort();
+            } catch(err){
             }
+            cb && cb(new Error('abort'));
         };
         return mixInPromise(promise);
     };

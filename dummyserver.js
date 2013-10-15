@@ -241,10 +241,6 @@ var listen = function (req, res) {
             res.writeHead(200, headers);
             res.write(new Buffer('test'));
             res.socket.destroy();
-        } else if(req.url === req.proxyPath + '/timeout') {
-            setTimeout(function() {
-                output(200, hello, false, 'text/plain; charset=UTF-8');
-            }, 2000);
         } else if(req.url === req.proxyPath + '/bigslow') {
             bigslowHello(req, res);
         } else if(beginsWith(req.url, req.proxyPath + '/contentEncoding/')) {
@@ -261,7 +257,18 @@ var listen = function (req, res) {
             output(200, new Buffer(cfg.bytearrayTest()), false, 'application/octet-stream');
         } else if(req.url === req.proxyPath + '/bytearray/empty') {
             output(200, new Buffer([]), false, 'application/octet-stream');
-        } else if(req.url === req.proxyPath + '/tenseconds') {
+        } else if(req.url === req.proxyPath + '/tensecondsDownload') {
+            headers = {
+                'Content-Length': '10244',
+                'Content-Type': 'text/plain'
+            };
+            corsHeaders(headers, req);
+            res.writeHead(200, headers);
+            res.write(new Buffer(new Array(10240).join('.')));
+            setTimeout(function() {
+                res.end(new Buffer('test'));
+            }, 10000);
+        } else if(req.url === req.proxyPath + '/tensecondsUpload') {
             setTimeout(function() {
                 output(200, hello, false, 'text/plain; charset=UTF-8');
             }, 10000);
