@@ -145,13 +145,13 @@ var httpinvoke = function(uri, method, options, cb) {
                     return;
                 }
                 if(err) {
-                    return cb(new Error('download error'));
+                    return cb(new Error('network error'));
                 }
                 if(typeof outputLength === 'undefined') {
                     outputLength = output.length;
                 }
                 if(outputLength !== output.length) {
-                    return cb(new Error('download error'));
+                    return cb(new Error('network error'));
                 }
                 if(!outputBinary) {
                     output = output.toString('utf8');
@@ -174,10 +174,10 @@ var httpinvoke = function(uri, method, options, cb) {
         req.write(input);
     }
     req.on('error', function(e) {
-        if(e.syscall === 'write' && status === 204) {
+        if(e.syscall === 'write') {
             return;
         }
-        cb && cb(new Error(e.syscall === 'read' ? 'download error' : 'upload error'));
+        cb && cb(new Error('network error'));
     });
     req.end();
     promise = function() {

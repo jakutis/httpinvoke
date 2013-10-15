@@ -4,7 +4,7 @@ var httpinvoke = require('../httpinvoke-node');
 describe('"err" argument in "finished" callback', function() {
     this.timeout(10000);
     cfg.eachBase(function(postfix, url) {
-        it('is set to the same error that input converter threw', function(done) {
+        it('is set to the same error that input converter threw' + postfix, function(done) {
             var err = new Error();
             httpinvoke(url, 'POST', {
                 inputType: 'foobar',
@@ -24,7 +24,7 @@ describe('"err" argument in "finished" callback', function() {
                 done();
             });
         });
-        it('is set to the same error that output converter threw', function(done) {
+        it('is set to the same error that output converter threw' + postfix, function(done) {
             var err = new Error();
             httpinvoke(url, {
                 outputType: 'foobar',
@@ -43,7 +43,7 @@ describe('"err" argument in "finished" callback', function() {
                 done();
             });
         });
-        it('is set to Error("abort") when abort is called', function(done) {
+        it('is set to Error("abort") when abort is called' + postfix, function(done) {
             var abort = httpinvoke(url, function(err) {
                 if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
                     return done(new Error('error was not received'));
@@ -55,44 +55,46 @@ describe('"err" argument in "finished" callback', function() {
             });
             abort();
         });
-        it('is set to Error("upload error") when url is not reachable', function(done) {
-            httpinvoke('http://non-existant.url/foobar', 'GET', function(err) {
-                if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
-                    return done(new Error('error was not received'));
-                }
-                if(err.message !== 'upload error') {
-                    return done(new Error('expected message to be "upload error", but got: ' + err.message));
-                }
-                done();
+        if(httpinvoke.cors) {
+            it('is set to Error("network error") when url is not reachable' + postfix, function(done) {
+                httpinvoke('http://non-existant.url/foobar', 'GET', function(err) {
+                    if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
+                        return done(new Error('error was not received'));
+                    }
+                    if(err.message !== 'network error') {
+                        return done(new Error('expected message to be "network error", but got: ' + err.message));
+                    }
+                    done();
+                });
             });
-        });
-        it('is set to Error("upload error") when connection ends before sending headers', function(done) {
+        }
+        it('is set to Error("network error") when connection ends before sending headers' + postfix, function(done) {
             httpinvoke(url + 'immediateEnd', 'GET', {
                 finished: function(err) {
                     if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
                         return done(new Error('error was not received'));
                     }
-                    if(err.message !== 'upload error') {
-                        return done(new Error('expected message to be "upload error", but got: ' + err.message));
+                    if(err.message !== 'network error') {
+                        return done(new Error('expected message to be "network error", but got: ' + err.message));
                     }
                     done();
                 }
             });
         });
-        it('is set to Error("download error") when connection ends after sending headers', function(done) {
+        it('is set to Error("network error") when connection ends after sending headers' + postfix, function(done) {
             httpinvoke(url + 'endAfterHeaders', 'GET', {
                 finished: function(err) {
                     if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
                         return done(new Error('error was not received'));
                     }
-                    if(err.message !== 'download error') {
-                        return done(new Error('expected message to be "download error", but got: ' + err.message));
+                    if(err.message !== 'network error') {
+                        return done(new Error('expected message to be "network error", but got: ' + err.message));
                     }
                     done();
                 }
             });
         });
-        it('is set to Error("download timeout") when url is not responding in specified time', function(done) {
+        it('is set to Error("download timeout") when url is not responding in specified time' + postfix, function(done) {
             httpinvoke(url + 'timeout', 'GET', {
                 timeout: 50,
                 finished: function(err) {

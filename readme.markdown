@@ -174,9 +174,8 @@ All options are optional.
 The **finished** callback will be called with an instance of Error only when strictly either one of these things happen:
 
 * **abort** function was called (error message "abort");
-* sending request failed (error message "upload error");
 * sending request timed out (error message "upload timeout");
-* native XMLHttpRequest called .onerror without a .status or .statusText (error message "download error") - this can happen due to various network errors, server response sending errors, or simply an unsupported status code - e.g. Firefox 3.0 ends up here after a status 408 response;
+* number of received bytes does not equal the Content-Type value or native XMLHttpRequest called .onerror without a .status or .statusText (error message "network error") - this can happen due to various network errors, server response sending or request receiving errors, or simply an unsupported status code - e.g. Firefox 3.0 ends up here after a status 408 response;
 * receiving request timed out (error message "download timeout");
 * converter from **converters** option threw an error (the thrown error message is passed);
 * request did not even start - calling options validation failed or a feature that is not supported by the platform was used (various error messages are passed, e.g. "Unsupported method TRACE").

@@ -199,7 +199,7 @@
         };
         if('upload' in xhr) {
             xhr.upload.ontimeout = makeErrorCb('upload timeout');
-            xhr.upload.onerror = makeErrorCb('upload error');
+            xhr.upload.onerror = makeErrorCb('network error');
             xhr.upload.onprogress = onuploadprogress;
         } else if('onuploadprogress' in xhr) {
             xhr.onuploadprogress = onuploadprogress;
@@ -419,7 +419,7 @@
 
             if(!received.success && !status) {
                 // 'finished in onerror and status code is undefined'
-                return cb(new Error('download error'));
+                return cb(new Error('network error'));
             }
 
             var length;
@@ -432,7 +432,7 @@
                 initDownload(length);
             } else if(length !== outputLength) {
                 // 'output length ' + outputLength + ' is not equal to actually received entity length ' + length
-                cb(new Error('download error'));
+                cb(new Error('network error'));
             }
             if(!cb) {
                 return;
