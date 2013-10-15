@@ -3,7 +3,33 @@ var httpinvoke = require('../httpinvoke-node');
 
 describe('"downloading" option', function() {
     this.timeout(10000);
+    var urls = [];
     cfg.eachBase(function(postfix, url, crossDomain) {
+        urls.push({
+            postfix: postfix,
+            url: url,
+            crossDomain: crossDomain
+        });
+        urls.push({
+            postfix: postfix + ' (deflate)',
+            url: url + 'contentEncoding/deflate',
+            crossDomain: crossDomain
+        });
+        urls.push({
+            postfix: postfix + ' (gzip)',
+            url: url + 'contentEncoding/gzip',
+            crossDomain: crossDomain
+        });
+        urls.push({
+            postfix: postfix + ' (noentity)',
+            url: url + 'noentity',
+            crossDomain: crossDomain
+        });
+    });
+    urls.forEach(function(url) {
+        var postfix = url.postfix;
+        var crossDomain = url.crossDomain;
+        url = url.url;
         it('is called at least twice' + postfix, function(done) {
             var count = 0;
             var abort = httpinvoke(url, {
@@ -29,28 +55,17 @@ describe('"downloading" option', function() {
             });
         });
         it('has total be 0, if there is no entity body' + postfix, function(done) {
-            httpinvoke(url + 'noentity', 'POST', {
-                downloading: function(_, total) {
-                    if(done === null) {
-                        return;
-                    }
-                    if(typeof total === 'undefined') {
-                        return;
-                    }
-                    if(total !== 0) {
-                        done(new Error('total is not 0'));
-                        done = null;
-                    }
+            var total;
+            httpinvoke(url, 'POST', {
+                downloading: function(_, _total) {
+                    total = _total;
                 },
                 finished: function(err, output) {
-                    if(done === null) {
-                        return;
-                    }
                     if(err) {
                         return done(err);
                     }
-                    if(typeof output !== 'undefined') {
-                        return done(new Error('Output is not undefined'));
+                    if(typeof output === 'undefined' && total !== 0) {
+                        return done(new Error('total is not 0'));
                     }
                     done();
                 }
@@ -233,7 +248,7 @@ describe('"downloading" option', function() {
                     if(err) {
                         return done(err);
                     }
-                    if(output.length !== total) {
+                    if(typeof output !== 'undefined' && output.length !== total) {
                         done(new Error('The last "total"=' + total + ' was not equal to output length = ' + output.length));
                     } else {
                         done();
