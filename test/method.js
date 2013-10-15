@@ -10,7 +10,7 @@ describe('supported HTTP methods', function() {
             if(crossDomain && method === 'DELETE' && !httpinvoke.corsDELETE) {
                 return;
             }
-            if(crossDomain && method === 'PATCH' && !httpinvoke.corsPATCH) {
+            if(!httpinvoke.PATCH || (crossDomain && method === 'PATCH' && !httpinvoke.corsPATCH)) {
                 return;
             }
             if(crossDomain && method === 'PUT' && !httpinvoke.corsPUT) {

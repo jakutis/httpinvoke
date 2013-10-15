@@ -157,6 +157,9 @@
                 return failWithoutRequest(cb, new Error(j[i] + ' method in cross-origin requests is not supported in this browser'));
             }
         }
+        if(method === 'PATCH' && !httpinvoke.PATCH) {
+            return failWithoutRequest(cb, new Error('PATCH method is not supported in this browser'));
+        }
         if(!createXHR) {
             return failWithoutRequest(cb, new Error('unable to construct XMLHttpRequest object'));
         }
@@ -733,6 +736,13 @@
             i -= 1;
         }
         createXHR = _undefined;
+    })();
+    httpinvoke.PATCH = !!(function() {
+        try {
+            createXHR().open('PATCH', location.href, true);
+            return 1;
+        } catch(_) {
+        }
     })();
 
     return httpinvoke;

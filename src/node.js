@@ -196,5 +196,6 @@ httpinvoke.corsPUT = true;
 httpinvoke.corsStatus = true;
 httpinvoke.corsResponseTextOnly = false;
 httpinvoke.requestTextOnly = false;
+httpinvoke.PATCH = true;
 
 module.exports = httpinvoke;

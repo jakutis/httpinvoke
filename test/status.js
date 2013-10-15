@@ -13,6 +13,9 @@ describe('"status" argument', function() {
                 return;
             }
             Object.keys(cfg.status[code]).forEach(function(method) {
+                if(method === 'PATCH' && !httpinvoke.PATCH) {
+                    return;
+                }
                 cfg.status[code][method].forEach(function(params, i) {
                     var _postfix = postfix;
                     if(typeof params.name !== 'undefined') {
