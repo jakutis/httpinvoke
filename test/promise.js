@@ -3,16 +3,16 @@ var httpinvoke = require('../httpinvoke-node');
 
 describe('promise', function() {
     this.timeout(10000);
-    cfg.eachBase(function(postfix, url) {
+    cfg.eachBase(function(postfix, url, crossDomain) {
         it('supports Promises/A' + postfix, function(done) {
             var promise = httpinvoke(url).then(function(response) {
                 if(!done) {
                     return;
                 }
-                if(isValidResponse(response)) {
+                if(isValidResponse(response, crossDomain)) {
                     done();
                 } else {
-                    done(new Error('invalid response'));
+                    done(new Error('invalid response ' + JSON.stringify(response)));
                 }
             }, function(error) {
                 if(!done) {
@@ -23,8 +23,8 @@ describe('promise', function() {
                 if(!done) {
                     return;
                 }
-                if(!isValidProgress(progress)) {
-                    done(new Error('invalid progress'));
+                if(!isValidProgress(progress, crossDomain)) {
+                    done(new Error('invalid progress ' + JSON.stringify(progress)));
                     done = null;
                 }
             });
@@ -74,8 +74,8 @@ describe('promise', function() {
         });
         it('supports Promises/A+ requirement, that If onRejected is not a function, it must be ignored' + postfix, function(done) {
             httpinvoke(url).then(function(response) {
-                if(!isValidResponse(response)) {
-                    done(new Error('invalid response'));
+                if(!isValidResponse(response, crossDomain)) {
+                    done(new Error('invalid response ' + JSON.stringify(response)));
                 }
                 done();
             }, null);
@@ -148,11 +148,11 @@ function isValidReason(reason) {
     return typeof reason === 'object' && reason !== null && reason instanceof Error;
 }
 
-function isValidResponse(response) {
-    return typeof response === 'object' && typeof response.body === 'string' && typeof response.statusCode === 'number' && typeof response.headers === 'object';
+function isValidResponse(response, crossDomain) {
+    return typeof response === 'object' && typeof response.body === 'string' && (typeof response.statusCode === 'number' || !(!crossDomain || httpinvoke.corsStatus)) && typeof response.headers === 'object';
 }
 
-function isValidProgress(progress) {
+function isValidProgress(progress, crossDomain) {
     if(typeof progress !== 'object' || typeof progress.type !== 'string') {
         return false;
     }
@@ -176,7 +176,7 @@ function isValidProgress(progress) {
             }
         }
     } else if(progress.type === 'headers') {
-        if(typeof progress.statusCode !== 'number') {
+        if((!crossDomain || httpinvoke.corsStatus) && typeof progress.statusCode !== 'number') {
             return false;
         }
         if(typeof progress.headers !== 'object') {
