@@ -32,25 +32,18 @@ describe('"downloading" option', function() {
         url = url.url;
         it('is called at least twice' + postfix, function(done) {
             var count = 0;
-            var abort = httpinvoke(url, {
+            httpinvoke(url, {
                 downloading: function() {
                     count += 1;
-                    if(count === 2) {
-                        done();
-                        done = null;
-                    }
                 },
                 finished: function(err) {
-                    if(done === null) {
-                        return;
-                    }
                     if(err) {
                         return done(err);
                     }
                     if(count < 2) {
                         done(new Error('It was called ' + count + ' times'));
                     }
-                    abort();
+                    done();
                 }
             });
         });
