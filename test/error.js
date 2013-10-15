@@ -3,7 +3,7 @@ var httpinvoke = require('../httpinvoke-node');
 
 describe('"err" argument in "finished" callback', function() {
     this.timeout(10000);
-    cfg.eachBase(function(postfix, url) {
+    cfg.eachBase(function(postfix, url, crossDomain) {
         it('is set to the same error that input converter threw' + postfix, function(done) {
             var err = new Error();
             httpinvoke(url, 'POST', {
