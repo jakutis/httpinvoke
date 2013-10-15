@@ -222,7 +222,9 @@ var listen = function (req, res) {
     } else if(req.method === 'DELETE') {
         output(200, hello, false, 'text/plain; charset=UTF-8');
     } else if(req.method === 'GET') {
-        if(req.url === req.proxyPath + '/') {
+        if(req.url === req.proxyPath + '/noentity') {
+            output(204, null, false);
+        } else if(req.url === req.proxyPath + '/') {
             output(200, hello, false, 'text/plain; charset=UTF-8');
         } else if(req.url === req.proxyPath + '/immediateEnd') {
             res.socket.destroy();
