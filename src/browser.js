@@ -371,6 +371,12 @@
                     if(status === 1223) {
                         status = 204;
                     }
+                    // IE (at least version 6) returns various detailed network
+                    // connection error codes (concretely - WinInet Error Codes).
+                    // For references of their meaning, see http://support.microsoft.com/kb/193625
+                    if(status >= 12001 && status <= 12156) {
+                        status = _undefined;
+                    }
                 }
             }
 
