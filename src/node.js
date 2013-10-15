@@ -2,7 +2,7 @@ var http = require('http');
 var url = require('url');
 var zlib = require('zlib');
 
-var pass, isArray, isArrayBufferView, _undefined, nextTick;
+var mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick;
 
 var decompress = function(output, encoding, cb) {
     if(encoding === 'gzip') {
@@ -52,7 +52,7 @@ var copy = function(from, to) {
 };
 
 var httpinvoke = function(uri, method, options, cb) {
-    var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+    var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, timeout, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
     /*************** initialize helper variables **************/
     try {
         validateInputHeaders(inputHeaders);
@@ -104,19 +104,18 @@ var httpinvoke = function(uri, method, options, cb) {
             return ignorantlyConsume(res);
         }
 
-        updateDownload(0);
+        if('content-length' in outputHeaders) {
+            outputLength = Number(outputHeaders['content-length']);
+        }
+
+        downloadProgressCb(0, outputLength);
         if(!cb) {
             return ignorantlyConsume(res);
         }
-        if('content-length' in outputHeaders && contentEncoding === 'identity') {
-            initDownload(Number(outputHeaders['content-length']));
-            if(!cb) {
-                return ignorantlyConsume(res);
-            }
-        }
         if(method === 'HEAD') {
             ignorantlyConsume(res);
-            return noData();
+            downloadProgressCb(0, 0);
+            return cb && cb(null, _undefined, status, outputHeaders);
         }
 
         var output = [], downloaded = 0;
@@ -126,17 +125,27 @@ var httpinvoke = function(uri, method, options, cb) {
             }
             downloaded += chunk.length;
             output.push(chunk);
-            updateDownload(downloaded);
+            downloadProgressCb(downloaded, outputLength);
         });
         res.on('end', function() {
             if(!cb) {
                 return;
             }
-            updateDownload(downloaded);
+
+            if(typeof outputLength === 'undefined') {
+                outputLength = downloaded;
+            }
+
+            if(downloaded !== outputLength) {
+                return cb(new Error('network error'));
+            }
+
+            downloadProgressCb(outputLength, outputLength);
             if(!cb) {
                 return;
             }
-            if(downloaded === 0 && typeof outputHeaders['content-type'] === 'undefined') {
+
+            if(outputLength === 0 && typeof outputHeaders['content-type'] === 'undefined') {
                 return cb(null, _undefined, status, outputHeaders);
             }
 
@@ -145,12 +154,6 @@ var httpinvoke = function(uri, method, options, cb) {
                     return;
                 }
                 if(err) {
-                    return cb(new Error('network error'));
-                }
-                if(typeof outputLength === 'undefined') {
-                    outputLength = output.length;
-                }
-                if(outputLength !== output.length) {
                     return cb(new Error('network error'));
                 }
                 if(!outputBinary) {
@@ -174,9 +177,6 @@ var httpinvoke = function(uri, method, options, cb) {
         req.write(input);
     }
     req.on('error', function(e) {
-        if(e.syscall === 'write') {
-            return;
-        }
         cb && cb(new Error('network error'));
     });
     req.end();

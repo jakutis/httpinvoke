@@ -8,7 +8,7 @@
   }
 }(this, function () {
     var global;
-    var pass, isArray, isArrayBufferView, _undefined, nextTick;
+    var mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick;
     // this could be a simple map, but with this "compression" we save about 100 bytes, if minified (50 bytes, if also gzipped)
     var statusTextToCode = (function() {
         for(var group = arguments.length, map = {};group--;) {
@@ -111,7 +111,7 @@
     };
     var createXHR;
     var httpinvoke = function(uri, method, options, cb) {
-        var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+        var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, timeout, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
         /*************** initialize helper variables **************/
         var xhr, i, j, currentLocation, crossDomain, output,
             getOutput = outputBinary ? getOutputBinary : getOutputText,
@@ -191,6 +191,7 @@
         /*************** bind XHR event listeners **************/
         var makeErrorCb = function(message) {
             return function() {
+                received.error = true;
                 // must check, because some callbacks are called synchronously, thus throwing exceptions and breaking code
                 cb && cb(new Error(message));
             };
@@ -213,53 +214,35 @@
         }
         if('onerror' in xhr) {
             xhr.onerror = function() {
+                received.error = true;
                 //inspect('onerror', arguments[0]);
                 //dbg('onerror');
                 // For 4XX and 5XX response codes Firefox 3.6 cross-origin request ends up here, but has correct statusText, but no status and headers
                 onLoad();
             };
         }
+        var ondownloadprogress = function(progressEvent) {
+            onHeadersReceived(false);
+            // There is a bug in Chrome 10 on 206 response with Content-Range=0-4/12 - total must be 5
+            // 'total', 12, 'totalSize', 12, 'loaded', 5, 'position', 5, 'lengthComputable', true, 'status', 206
+            // console.log('total', progressEvent.total, 'totalSize', progressEvent.totalSize, 'loaded', progressEvent.loaded, 'position', progressEvent.position, 'lengthComputable', progressEvent.lengthComputable, 'status', status);
+            // httpinvoke does not work around this bug, because Chrome 10 is practically not used at all, as Chrome agressively auto-updates itself to latest version
+            var current = progressEvent.loaded || progressEvent.position || 0;
+            if(progressEvent.lengthComputable) {
+                outputLength = progressEvent.total || progressEvent.totalSize || 0;
+            }
+            // Opera 12 progress events has a bug - .loaded can be higher than .total
+            // see http://dev.opera.com/articles/view/xhr2/#comment-96081222
+            cb && current <= outputLength && !statusCb && downloadProgressCb(current, outputLength);
+        };
         if('onloadstart' in xhr) {
-            xhr.onloadstart = function() {
-                //dbg('onloadstart');
-                onHeadersReceived(false);
-            };
+            xhr.onloadstart = ondownloadprogress;
         }
         if('onloadend' in xhr) {
-            xhr.onloadend = function() {
-                //dbg('onloadend');
-                onHeadersReceived(false);
-            };
+            xhr.onloadend = ondownloadprogress;
         }
         if('onprogress' in xhr) {
-            xhr.onprogress = function(progressEvent) {
-                //dbg('onprogress');
-                if(!cb) {
-                    return;
-                }
-                onHeadersReceived(false);
-                if(statusCb) {
-                    return;
-                }
-                // There is a bug in Chrome 10 on 206 response with Content-Range=0-4/12 - total must be 5
-                // 'total', 12, 'totalSize', 12, 'loaded', 5, 'position', 5, 'lengthComputable', true, 'status', 206
-                // console.log('total', progressEvent.total, 'totalSize', progressEvent.totalSize, 'loaded', progressEvent.loaded, 'position', progressEvent.position, 'lengthComputable', progressEvent.lengthComputable, 'status', status);
-                // httpinvoke does not work around this bug, because Chrome 10 is practically not used at all, as Chrome agressively auto-updates itself to latest version
-                var total = progressEvent.total || progressEvent.totalSize || 0,
-                    current = progressEvent.loaded || progressEvent.position || 0;
-                if(progressEvent.lengthComputable) {
-                    initDownload(total);
-                }
-                if(!cb) {
-                    return;
-                }
-                if(current > total) {
-                    // Opera 12 progress events has a bug - .loaded can be higher than .total
-                    // see http://dev.opera.com/articles/view/xhr2/#comment-96081222
-                    return;
-                }
-                updateDownload(current);
-            };
+            xhr.onprogress = ondownloadprogress;
         }
         /*
         var inspect = function(name, obj) {
@@ -288,17 +271,9 @@
             }
         };
         */
-        var received = {
-            success: false,
-            status: false,
-            entity: false,
-            headers: false
-        };
-        var onHeadersReceived = function(lastTry) {
-            if(!cb) {
-                return;
-            }
-
+        var received = {};
+        var mustBeIdentity;
+        var tryHeadersAndStatus = function(lastTry) {
             try {
                 if(xhr.status) {
                     received.status = true;
@@ -329,7 +304,7 @@
             }
 
             if(received.status || received.entity || received.success || lastTry) {
-                if(typeof xhr.contentType === 'string') {
+                if(typeof xhr.contentType === 'string' && xhr.contentType) {
                     if(xhr.contentType !== 'text/html' || xhr.responseText !== '') {
                         // When no entity body and/or no Content-Type header is sent,
                         // XDomainRequest on IE-8 defaults to text/html xhr.contentType.
@@ -354,6 +329,11 @@
                         received.headers = true;
                     }
                 } catch(err) {
+                }
+
+                mustBeIdentity = outputHeaders['content-encoding'] === 'identity' || (!crossDomain && !outputHeaders['content-encoding']);
+                if(mustBeIdentity && 'content-length' in outputHeaders) {
+                    outputLength = Number(outputHeaders['content-length']);
                 }
 
                 if(!status && (!crossDomain || httpinvoke.corsStatus)) {
@@ -382,8 +362,17 @@
                     }
                 }
             }
+        };
+        var onHeadersReceived = function(lastTry) {
+            if(!cb) {
+                return;
+            }
 
-            if(!lastTry && !(received.status && received.headers)) {
+            if(!lastTry) {
+                tryHeadersAndStatus(false);
+            }
+
+            if(!statusCb || (!lastTry && !(received.status && received.headers))) {
                 return;
             }
 
@@ -397,17 +386,13 @@
                 return;
             }
 
-            if(method === 'HEAD') {
-                return noData();
-            }
-
-            updateDownload(0);
+            downloadProgressCb(0, outputLength);
             if(!cb) {
                 return;
             }
-
-            if('content-length' in outputHeaders && (!crossDomain || 'content-encoding' in outputHeaders) && (!outputHeaders['content-encoding'] || outputHeaders['content-encoding'] === 'identity')) {
-                initDownload(Number(outputHeaders['content-length']));
+            if(method === 'HEAD') {
+                downloadProgressCb(0, 0);
+                return cb && cb(null, _undefined, status, outputHeaders);
             }
         };
         var onLoad = function() {
@@ -415,53 +400,71 @@
                 return;
             }
 
-            onHeadersReceived(true);
-            if(!cb) {
-                return;
-            }
-
-            if(!received.success && !status) {
-                // 'finished in onerror and status code is undefined'
-                return cb(new Error('network error'));
-            }
+            tryHeadersAndStatus(true);
 
             var length;
             try {
                 length = getOutputLength(xhr);
             } catch(_) {
-                return noData();
+                length = 0;
             }
-            if(!outputLength) {
-                initDownload(length);
-            } else if(length !== outputLength) {
-                // 'output length ' + outputLength + ' is not equal to actually received entity length ' + length
-                cb(new Error('network error'));
+            if(typeof outputLength !== 'undefined') {
+                if(mustBeIdentity) {
+                    if(length !== outputLength && method !== 'HEAD') {
+                        return cb(new Error('network error'));
+                    }
+                } else {
+                    if(received.error) {
+                        return cb(new Error('network error'));
+                    }
+                }
+            } else {
+                outputLength = length;
             }
+
+            var noentity = !received.entity && outputLength === 0 && typeof outputHeaders['content-type'] === 'undefined';
+
+            if((noentity && status === 200) || (!received.success && !status && (received.error || ('onreadystatechange' in xhr && !received.readyStateLOADING)))) {
+                /*
+                 * Note: on Opera 10.50, TODO there is absolutely no difference
+                 * between a non 2XX response and an immediate socket closing on
+                 * server side - both give no headers, no status, no entity, and
+                 * end up in 'onload' event. Thus some network errors will end
+                 * up calling "finished" without Error.
+                 */
+                return cb(new Error('network error'));
+            }
+
+            onHeadersReceived(true);
             if(!cb) {
                 return;
             }
 
-            updateDownload(outputLength);
+            if(noentity) {
+                downloadProgressCb(0, 0);
+                return cb(null, _undefined, status, outputHeaders);
+            }
+
+            downloadProgressCb(outputLength, outputLength);
             if(!cb) {
                 return;
             }
 
             try {
-                cb(null, !received.entity && outputLength === 0 && typeof outputHeaders['content-type'] === 'undefined' ? _undefined : outputConverter(getOutput(xhr)), status, outputHeaders);
+                cb(null, outputConverter(getOutput(xhr)), status, outputHeaders);
             } catch(err) {
                 cb(err);
             }
         };
-        var onloadBound = false;
-        if(typeof xhr.onload !== 'undefined') {
-            onloadBound = true;
-            xhr.onload = function() {
+        var onloadBound = 'onload' in xhr;
+        if(onloadBound) {
+            xhr.onload = function(progressEvent) {
                 received.success = true;
                 //dbg('onload');
                 onLoad();
             };
         }
-        if(typeof xhr.onreadystatechange !== 'undefined') {
+        if('onreadystatechange' in xhr) {
             xhr.onreadystatechange = function() {
                 //dbg('onreadystatechange ' + xhr.readyState);
                 if(xhr.readyState === 2) {
@@ -469,15 +472,8 @@
                     onHeadersReceived(false);
                 } else if(xhr.readyState === 3) {
                     // LOADING
-                    received.success = true;
+                    received.readyStateLOADING = true;
                     onHeadersReceived(false);
-                    if(statusCb) {
-                        return;
-                    }
-                    try {
-                        updateDownload(getOutputLength(xhr));
-                    } catch(err) {
-                    }
                 // Instead of 'typeof xhr.onload === "undefined"', we must use
                 // onloadBound variable, because otherwise Firefox 3.5 synchronously
                 // throws a "Permission denied for <> to create wrapper for

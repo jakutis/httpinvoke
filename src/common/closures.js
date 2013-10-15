@@ -1,4 +1,4 @@
-var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, noData, timeout, inputHeaders, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, timeout, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
 /*************** COMMON initialize parameters **************/
 if(!method) {
     // 1 argument
@@ -103,7 +103,7 @@ inputLength = 0;
 inputHeaders = options.headers || {};
 outputHeaders = {};
 exposedHeaders = options.corsExposedHeaders || [];
-exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma', 'Content-Range']);
+exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma', 'Content-Range', 'Content-Encoding']);
 /*************** COMMON convert and validate parameters **************/
 if(method.indexOf(',') >= 0 || supportedMethods.indexOf(',' + method + ',') < 0) {
     return failWithoutRequest(cb, new Error('Unsupported method ' + method));
@@ -162,20 +162,3 @@ if('input' in options) {
         return failWithoutRequest(cb, new Error('"input" is undefined, but Content-Type request header is defined'));
     }
 }
-
-/*************** COMMON initialize helper variables **************/
-var downloaded;
-initDownload = function(total) {
-    if(typeof outputLength === 'undefined') {
-        downloadProgressCb(downloaded, outputLength = total);
-    }
-};
-updateDownload = function(value) {
-    if(value !== downloaded) {
-        downloadProgressCb(downloaded = value, outputLength);
-    }
-};
-noData = function() {
-    initDownload(0);
-    cb && cb(null, _undefined, status, outputHeaders);
-};
