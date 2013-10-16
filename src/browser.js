@@ -211,13 +211,17 @@
             // 'total', 12, 'totalSize', 12, 'loaded', 5, 'position', 5, 'lengthComputable', true, 'status', 206
             // console.log('total', progressEvent.total, 'totalSize', progressEvent.totalSize, 'loaded', progressEvent.loaded, 'position', progressEvent.position, 'lengthComputable', progressEvent.lengthComputable, 'status', status);
             // httpinvoke does not work around this bug, because Chrome 10 is practically not used at all, as Chrome agressively auto-updates itself to latest version
-            var current = progressEvent.loaded || progressEvent.position || 0;
-            if(progressEvent.lengthComputable) {
-                outputLength = progressEvent.total || progressEvent.totalSize || 0;
+            try {
+                var current = progressEvent.loaded || progressEvent.position || 0;
+                if(progressEvent.lengthComputable) {
+                    outputLength = progressEvent.total || progressEvent.totalSize || 0;
+                }
+
+                // Opera 12 progress events has a bug - .loaded can be higher than .total
+                // see http://dev.opera.com/articles/view/xhr2/#comment-96081222
+                cb && current <= outputLength && !statusCb && downloadProgressCb(current, outputLength);
+            } catch(_) {
             }
-            // Opera 12 progress events has a bug - .loaded can be higher than .total
-            // see http://dev.opera.com/articles/view/xhr2/#comment-96081222
-            cb && current <= outputLength && !statusCb && downloadProgressCb(current, outputLength);
         };
         if('onloadstart' in xhr) {
             xhr.onloadstart = ondownloadprogress;
