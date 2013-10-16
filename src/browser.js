@@ -637,11 +637,11 @@
 
         /*************** return "abort" function **************/
         promise = function() {
+            cb && cb(new Error('abort'));
             try {
                 xhr.abort();
             } catch(err){
             }
-            cb && cb(new Error('abort'));
         };
         return mixInPromise(promise);
     };
