@@ -31,7 +31,7 @@ describe('timeout functionality', function() {
             });
         });
         describe('"downloadTimeout" option', function() {
-            it('forces finish with error when gotStatus is not invoked in specified duration' + postfix, function(done) {
+            it('forces finish with error when finished is not invoked in specified duration after gotStatus' + postfix, function(done) {
                 httpinvoke(url + 'tensecondsDownload', {
                     downloadTimeout: 200,
                     finished: function(err) {
