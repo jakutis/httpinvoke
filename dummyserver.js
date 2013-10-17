@@ -237,6 +237,7 @@ var listen = function (req, res) {
                 'Content-Length': '1024',
                 'Content-Type': 'text/plain'
             };
+            entityHeaders(headers);
             corsHeaders(headers, req);
             res.writeHead(200, headers);
             res.write(new Buffer('test'));
@@ -262,6 +263,7 @@ var listen = function (req, res) {
                 'Content-Length': '10244',
                 'Content-Type': 'text/plain'
             };
+            entityHeaders(headers);
             corsHeaders(headers, req);
             res.writeHead(200, headers);
             res.write(new Buffer(new Array(10240).join('.')));
