@@ -189,7 +189,7 @@ if(typeof options.timeout !== 'undefined') {
     if(typeof options.timeout === 'number' && isValidTimeout(options.timeout)) {
         timeout = options.timeout;
     } else if(isArray(options.timeout) && options.timeout.length === 2 && isValidTimeout(options.timeout[0]) && isValidTimeout(options.timeout[1])) {
-        if(httpinvoke.corsFineGrainedTimeouts) {
+        if(!crossDomain || httpinvoke.corsFineGrainedTimeouts) {
             uploadTimeout = options.timeout[0];
             downloadTimeout = options.timeout[1];
         } else {
