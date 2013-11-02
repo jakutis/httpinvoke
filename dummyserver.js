@@ -258,7 +258,7 @@ var listen = function (req, res) {
             output(200, new Buffer(cfg.bytearrayTest()), false, 'application/octet-stream');
         } else if(req.url === req.proxyPath + '/bytearray/empty') {
             output(200, new Buffer([]), false, 'application/octet-stream');
-        } else if(req.url === req.proxyPath + '/tensecondsDownload') {
+        } else if(req.url === req.proxyPath + '/onesecondDownload') {
             headers = {
                 'Content-Length': '10244',
                 'Content-Type': 'text/plain'
@@ -269,11 +269,11 @@ var listen = function (req, res) {
             res.write(new Buffer(new Array(10240).join('.')));
             setTimeout(function() {
                 res.end(new Buffer('test'));
-            }, 10000);
-        } else if(req.url === req.proxyPath + '/tensecondsUpload') {
+            }, 1000);
+        } else if(req.url === req.proxyPath + '/onesecondUpload') {
             setTimeout(function() {
                 output(200, hello, false, 'text/plain; charset=UTF-8');
-            }, 10000);
+            }, 1000);
         } else {
             fs.realpath(__dirname + req.url.substr(req.proxyPath.length), function(err, path) {
                 if(err || path.substr(0, __dirname.length) !== __dirname) {

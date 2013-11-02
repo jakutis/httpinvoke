@@ -1,46 +1,139 @@
 var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
-describe('timeout functionality', function() {
+describe('"timeout" option', function() {
     this.timeout(10000);
     cfg.eachBase(function(postfix, url) {
-        describe('"timeout" option', function() {
-            it('forces finish with error when normal finish would take longer than specified timeout' + postfix, function(done) {
-                httpinvoke(url + 'tensecondsDownload', {
-                    timeout: 200,
-                    finished: function(err) {
-                        if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
-                            return done(new Error('An error was not received'));
-                        }
-                        done();
-                    }
-                });
+        it('lets finish without an error when the whole request would take shorter than specified timeout' + postfix, function(done) {
+            httpinvoke(url, {
+                timeout: 200,
+                finished: done
             });
         });
-        describe('"uploadTimeout" option', function() {
-            it('forces finish with error when gotStatus is not invoked in specified duration' + postfix, function(done) {
-                httpinvoke(url + 'tensecondsUpload', {
-                    uploadTimeout: 200,
-                    finished: function(err) {
-                        if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
-                            return done(new Error('An error was not received'));
-                        }
-                        done();
+        it('forces finish with error when the whole request would take longer than specified timeout' + postfix, function(done) {
+            httpinvoke(url + 'onesecondDownload', {
+                timeout: 200,
+                finished: function(err) {
+                    if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
+                        return done(new Error('An error was not received'));
                     }
-                });
+                    done();
+                }
             });
         });
-        describe('"downloadTimeout" option', function() {
-            it('forces finish with error when finished is not invoked in specified duration after gotStatus' + postfix, function(done) {
-                httpinvoke(url + 'tensecondsDownload', {
-                    downloadTimeout: 200,
-                    finished: function(err) {
-                        if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
-                            return done(new Error('An error was not received'));
-                        }
-                        done();
+        it('forces finish with error when value is less than or equal to 0' + postfix, function(done) {
+            httpinvoke(url, {
+                timeout: 0,
+                finished: function(err) {
+                    if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
+                        return done(new Error('An error was not received'));
                     }
-                });
+                    done();
+                }
+            });
+        });
+        it('forces finish with error when value is greater than or equal to 1073741824' + postfix, function(done) {
+            httpinvoke(url, {
+                timeout: 1073741824,
+                finished: function(err) {
+                    if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
+                        return done(new Error('An error was not received'));
+                    }
+                    done();
+                }
+            });
+        });
+
+        it('lets finish without an error when upload would take shorter than specified timeout' + postfix, function(done) {
+            httpinvoke(url, {
+                timeout: [200, 1073741823],
+                finished: done
+            });
+        });
+        it('lets finish without an error when upload would take shorter than specified upload timeout, but download would take longer than upload timeout' + postfix, function(done) {
+            httpinvoke(url + 'onesecondDownload', {
+                timeout: [200, 1073741823],
+                finished: done
+            });
+        });
+        it('forces finish with "upload timeout" error when upload would take longer than specified upload timeout' + postfix, function(done) {
+            httpinvoke(url + 'onesecondUpload', {
+                timeout: [200, 1073741823],
+                finished: function(err) {
+                    console.log(err);
+                    if(typeof err !== 'object' || err === null || !(err instanceof Error) || err.message !== 'upload timeout') {
+                        return done(new Error('A "upload timeout" error was not received'));
+                    }
+                    done();
+                }
+            });
+        });
+        it('forces finish with error when upload value is less than or equal to 0' + postfix, function(done) {
+            httpinvoke(url + 'onesecondUpload', {
+                timeout: [0, 1073741823],
+                finished: function(err) {
+                    if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
+                        return done(new Error('An error was not received'));
+                    }
+                    done();
+                }
+            });
+        });
+        it('forces finish with error when upload value is greater than or equal to 1073741824' + postfix, function(done) {
+            httpinvoke(url + 'onesecondUpload', {
+                timeout: [1073741824, 1073741823],
+                finished: function(err) {
+                    if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
+                        return done(new Error('An error was not received'));
+                    }
+                    done();
+                }
+            });
+        });
+
+        it('lets finish without an error when download would take shorter than specified timeout' + postfix, function(done) {
+            httpinvoke(url, {
+                timeout: [1073741823, 200],
+                finished: done
+            });
+        });
+        it('lets finish without an error when download would take shorter than specified download timeout, but upload would take longer than download timeout' + postfix, function(done) {
+            httpinvoke(url + 'onesecondUpload', {
+                timeout: [1073741823, 200],
+                finished: done
+            });
+        });
+        it('forces finish with "download timeout" error when download would take longer than specified download timeout' + postfix, function(done) {
+            httpinvoke(url + 'onesecondDownload', {
+                timeout: [1073741823, 200],
+                finished: function(err) {
+                    if(typeof err !== 'object' || err === null || !(err instanceof Error) || err.message !== 'download timeout') {
+                        return done(new Error('A "download timeout" error was not received'));
+                    }
+                    done();
+                }
+            });
+        });
+        it('forces finish with error when download value is less than or equal to 0' + postfix, function(done) {
+            httpinvoke(url + 'onesecondDownload', {
+                timeout: [1073741823, 0],
+                finished: function(err) {
+                    if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
+                        return done(new Error('An error was not received'));
+                    }
+                    done();
+                }
+            });
+        });
+        it('forces finish with error when download value is greater than or equal to 1073741824' + postfix, function(done) {
+            httpinvoke(url + 'onesecondDownload', {
+                timeout: [1073741823, 1073741824],
+                finished: function(err) {
+                    if(typeof err !== 'object' || err === null || !(err instanceof Error)) {
+                        return done(new Error('An error was not received'));
+                    }
+                    done();
+                }
             });
         });
     });

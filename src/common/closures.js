@@ -1,5 +1,6 @@
 var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
 /*************** COMMON initialize parameters **************/
+var downloadTimeout, uploadTimeout, timeout;
 if(!method) {
     // 1 argument
     // method, options, cb skipped
@@ -77,10 +78,13 @@ downloadProgressCb = safeCallback('downloading', pass, function(current, total) 
 });
 statusCb = safeCallback('gotStatus', function() {
     statusCb = null;
-    if(options.downloadTimeout) {
+    if(downloadTimeout) {
         setTimeout(function() {
-            cb && cb(new Error('download timeout'));
-        }, options.downloadTimeout);
+            if(cb) {
+                cb(new Error('download timeout'));
+                promise();
+            }
+        }, downloadTimeout);
     }
 }, function(statusCode, headers) {
     promise[progress]({
@@ -102,16 +106,17 @@ cb = safeCallback('finished', function() {
         headers: headers
     });
 });
-if(options.uploadTimeout) {
-    setTimeout(function() {
-        statusCb && cb(new Error('upload timeout'));
-    }, options.uploadTimeout);
-}
-if(options.timeout) {
-    setTimeout(function() {
-        cb && cb(new Error('timeout'));
-    }, options.timeout);
-}
+var fixPositiveOpt = function(opt) {
+    if(typeof options[opt] === 'undefined') {
+        options[opt] = 0;
+    } else if(typeof options[opt] === 'number') {
+        if(options[opt] < 0) {
+            return failWithoutRequest(cb, new Error('Option "' + opt + '" is less than zero'));
+        }
+    } else {
+        return failWithoutRequest(cb, new Error('Option "' + opt + '" is not a number'));
+    }
+};
 var converters = options.converters || {};
 var inputConverter;
 inputLength = 0;
@@ -176,4 +181,37 @@ if('input' in options) {
     if(inputHeaders['Content-Type']) {
         return failWithoutRequest(cb, new Error('"input" is undefined, but Content-Type request header is defined'));
     }
+}
+var isValidTimeout = function(timeout) {
+    return timeout > 0 && timeout < 1073741824;
+};
+if(typeof options.timeout !== 'undefined') {
+    if(typeof options.timeout === 'number' && isValidTimeout(options.timeout)) {
+        timeout = options.timeout;
+    } else if(isArray(options.timeout) && options.timeout.length === 2 && isValidTimeout(options.timeout[0]) && isValidTimeout(options.timeout[1])) {
+        if(httpinvoke.corsFineGrainedTimeouts) {
+            uploadTimeout = options.timeout[0];
+            downloadTimeout = options.timeout[1];
+        } else {
+            timeout = options.timeout[0] + options.timeout[1];
+        }
+    } else {
+        return failWithoutRequest(cb, new Error('"timeout" value is not valid'));
+    }
+}
+if(uploadTimeout) {
+    setTimeout(function() {
+        if(statusCb) {
+            cb(new Error('upload timeout'));
+            promise();
+        }
+    }, uploadTimeout);
+}
+if(timeout) {
+    setTimeout(function() {
+        if(cb) {
+            cb(new Error('timeout'));
+            promise();
+        }
+    }, timeout);
 }

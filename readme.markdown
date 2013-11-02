@@ -134,9 +134,12 @@ Any one, two or three arguments can be skipped, except the **url**.
 See the Examples section for all the options being used.
 All options are optional.
 
-* **timeout** is a number of milliseconds that specifies when **finished** has to be called with an Error if it was not yet called, default is `0`, which means timeout errors are disabled (network stack timeouts result in network errors).
-* **uploadTimeout** is a number of milliseconds that specifies when **gotStatus** has to be called with an Error if it was not yet called, default is `0`, which means timeout errors are disabled (network stack timeouts result in network errors).
-* **downloadTimeout** is a number of milliseconds that specifies when **finished** has to be called with an Error after **gotStatus** was called if it was not yet called, default is `0`, which means timeout errors are disabled (network stack timeouts result in network errors).
+* **timeout** must be either one of:
+  * undefined (default), means that **finished** must never be called with any of the timeout errors,
+  * a number (greater than 0 and less than 1073741824) for maximum duration in milliseconds between the httpinvoke call and **finished** call, if it timeouts - **finished** must be called with "timeout" error;
+  * an instance of [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) (**corsFineGrainedTimeouts** feature is not supported, then **timeout** is assigned to the sum of this array) with elements:
+    0. a number (greater than 0 and less than 1073741824) for maximum duration in milliseconds between the httpinvoke call and **gotStatus** call, if it timeouts - **finished** must be called with "upload timeout" error;
+    0. a number (greater than 0 and less than 1073741824) for maximum duration in milliseconds between **gotStatus** call and **finished** call, if it timeouts - **finished** must be called with "download timeout" error;
 * **uploading** is a function that is called when HTTP request upload progress event happens. It is called with these arguments:
   0. **current** is a number for the number of bytes currently sent;
   0. **total** is a number for the total number of bytes to be sent.
