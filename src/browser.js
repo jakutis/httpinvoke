@@ -659,6 +659,7 @@
     httpinvoke.corsPUT = false;
     httpinvoke.corsStatus = false;
     httpinvoke.corsResponseTextOnly = false;
+    httpinvoke.corsFineGrainedTimeouts = true;
     httpinvoke.requestTextOnly = false;
     (function() {
         try {
@@ -694,6 +695,7 @@
                 httpinvoke.cors = true;
                 httpinvoke.corsResponseContentTypeOnly = true;
                 httpinvoke.corsResponseTextOnly = true;
+                httpinvoke.corsFineGrainedTimeouts = false;
             }
             return;
         } catch(err) {

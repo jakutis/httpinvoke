@@ -192,5 +192,6 @@ httpinvoke.corsStatus = true;
 httpinvoke.corsResponseTextOnly = false;
 httpinvoke.requestTextOnly = false;
 httpinvoke.PATCH = true;
+httpinvoke.corsFineGrainedTimeouts = true;
 
 module.exports = httpinvoke;

@@ -215,6 +215,7 @@ There are feature flags to be queried for platform-specific features.
 * **corsPUT** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports `"PUT"` **method**
 * **corsStatus** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports **status** argument in **gotStatus** option
 * **corsResponseTextOnly** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports only **outputType** `"text"`
+* **corsFineGrainedTimeouts** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports "upload timeout" and "download timeout" errors.
 
 ## Development
 
