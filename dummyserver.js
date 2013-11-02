@@ -266,7 +266,7 @@ var listen = function (req, res) {
             entityHeaders(headers);
             corsHeaders(headers, req);
             res.writeHead(200, headers);
-            res.write(new Buffer(new Array(10240).join('.')));
+            res.write(new Buffer(new Array(10241).join('.')));
             setTimeout(function() {
                 res.end(new Buffer('test'));
             }, 1000);
