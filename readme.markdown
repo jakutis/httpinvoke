@@ -136,10 +136,10 @@ All options are optional.
 
 * **timeout** must be either one of:
   * undefined (default), means that **finished** must never be called with any of the timeout errors,
-  * a number (greater than 0 and less than 1073741824) for maximum duration in milliseconds between the httpinvoke call and **finished** call, if it timeouts - **finished** must be called with "timeout" error,
+  * a number (greater than 0 and less than 1073741824) for maximum duration in milliseconds between the httpinvoke call and **finished** call, if it timeouts - **finished** must be called with `"timeout"` error,
   * an instance of [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) (if **corsFineGrainedTimeouts** feature is not supported and **url** is cross-origin then **timeout** is assigned to the sum of this array) with elements:
-    0. a number (greater than 0 and less than 1073741824) for maximum duration in milliseconds between the httpinvoke call and **gotStatus** call, if it timeouts - **finished** must be called with "upload timeout" error;
-    0. a number (greater than 0 and less than 1073741824) for maximum duration in milliseconds between **gotStatus** call and **finished** call, if it timeouts - **finished** must be called with "download timeout" error.
+    0. a number (greater than 0 and less than 1073741824) for maximum duration in milliseconds between the httpinvoke call and **gotStatus** call, if it timeouts - **finished** must be called with `"upload timeout"` error;
+    0. a number (greater than 0 and less than 1073741824) for maximum duration in milliseconds between **gotStatus** call and **finished** call, if it timeouts - **finished** must be called with `"download timeout"` error.
 * **uploading** is a function that is called when HTTP request upload progress event happens. It is called with these arguments:
   0. **current** is a number for the number of bytes currently sent;
   0. **total** is a number for the total number of bytes to be sent.
@@ -178,11 +178,11 @@ All options are optional.
 
 The **finished** callback will be called with an instance of Error only when strictly either one of these things happen:
 
-* **abort** function was called (error message "abort");
-* number of received bytes does not equal the Content-Type value or native XMLHttpRequest called .onerror without a .status or .statusText (error message "network error") - this can happen due to various network errors, server response sending or request receiving errors, or simply an unsupported status code - e.g. Firefox 3.0 ends up here after a status 408 response;
-* sending request timed out (error message "upload timeout");
-* receiving response timed out (error message "download timeout");
-* sending request and receiving response timed out (error message "timeout");
+* **abort** function was called (error message `"abort"`);
+* number of received bytes does not equal the Content-Type value or native XMLHttpRequest called .onerror without a .status or .statusText (error message `"network error"`) - this can happen due to various network errors, server response sending or request receiving errors, or simply an unsupported status code - e.g. Firefox 3.0 ends up here after a status 408 response;
+* sending request timed out (error message `"upload timeout"`);
+* receiving response timed out (error message `"download timeout"`);
+* sending request and receiving response timed out (error message `"timeout"`);
 * converter from **converters** option threw an error (the thrown error message is passed);
 * request did not even start - calling options validation failed or a feature that is not supported by the platform was used (various error messages are passed, e.g. "Unsupported method TRACE").
 
