@@ -71,6 +71,8 @@ Adding to your HTML file:
 ### Basic
 
 ```javascript
+var httpinvoke = require('httpinvoke');
+
 httpinvoke('http://example.org', 'GET', function(err, body, statusCode, headers) {
     if(err) {
         return console.log('Failure', err);
@@ -82,6 +84,8 @@ httpinvoke('http://example.org', 'GET', function(err, body, statusCode, headers)
 ### Basic with Promises
 
 ```javascript
+var httpinvoke = require('httpinvoke');
+
 httpinvoke('http://example.org', 'GET').then(function(res) {
     console.log('Success', res.body, res.statusCode, res.headers);
 }, function(err) {
@@ -92,7 +96,8 @@ httpinvoke('http://example.org', 'GET').then(function(res) {
 ### Uploading an HTML form
 
 ```javascript
-// Demonstration of uploading an HTML form (`Content-Type: application/x-www-form-urlencoded`)
+var httpinvoke = require('httpinvoke');
+
 var book = {
     content: 'Hello World',
     comment: 'initial version'
@@ -120,7 +125,8 @@ httpinvoke('http://example.org', 'POST', {
 ### Downloading and uploading a file
 
 ```javascript
-// Demonstration of downloading and uploading a file
+var httpinvoke = require('httpinvoke');
+
 var converters = {
     'text json': JSON.parse,
     'json text': JSON.stringify
@@ -151,7 +157,8 @@ httpinvoke('https://bower-component-list.herokuapp.com/', 'GET', {
 ### Streaming JSON
 
 ```
-// try with slow internet connection
+var clarinet = require('clarinet');
+var httpinvoke = require('httpinvoke');
 
 var parser = clarinet.parser();
 var lastKey = null;
@@ -166,6 +173,7 @@ parser.onopenobject = function(key) {
 parser.onkey = function(key) {
     lastKey = key;
 };
+// try with slow internet connection
 httpinvoke('https://bower-component-list.herokuapp.com/', {
     partialOutputMode: 'chunked'
 }).then(function(res) {
