@@ -170,6 +170,8 @@ var httpinvoke = function(uri, method, options, cb) {
         input = new Buffer(input);
         inputLength = input.length;
         req.write(input);
+    } else {
+        inputLength = 0;
     }
     req.on('error', function(e) {
         cb && cb(new Error('network error'));
