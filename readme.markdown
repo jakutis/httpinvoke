@@ -6,8 +6,9 @@ httpinvoke is a 4.6kb no-dependencies HTTP client library for **browsers** and *
 
 * Gracefully upgrades to latest platform-specific features:
   * [cross-origin resource sharing](http://www.w3.org/TR/cors/) - do cross-domain requests with confidence;
+  * [streaming](http://www.w3.org/TR/streams-api/) - currently only streaming downloads, see description of option **partial** below.
   * [progress events](http://www.w3.org/TR/progress-events/) - get current and total bytes downloaded or uploaded;
-  * [binary file uploads and downloads](http://www.w3.org/TR/XMLHttpRequest/) - easily use Blob, FormData, ArrayBuffer, Uint8Array or a simple array of bytes.
+  * [binary file uploads and downloads](http://www.w3.org/TR/XMLHttpRequest/) - easily use Blob, FormData, ArrayBuffer, Uint8Array or a simple array of bytes;
 * Supports both NodeJS style callbacks and [Promises/A+](http://promisesaplus.com/) (with progress events, see [an example](https://github.com/jakutis/httpinvoke/blob/master/test/promise.js)).
 * Supports transparent gzip/deflate content decoding.
 * Handles HTTP responses The Right Way™:
