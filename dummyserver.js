@@ -275,7 +275,11 @@ var listen = function (req, res) {
                 output(200, hello, false, 'text/plain; charset=UTF-8');
             }, 1000);
         } else {
-            fs.realpath(__dirname + req.url.substr(req.proxyPath.length), function(err, path) {
+            var url = req.url.substr(req.proxyPath.length);
+            if(url.lastIndexOf('?') >= 0) {
+                url = url.substr(0, url.lastIndexOf('?'));
+            }
+            fs.realpath(__dirname + url, function(err, path) {
                 if(err || path.substr(0, __dirname.length) !== __dirname) {
                     return output(404, null, false);
                 }
