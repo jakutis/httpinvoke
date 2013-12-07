@@ -82,6 +82,11 @@ var httpinvoke = function(uri, method, options, cb) {
         outputHeaders = res.headers;
         if('content-encoding' in outputHeaders) {
             contentEncoding = outputHeaders['content-encoding'];
+            if(['identity', 'gzip', 'deflate'].indexOf(contentEncoding) < 0) {
+                cb(new Error('unsupported Content-Encoding ' + contentEncoding));
+                cb = null;
+                return ignorantlyConsume(res);
+            }
             delete outputHeaders['content-encoding'];
         } else {
             contentEncoding = 'identity';
@@ -99,30 +104,46 @@ var httpinvoke = function(uri, method, options, cb) {
             return ignorantlyConsume(res);
         }
 
-        if('content-length' in outputHeaders) {
+        if(contentEncoding === 'identity' && 'content-length' in outputHeaders) {
             outputLength = Number(outputHeaders['content-length']);
         }
 
-        downloadProgressCb(0, outputLength);
+        downloadProgressCb(0, outputLength, outputBinary ? [] : '');
         if(!cb) {
             return ignorantlyConsume(res);
         }
         if(method === 'HEAD') {
             ignorantlyConsume(res);
-            downloadProgressCb(0, 0);
+            downloadProgressCb(0, 0, outputBinary ? [] : '');
             return cb && cb(null, _undefined, status, outputHeaders);
         }
 
+        var inputStream;
+        if(contentEncoding === 'identity') {
+            inputStream = res;
+        } else {
+            inputStream = zlib['create' + (contentEncoding === 'gzip' ? 'Gunzip' : 'InflateRaw')]();
+            res.pipe(inputStream);
+        }
+
         var output = [], downloaded = 0;
-        res.on('data', function(chunk) {
+        inputStream.on('data', function(chunk) {
             if(!cb) {
                 return;
             }
             downloaded += chunk.length;
             output.push(chunk);
-            downloadProgressCb(downloaded, outputLength);
+            var partial;
+            if(options.partial) {
+                partial = Buffer.concat(output, downloaded);
+                if(!outputBinary) {
+                    partial = partial.toString('utf8');
+                }
+            }
+            downloadProgressCb(downloaded, outputLength, partial);
         });
-        res.on('end', function() {
+        inputStream.on('error', cb);
+        inputStream.on('end', function() {
             if(!cb) {
                 return;
             }
@@ -135,7 +156,12 @@ var httpinvoke = function(uri, method, options, cb) {
                 return cb(new Error('network error'));
             }
 
-            downloadProgressCb(outputLength, outputLength);
+            output = Buffer.concat(output, downloaded);
+            if(!outputBinary) {
+                output = output.toString('utf8');
+            }
+
+            downloadProgressCb(outputLength, outputLength, output);
             if(!cb) {
                 return;
             }
@@ -144,22 +170,11 @@ var httpinvoke = function(uri, method, options, cb) {
                 return cb(null, _undefined, status, outputHeaders);
             }
 
-            decompress(Buffer.concat(output, downloaded), contentEncoding, function(err, output) {
-                if(!cb) {
-                    return;
-                }
-                if(err) {
-                    return cb(new Error('network error'));
-                }
-                if(!outputBinary) {
-                    output = output.toString('utf8');
-                }
-                try {
-                    cb(null, outputConverter(output), status, outputHeaders);
-                } catch(err) {
-                    cb(err);
-                }
-            });
+            try {
+                cb(null, outputConverter(output), status, outputHeaders);
+            } catch(err) {
+                cb(err);
+            }
         });
     });
 
