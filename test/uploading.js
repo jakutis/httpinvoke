@@ -3,23 +3,35 @@ var httpinvoke = require('../httpinvoke-node');
 
 describe('"uploading" option', function() {
     this.timeout(10000);
-    var inputs = [{
+    var input, inputs = [];
+
+    inputs.push({
+        inputLength: 0
+    });
+
+    input = 'foobar';
+    inputs.push({
         inputType: 'text',
-        input: 'foobar'
-    }];
+        input: input,
+        inputLength: input.length
+    });
+
     if(!httpinvoke.requestTextOnly) {
+        input = cfg.bytearrayTest();
         inputs.push({
             inputType: 'bytearray',
-            input: cfg.bytearrayTest()
+            input: input,
+            inputLength: input.length
         });
     }
+
     var eachInput = function(fn) {
         for(var input = 0; input < inputs.length; input += 1) {
-            fn(inputs[input].inputType, inputs[input].input);
+            fn(inputs[input].inputType, inputs[input].input, inputs[input].inputLength);
         }
     };
     cfg.eachBase(function(_postfix, url, crossDomain) {
-        eachInput(function(inputType, input) {
+        eachInput(function(inputType, input, inputLength) {
             var postfix = _postfix + ' (' + inputType + ')';
             it('is called at least twice' + postfix, function(done) {
                 var count = 0;
@@ -181,8 +193,8 @@ describe('"uploading" option', function() {
                         if(done === null) {
                             return;
                         }
-                        if(input.length !== total) {
-                            done(new Error('"total"=' + total + ' was not equal to input length = ' + input.length));
+                        if(inputLength !== total) {
+                            done(new Error('"total"=' + total + ' was not equal to input length = ' + inputLength));
                         } else {
                             done();
                         }

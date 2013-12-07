@@ -141,7 +141,7 @@ if(!options.outputType || options.outputType === 'text' || outputBinary) {
     return failWithoutRequest(cb, new Error('Unsupported outputType ' + options.outputType));
 }
 inputConverter = pass;
-if('input' in options) {
+if(typeof options.input !== 'undefined') {
     input = options.input;
     if(!options.inputType || options.inputType === 'auto') {
         if(typeof input !== 'string' && !isByteArray(input)) {
