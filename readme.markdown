@@ -7,6 +7,7 @@ httpinvoke is a 4.6kb no-dependencies HTTP client library for **browsers** and *
 - [Installation](#installation)
 - [Examples](#examples)
   - [Basic](#basic)
+  - [Basic with Promises](#basic-with-promises)
   - [Downloading and uploading a file](#downloading-and-uploading-a-file)
   - [Uploading an HTML form](#uploading-an-html-form)
 - [API](#api)
@@ -75,8 +76,11 @@ httpinvoke('http://example.org', 'GET', function(err, body, statusCode, headers)
     }
     console.log('Success', body, statusCode, headers);
 });
+```
 
-// same as above, but using promise
+### Basic with Promises
+
+```javascript
 httpinvoke('http://example.org', 'GET').then(function(res) {
     console.log('Success', res.body, res.statusCode, res.headers);
 }, function(err) {
