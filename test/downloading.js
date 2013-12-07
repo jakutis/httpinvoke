@@ -1,6 +1,18 @@
 var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
+var arraysEqual = function(a, b) {
+    if(a.length !== b.length) {
+        return false;
+    }
+    for(var i = 0; i < a.length; i += 1) {
+        if(a[i] !== b[i]) {
+            return false;
+        }
+    }
+    return true;
+};
+
 describe('"downloading" option', function() {
     this.timeout(10000);
     var urls = [];
@@ -27,22 +39,112 @@ describe('"downloading" option', function() {
         });
     });
     cfg.eachBase(function(postfix, url, crossDomain) {
-        it('has argument "partial", if option "partial" is set to true' + postfix, function(done) {
-            httpinvoke(url + 'big', {
-                partial: true,
-                downloading: function(current, total, partial) {
-                    if(typeof partial !== 'string' && typeof partial !== 'object') {
-                        done(new Error('partial is neither string, nor object'));
-                        done = null;
-                        return;
+        ['chunked', 'joined'].forEach(function(partial) {
+            it('has argument "partial", if option "partialOutputMode" is set to "' + partial + '"' + postfix, function(done) {
+                httpinvoke(url + 'big', {
+                    partialOutputMode: partial,
+                    downloading: function(current, total, partial) {
+                        if(typeof partial !== 'string' && typeof partial !== 'object') {
+                            done(new Error('partial is neither string, nor object'));
+                            done = null;
+                            return;
+                        }
+                    },
+                    finished: function(err) {
+                        if(!done) {
+                            return;
+                        }
+                        if(err) {
+                            return done(err);
+                        }
+                        done();
                     }
+                });
+            });
+        });
+        it('has the concatenated values of argument "partial" equal to "output", when "partialOutputMode" is "chunked" and "outputType" is "text"' + postfix, function(done) {
+            var partials = '';
+            httpinvoke(url + 'big', {
+                partialOutputMode: 'chunked',
+                outputType: 'text',
+                downloading: function(current, total, partial) {
+                    partials += partial;
                 },
-                finished: function(err) {
+                finished: function(err, output) {
                     if(!done) {
                         return;
                     }
                     if(err) {
                         return done(err);
+                    }
+                    if(partials !== output) {
+                        return done(new Error('Concatenated values of argument "partial" is not equal to output'));
+                    }
+                    done();
+                }
+            });
+        });
+        it('has the concatenated values of argument "partial" equal to "output", when "partialOutputMode" is "chunked" and "outputType" is "bytearray"' + postfix, function(done) {
+            var partials = [];
+            httpinvoke(url + 'big', {
+                partialOutputMode: 'chunked',
+                outputType: 'bytearray',
+                downloading: function(current, total, partial) {
+                    partials = partials.concat([].slice.call(partial));
+                },
+                finished: function(err, output) {
+                    if(!done) {
+                        return;
+                    }
+                    if(err) {
+                        return done(err);
+                    }
+                    if(!arraysEqual(output, partials)) {
+                        return done(new Error('Concatenated values of argument "partial" is not equal to output'));
+                    }
+                    done();
+                }
+            });
+        });
+        it('has argument "partial" on the last call equal to "output", when "partialOutputMode" is "joined" and "outputType" is "text"' + postfix, function(done) {
+            var lastPartial;
+            httpinvoke(url + 'big', {
+                partialOutputMode: 'joined',
+                outputType: 'text',
+                downloading: function(current, total, partial) {
+                    lastPartial = partial;
+                },
+                finished: function(err, output) {
+                    if(!done) {
+                        return;
+                    }
+                    if(err) {
+                        return done(err);
+                    }
+                    if(lastPartial !== output) {
+                        return done(new Error('Last partial is not equal to output'));
+                    }
+                    done();
+                }
+            });
+        });
+        it('has argument "partial" on the last call equal to "output", when "partialOutputMode" is "joined" and "outputType" is "bytearray"' + postfix, function(done) {
+            var lastPartial;
+            httpinvoke(url + 'big', {
+                partialOutputMode: 'joined',
+                outputType: 'bytearray',
+                downloading: function(current, total, partial) {
+                    lastPartial = partial;
+                },
+                finished: function(err, output) {
+                    if(!done) {
+                        return;
+                    }
+                    if(err) {
+                        return done(err);
+                    }
+                    if(!arraysEqual(output, lastPartial)) {
+                        return done(new Error('Last partial is not equal to output'));
                     }
                     done();
                 }

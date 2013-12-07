@@ -24,8 +24,8 @@
         'Bad Request,Unauthorized,Payment Required,Forbidden,Not Found,Method Not Allowed,Not Acceptable,Proxy Authentication Required,Request Timeout,Conflict,Gone,Length Required,Precondition Failed,Request Entity Too Large,Request-URI Too Long,Unsupported Media Type,Requested Range Not Satisfiable,Expectation Failed',
         'Internal Server Error,Not Implemented,Bad Gateway,Service Unavailable,Gateway Time-out,HTTP Version Not Supported'
     );
-    var bufferSlice = function(buffer, begin, end) {
-        if(begin === 0 && end === buffer.byteLength) {
+    var bufferSlice = function(buffer, length, begin, end) {
+        if(begin === 0 && end === length) {
             return buffer;
         }
         return buffer.slice ? buffer.slice(begin, end) : new Uint8Array(Array.prototype.slice.call(new Uint8Array(buffer), begin, end)).buffer;
@@ -70,7 +70,10 @@
     var getOutputLengthText = function(xhr) {
         return countStringBytes(getOutputText(xhr));
     };
-    var getOutputLengthBinary = function(xhr) {
+    var getOutputLengthBinary = function(xhr, partial) {
+        if(partial) {
+            return getOutputBinary(xhr, partial).length;
+        }
         if('response' in xhr) {
             return xhr.response ? xhr.response.byteLength : 0;
         }
@@ -115,10 +118,19 @@
         /*************** initialize helper variables **************/
         var xhr, i, j, currentLocation, crossDomain, output,
             getOutput = function() {
-                return outputBinary ? getOutputBinary(xhr, options.partial) : getOutputText(xhr);
+                return outputBinary ? getOutputBinary(xhr, partialOutputMode !== 'disabled') : getOutputText(xhr);
             },
             getOutputLength = outputBinary ? getOutputLengthBinary : getOutputLengthText,
-            uploadProgressCbCalled = false;
+            uploadProgressCbCalled = false,
+            partialPosition = 0,
+            getOutputPartial = function() {
+                if(partialOutputMode === 'disabled') {
+                    return;
+                }
+                var joined = getOutput(), partial = partialOutputMode === 'joined' ? joined : (outputBinary ? (isArrayBufferView(joined) ? new global.Uint8Array(bufferSlice(joined, joined.length, partialPosition, joined.length)) : joined.slice(partialPosition)) : joined.substr(partialPosition));
+                partialPosition = joined.length;
+                return partial;
+            };
         var uploadProgress = function(uploaded) {
             if(!uploadProgressCb) {
                 return;
@@ -402,7 +414,7 @@
 
             var length;
             try {
-                length = getOutputLength(xhr);
+                length = getOutputLength(xhr, partialOutputMode !== 'disabled');
             } catch(_) {
                 length = 0;
             }
@@ -500,18 +512,15 @@
             if(!cb) {
                 return;
             }
-            if(outputBinary && !options.partial && 'response' in xhr) {
+            if(outputBinary) {
                 try {
-                    xhr.responseType = 'arraybuffer';
-                } catch(err) {
-                }
-            } else {
-                try {
-                    // mime type override must be done before receiving headers - at least for Safari 5.0.4
-                    if(outputBinary) {
+                    if(partialOutputMode === 'disabled' && 'response' in xhr) {
+                        xhr.responseType = 'arraybuffer';
+                    } else {
+                        // mime type override must be done before receiving headers - at least for Safari 5.0.4
                         xhr.overrideMimeType('text/plain; charset=x-user-defined');
                     }
-                } catch(err) {
+                } catch(_) {
                 }
             }
             if(isFormData(input)) {
@@ -562,7 +571,7 @@
                             try {
                                 inputLength = input.byteLength;
                                 // if there is ArrayBufferView, then the browser supports sending instances of subclasses of ArayBufferView, otherwise we must send an ArrayBuffer
-                                xhr.send(global.ArrayBufferView ? input : bufferSlice(input.buffer, input.byteOffset, input.byteOffset + input.byteLength));
+                                xhr.send(global.ArrayBufferView ? input : bufferSlice(input.buffer, input.buffer.byteLength, input.byteOffset, input.byteOffset + input.byteLength));
                                 return;
                             } catch(_) {
                                 triedSendArrayBufferView = true;

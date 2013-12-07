@@ -30,6 +30,27 @@ var copy = function(from, to) {
     return to;
 };
 
+var emptyBuffer = new Buffer([]);
+
+var utf8CharacterSizeFromHeaderByte = function(byte) {
+    if(byte < 128) {
+        // one byte, ascii character
+        return 1;
+    }
+    var mask = (1 << 7) | (1 << 6);
+    var test = 128;
+    if((byte & mask) === test) {
+        // byte is not a header byte
+        return 0;
+    }
+    for(var length = 1; (byte & mask) !== test; length += 1) {
+        mask = (mask >> 1) | 128;
+        test = (test >> 1) | 128;
+    }
+    // multi byte utf8 character
+    return length;
+};
+
 var httpinvoke = function(uri, method, options, cb) {
     var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
     /*************** initialize helper variables **************/
@@ -87,13 +108,15 @@ var httpinvoke = function(uri, method, options, cb) {
             outputLength = Number(outputHeaders['content-length']);
         }
 
-        downloadProgressCb(0, outputLength, outputBinary ? [] : '');
+        var partial = partialOutputMode === 'disabled' ? _undefined : (outputBinary ? [] : '');
+
+        downloadProgressCb(0, outputLength, partial);
         if(!cb) {
             return ignorantlyConsume(res);
         }
         if(method === 'HEAD') {
             ignorantlyConsume(res);
-            downloadProgressCb(0, 0, outputBinary ? [] : '');
+            downloadProgressCb(0, 0, partial);
             return cb && cb(null, _undefined, status, outputHeaders);
         }
 
@@ -105,20 +128,39 @@ var httpinvoke = function(uri, method, options, cb) {
             res.pipe(inputStream);
         }
 
-        var output = [], downloaded = 0;
+        var output = [], downloaded = 0, leftover = emptyBuffer;
         inputStream.on('data', function(chunk) {
             if(!cb) {
                 return;
             }
+
+            if(partialOutputMode !== 'disabled' && !outputBinary) {
+                chunk = Buffer.concat([leftover, chunk]);
+                var charsize = 0, newLeftoverLength = 0;
+                while(charsize === 0 && newLeftoverLength < chunk.length) {
+                    newLeftoverLength += 1;
+                    charsize = utf8CharacterSizeFromHeaderByte(chunk[chunk.length - newLeftoverLength]);
+                }
+                if(newLeftoverLength === charsize) {
+                    leftover = emptyBuffer;
+                } else {
+                    leftover = chunk.slice(chunk.length - newLeftoverLength);
+                    chunk = chunk.slice(0, chunk.length - newLeftoverLength);
+                }
+            }
+
             downloaded += chunk.length;
             output.push(chunk);
+
             var partial;
-            if(options.partial) {
-                partial = Buffer.concat(output, downloaded);
+
+            if(partialOutputMode !== 'disabled') {
+                partial = partialOutputMode === 'chunked' ? chunk : Buffer.concat(output);
                 if(!outputBinary) {
                     partial = partial.toString('utf8');
                 }
             }
+
             downloadProgressCb(downloaded, outputLength, partial);
         });
         inputStream.on('error', cb);
@@ -126,6 +168,10 @@ var httpinvoke = function(uri, method, options, cb) {
             if(!cb) {
                 return;
             }
+
+            // just in case the utf8 text stream was damaged, and there is leftover
+            output.push(leftover);
+            downloaded += leftover.length;
 
             if(typeof outputLength === 'undefined') {
                 outputLength = downloaded;
@@ -140,7 +186,14 @@ var httpinvoke = function(uri, method, options, cb) {
                 output = output.toString('utf8');
             }
 
-            downloadProgressCb(outputLength, outputLength, output);
+            var partial;
+            if(partialOutputMode === 'chunked') {
+                partial = outputBinary ? leftover : leftover.toString('utf8');
+            } else if(partialOutputMode === 'joined') {
+                partial = outputBinary ? output : output.toString('utf8');
+            }
+
+            downloadProgressCb(outputLength, outputLength, partial);
             if(!cb) {
                 return;
             }

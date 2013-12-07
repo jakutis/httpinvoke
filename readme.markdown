@@ -18,7 +18,7 @@ httpinvoke is a 4.6kb no-dependencies HTTP client library for **browsers** and *
 
 * Gracefully upgrades to latest platform-specific features:
   * [cross-origin resource sharing](http://www.w3.org/TR/cors/) - do cross-domain requests with confidence;
-  * [streaming](http://www.w3.org/TR/streams-api/) - currently only streaming downloads, see description of option **partial** below.
+  * [streaming](http://www.w3.org/TR/streams-api/) - currently only streaming downloads, see description of option **partialOutputMode** below.
   * [progress events](http://www.w3.org/TR/progress-events/) - get current and total bytes downloaded or uploaded;
   * [binary file uploads and downloads](http://www.w3.org/TR/XMLHttpRequest/) - easily use Blob, FormData, ArrayBuffer, Uint8Array or a simple array of bytes;
 * Supports both NodeJS style callbacks and [Promises/A+](http://promisesaplus.com/) (with progress events, see [an example](https://github.com/jakutis/httpinvoke/blob/master/test/promise.js)).
@@ -147,7 +147,7 @@ Any one, two or three arguments can be skipped, except the **url**.
 See the Examples section for all the options being used.
 All options are optional.
 
-* **partial** is a boolean for requesting to provide an additional argument in **downloading** callback - the partially downloaded response body. Defaults to `false`.
+* **partialOutputMode** is a string for the type of the **partial** argument of the **downloading** option, one of `"disabled"` (default, **downloading** will not receive this argument), `"chunked"` (the received value will be the latest chunk), `"joined"` (the received value will be the entire partial body).
 * **timeout** must be either one of:
   * undefined (default), means that **finished** must never be called with any of the timeout errors,
   * a number (greater than 0 and less than 1073741824) for maximum duration in milliseconds between the httpinvoke call and **finished** call, if it timeouts - **finished** must be called with `"timeout"` error,
@@ -160,7 +160,7 @@ All options are optional.
 * **downloading** is a function that is called when HTTP response download progress event happens. It is called with these arguments:
   0. **current** is a number for the number of bytes currently received;
   0. **total** is a number for the total number of bytes to be received, or undefined if not known.
-  0. **partial** is a string (or bytearray, if **outputType** is `"bytearray"`, or if a custom type will be converted from bytearray) representing the partially downloaded response body, or undefined if **partial** option is set to `false`.
+  0. **partial** is a string (or bytearray, if either **outputType** is `"bytearray"` or a custom **outputType** will be converted from bytearray), or undefined if **partialOutputMode** option is set to `"disabled"`.
 * **gotStatus** is a function that is called when HTTP response headers are received. It is called with these arguments:
   0. **status** is a number for an HTTP response status code, either undefined, or a correct value.
   0. **headers** is an object for HTTP response headers. Keys are lower-cased header names, values are strings.

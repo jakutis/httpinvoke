@@ -118,13 +118,6 @@ var fixPositiveOpt = function(opt) {
         return failWithoutRequest(cb, new Error('Option "' + opt + '" is not a number'));
     }
 };
-var getOutputPartial = options.partial ? function() {
-    try {
-        return getOutput();
-    } catch(_) {
-        return outputBinary ? [] : '';
-    }
-} : pass;
 var converters = options.converters || {};
 var inputConverter;
 inputHeaders = options.headers || {};
@@ -132,6 +125,10 @@ outputHeaders = {};
 exposedHeaders = options.corsExposedHeaders || [];
 exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma', 'Content-Range', 'Content-Encoding']);
 /*************** COMMON convert and validate parameters **************/
+var partialOutputMode = options.partialOutputMode || 'disabled';
+if(partialOutputMode.indexOf(',') >= 0 || ',disabled,chunked,joined,'.indexOf(',' + partialOutputMode + ',') < 0) {
+    return failWithoutRequest(cb, new Error('Option "partialOutputMode" is neither "disabled", nor "chunked", nor "joined"'));
+}
 if(method.indexOf(',') >= 0 || supportedMethods.indexOf(',' + method + ',') < 0) {
     return failWithoutRequest(cb, new Error('Unsupported method ' + method));
 }
@@ -228,3 +225,4 @@ if(timeout) {
         }
     }, timeout);
 }
+

@@ -141,33 +141,35 @@ describe('promise', function() {
                 done();
             });
         });
-        it('supports .partial in "download" progress event, when option "partial" is set to true' + postfix, function(done) {
-            var err;
-            httpinvoke(url, {
-                partial: true
-            }).then(function() {
-                if(!done) {
-                    return;
-                }
-                done();
-                done = null;
-            }, function(err) {
-                if(!done) {
-                    return;
-                }
-                done(err);
-                done = null;
-            }, function(progress) {
-                if(!isValidProgress(progress, crossDomain)) {
-                    done(new Error('invalid progress'));
+        ['chunked', 'joined'].forEach(function(partial) {
+            it('supports .partial in "download" progress event, when option "partialOutputMode" is set to "' + partial + '"' + postfix, function(done) {
+                var err;
+                httpinvoke(url, {
+                    partialOutputMode: partial
+                }).then(function() {
+                    if(!done) {
+                        return;
+                    }
+                    done();
                     done = null;
-                    return;
-                }
-                if(progress.type === 'download' && typeof progress.partial !== 'string' && typeof progress.partial !== 'object') {
-                    done(new Error('progress.partial is neither string, nor object'));
+                }, function(err) {
+                    if(!done) {
+                        return;
+                    }
+                    done(err);
                     done = null;
-                    return;
-                }
+                }, function(progress) {
+                    if(!isValidProgress(progress, crossDomain)) {
+                        done(new Error('invalid progress'));
+                        done = null;
+                        return;
+                    }
+                    if(progress.type === 'download' && typeof progress.partial !== 'string' && typeof progress.partial !== 'object') {
+                        done(new Error('progress.partial is neither string, nor object'));
+                        done = null;
+                        return;
+                    }
+                });
             });
         });
     });
