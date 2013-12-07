@@ -26,6 +26,29 @@ describe('"downloading" option', function() {
             crossDomain: crossDomain
         });
     });
+    cfg.eachBase(function(postfix, url, crossDomain) {
+        it('has argument "partial", if option "partial" is set to true' + postfix, function(done) {
+            httpinvoke(url + 'big', {
+                partial: true,
+                downloading: function(current, total, partial) {
+                    if(typeof partial !== 'string' && typeof partial !== 'object') {
+                        done(new Error('partial is neither string, nor object'));
+                        done = null;
+                        return;
+                    }
+                },
+                finished: function(err) {
+                    if(!done) {
+                        return;
+                    }
+                    if(err) {
+                        return done(err);
+                    }
+                    done();
+                }
+            });
+        });
+    });
     urls.forEach(function(url) {
         var postfix = url.postfix;
         var crossDomain = url.crossDomain;

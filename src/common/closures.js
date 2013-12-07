@@ -69,11 +69,12 @@ uploadProgressCb = safeCallback('uploading', pass, function(current, total) {
         total: total
     });
 });
-downloadProgressCb = safeCallback('downloading', pass, function(current, total) {
+downloadProgressCb = safeCallback('downloading', pass, function(current, total, partial) {
     promise[progress]({
         type: 'download',
         current: current,
-        total: total
+        total: total,
+        partial: partial
     });
 });
 statusCb = safeCallback('gotStatus', function() {
@@ -117,6 +118,13 @@ var fixPositiveOpt = function(opt) {
         return failWithoutRequest(cb, new Error('Option "' + opt + '" is not a number'));
     }
 };
+var getOutputPartial = options.partial ? function() {
+    try {
+        return getOutput();
+    } catch(_) {
+        return outputBinary ? [] : '';
+    }
+} : pass;
 var converters = options.converters || {};
 var inputConverter;
 inputHeaders = options.headers || {};

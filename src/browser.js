@@ -53,8 +53,8 @@
         }
         return bytearray;
     };
-    var getOutputBinary = function(xhr) {
-        if('response' in xhr) {
+    var getOutputBinary = function(xhr, partial) {
+        if(!partial && 'response' in xhr) {
             return new Uint8Array(xhr.response || []);
         }
         // responseBody must be checked this way, because otherwise
@@ -114,7 +114,9 @@
         var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
         /*************** initialize helper variables **************/
         var xhr, i, j, currentLocation, crossDomain, output,
-            getOutput = outputBinary ? getOutputBinary : getOutputText,
+            getOutput = function() {
+                return outputBinary ? getOutputBinary(xhr, options.partial) : getOutputText(xhr);
+            },
             getOutputLength = outputBinary ? getOutputLengthBinary : getOutputLengthText,
             uploadProgressCbCalled = false;
         var uploadProgress = function(uploaded) {
@@ -223,7 +225,7 @@
 
                 // Opera 12 progress events has a bug - .loaded can be higher than .total
                 // see http://dev.opera.com/articles/view/xhr2/#comment-96081222
-                cb && current <= outputLength && !statusCb && downloadProgressCb(current, outputLength);
+                cb && current <= outputLength && !statusCb && downloadProgressCb(current, outputLength, getOutputPartial());
             } catch(_) {
             }
         };
@@ -382,12 +384,12 @@
                 return;
             }
 
-            downloadProgressCb(0, outputLength);
+            downloadProgressCb(0, outputLength, getOutputPartial());
             if(!cb) {
                 return;
             }
             if(method === 'HEAD') {
-                downloadProgressCb(0, 0);
+                downloadProgressCb(0, 0, getOutputPartial());
                 return cb && cb(null, _undefined, status, outputHeaders);
             }
         };
@@ -437,17 +439,17 @@
             }
 
             if(noentity) {
-                downloadProgressCb(0, 0);
+                downloadProgressCb(0, 0, getOutputPartial());
                 return cb(null, _undefined, status, outputHeaders);
             }
 
-            downloadProgressCb(outputLength, outputLength);
+            downloadProgressCb(outputLength, outputLength, getOutputPartial());
             if(!cb) {
                 return;
             }
 
             try {
-                cb(null, outputConverter(getOutput(xhr)), status, outputHeaders);
+                cb(null, outputConverter(getOutput()), status, outputHeaders);
             } catch(err) {
                 cb(err);
             }
@@ -498,9 +500,9 @@
             if(!cb) {
                 return;
             }
-            if('response' in xhr) {
+            if(outputBinary && !options.partial && 'response' in xhr) {
                 try {
-                    xhr.responseType = outputBinary ? 'arraybuffer' : 'text';
+                    xhr.responseType = 'arraybuffer';
                 } catch(err) {
                 }
             } else {

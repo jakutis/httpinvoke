@@ -134,6 +134,7 @@ Any one, two or three arguments can be skipped, except the **url**.
 See the Examples section for all the options being used.
 All options are optional.
 
+* **partial** is a boolean for requesting to provide an additional argument in **downloading** callback - the partially downloaded response body. Defaults to `false`.
 * **timeout** must be either one of:
   * undefined (default), means that **finished** must never be called with any of the timeout errors,
   * a number (greater than 0 and less than 1073741824) for maximum duration in milliseconds between the httpinvoke call and **finished** call, if it timeouts - **finished** must be called with `"timeout"` error,
@@ -146,6 +147,7 @@ All options are optional.
 * **downloading** is a function that is called when HTTP response download progress event happens. It is called with these arguments:
   0. **current** is a number for the number of bytes currently received;
   0. **total** is a number for the total number of bytes to be received, or undefined if not known.
+  0. **partial** is a string (or bytearray, if **outputType** is `"bytearray"`, or if a custom type will be converted from bytearray) representing the partially downloaded response body, or undefined if **partial** option is set to `false`.
 * **gotStatus** is a function that is called when HTTP response headers are received. It is called with these arguments:
   0. **status** is a number for an HTTP response status code, either undefined, or a correct value.
   0. **headers** is an object for HTTP response headers. Keys are lower-cased header names, values are strings.
