@@ -10,6 +10,7 @@ httpinvoke is a 4.6kb no-dependencies HTTP client library for **browsers** and *
   - [Basic with Promises](#basic-with-promises)
   - [Downloading and uploading a file](#downloading-and-uploading-a-file)
   - [Uploading an HTML form](#uploading-an-html-form)
+  - [Streaming JSON](#streaming-json)
 - [API](#api)
   - [options](#options)
   - [error conditions](#error-conditions)
@@ -144,6 +145,39 @@ httpinvoke('https://bower-component-list.herokuapp.com/', 'GET', {
     console.log('Error sending package list', err);
 }, function(progress) {
     console.log('Sending package list progress', progress);
+});
+```
+
+### Streaming JSON
+
+```
+// try with slow internet connection
+
+var parser = clarinet.parser();
+var lastKey = null;
+parser.onvalue = function(v) {
+    if(lastKey === 'name') {
+        console.log('component', v);
+    }
+};
+parser.onopenobject = function(key) {
+    lastKey = key;
+};
+parser.onkey = function(key) {
+    lastKey = key;
+};
+httpinvoke('https://bower-component-list.herokuapp.com/', {
+    partialOutputMode: 'chunked'
+}).then(function(res) {
+    parser.close();
+    console.log('OK, in total there are ' + JSON.parse(res.body).length + ' bower components');
+}, function(err) {
+    console.log('Error occurred', err);
+}, function(progress) {
+    if(progress.type === 'download') {
+        console.log('received chunk of length=' + progress.partial.length);
+        parser.write(progress.partial);
+    }
 });
 ```
 
