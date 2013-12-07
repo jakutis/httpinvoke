@@ -26,12 +26,6 @@ describe('"input" option', function() {
                 finished: makeErrorFinished(done)
             });
         });
-        it('finishes with error, if "inputType" option is "auto" and "input" option is undefined' + postfix, function(done) {
-            httpinvoke(url, 'POST', {
-                inputType: "auto",
-                finished: makeErrorFinished(done)
-            });
-        });
         it('finishes with error, if "inputType" option is "bytearray" and "input" option is undefined' + postfix, function(done) {
             httpinvoke(url, 'POST', {
                 inputType: "bytearray",
