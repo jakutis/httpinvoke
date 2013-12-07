@@ -158,7 +158,6 @@ describe('promise', function() {
                 done(err);
                 done = null;
             }, function(progress) {
-                console.log(progress);
                 if(!isValidProgress(progress, crossDomain)) {
                     done(new Error('invalid progress'));
                     done = null;
