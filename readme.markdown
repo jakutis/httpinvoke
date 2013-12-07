@@ -6,6 +6,9 @@ httpinvoke is a 4.6kb no-dependencies HTTP client library for **browsers** and *
 - [Overview](#overview)
 - [Installation](#installation)
 - [Examples](#examples)
+  - [Basic](#basic)
+  - [Downloading and uploading a file](#downloading-and-uploading-a-file)
+  - [Uploading an HTML form](#uploading-an-html-form)
 - [API](#api)
   - [options](#options)
   - [error conditions](#error-conditions)
@@ -63,6 +66,8 @@ Adding to your HTML file:
 
 ## Examples
 
+### Basic
+
 ```javascript
 httpinvoke('http://example.org', 'GET', function(err, body, statusCode, headers) {
     if(err) {
@@ -77,7 +82,11 @@ httpinvoke('http://example.org', 'GET').then(function(res) {
 }, function(err) {
     console.log('Failure', err);
 });
+```
 
+### Uploading an HTML form
+
+```javascript
 // Demonstration of uploading an HTML form (`Content-Type: application/x-www-form-urlencoded`)
 var book = {
     content: 'Hello World',
@@ -101,7 +110,11 @@ httpinvoke('http://example.org', 'POST', {
     }
     console.log('Success');
 });
+```
 
+### Downloading and uploading a file
+
+```javascript
 // Demonstration of downloading and uploading a file
 var converters = {
     'text json': JSON.parse,
