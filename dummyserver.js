@@ -77,7 +77,7 @@ var entityHeaders = function(headers) {
     headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0';
 };
 
-var bigslowHello = function(req, res) {
+var bigHello = function(req, res, interval) {
     var entity = 'This School Is Not Falling Apart.\n';
     var n = 100, headers = {
         'Content-Type': 'text/plain; charset=UTF-8',
@@ -87,17 +87,17 @@ var bigslowHello = function(req, res) {
     res.writeHead(200, headers);
 
     var i = 0;
-    var interval = setInterval(function() {
+    var id = setInterval(function() {
         if(i < n) {
             for(var j = 0; j < 100; j+=1) {
                 res.write(entity);
             }
             i += 1;
         } else {
-            clearInterval(interval);
+            clearInterval(id);
             res.end();
         }
-    }, 1000);
+    }, interval);
 };
 
 var outputStatus = function(req, res) {
@@ -242,8 +242,10 @@ var listen = function (req, res) {
             res.writeHead(200, headers);
             res.write(new Buffer('test'));
             res.socket.destroy();
+        } else if(req.url === req.proxyPath + '/big') {
+            bigHello(req, res, 10);
         } else if(req.url === req.proxyPath + '/bigslow') {
-            bigslowHello(req, res);
+            bigHello(req, res, 1000);
         } else if(beginsWith(req.url, req.proxyPath + '/contentEncoding/')) {
             contentEncoding(req.url.substr((req.proxyPath + '/contentEncoding/').length));
         } else if(req.url === req.proxyPath + '/text/utf8') {
