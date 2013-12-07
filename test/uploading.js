@@ -10,6 +10,14 @@ describe('"uploading" option', function() {
         inputLength: 0
     });
 
+    if(global.FormData) {
+        inputs.push({
+            name: 'formdata',
+            inputType: 'formdata',
+            input: new FormData()
+        });
+    }
+
     input = 'foobar';
     inputs.push({
         name: 'text',
@@ -191,24 +199,26 @@ describe('"uploading" option', function() {
                     }
                 });
             });
-            it('has "total" be equal to input length' + postfix, function(done) {
-                var abort = httpinvoke(url, 'POST', {
-                    inputType: inputType,
-                    input: input,
-                    uploading: function(_, total) {
-                        if(done === null) {
-                            return;
+            if(typeof inputLength === 'number') {
+                it('has "total" be equal to input length' + postfix, function(done) {
+                    var abort = httpinvoke(url, 'POST', {
+                        inputType: inputType,
+                        input: input,
+                        uploading: function(_, total) {
+                            if(done === null) {
+                                return;
+                            }
+                            if(inputLength !== total) {
+                                done(new Error('"total"=' + total + ' was not equal to input length = ' + inputLength));
+                            } else {
+                                done();
+                            }
+                            done = null;
+                            abort();
                         }
-                        if(inputLength !== total) {
-                            done(new Error('"total"=' + total + ' was not equal to input length = ' + inputLength));
-                        } else {
-                            done();
-                        }
-                        done = null;
-                        abort();
-                    }
+                    });
                 });
-            });
+            }
             it('has "current" be non-decreasing' + postfix, function(done) {
                 var current = null;
                 httpinvoke(url, 'POST', {

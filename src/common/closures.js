@@ -119,7 +119,6 @@ var fixPositiveOpt = function(opt) {
 };
 var converters = options.converters || {};
 var inputConverter;
-inputLength = 0;
 inputHeaders = options.headers || {};
 outputHeaders = {};
 exposedHeaders = options.corsExposedHeaders || [];
@@ -144,12 +143,16 @@ inputConverter = pass;
 if(typeof options.input !== 'undefined') {
     input = options.input;
     if(!options.inputType || options.inputType === 'auto') {
-        if(typeof input !== 'string' && !isByteArray(input)) {
-            return failWithoutRequest(cb, new Error('inputType is undefined or auto and input is neither string, nor ' + bytearrayMessage));
+        if(typeof input !== 'string' && !isByteArray(input) && !isFormData(input)) {
+            return failWithoutRequest(cb, new Error('inputType is undefined or auto and input is neither string, nor FormData, nor ' + bytearrayMessage));
         }
     } else if(options.inputType === 'text') {
         if(typeof input !== 'string') {
             return failWithoutRequest(cb, new Error('inputType is text, but input is not a string'));
+        }
+    } else if (options.inputType === 'formdata') {
+        if(!isFormData(input)) {
+            return failWithoutRequest(cb, new Error('inputType is formdata, but input is not an instance of FormData'));
         }
     } else if (options.inputType === 'bytearray') {
         if(!isByteArray(input)) {
@@ -159,10 +162,12 @@ if(typeof options.input !== 'undefined') {
         inputConverter = converters[options.inputType + ' text'];
     } else if(converters[options.inputType + ' bytearray']) {
         inputConverter = converters[options.inputType + ' bytearray'];
+    } else if(converters[options.inputType + ' formdata']) {
+        inputConverter = converters[options.inputType + ' formdata'];
     } else {
         return failWithoutRequest(cb, new Error('There is no converter for specified inputType'));
     }
-    if(typeof input === 'object') {
+    if(typeof input === 'object' && !isFormData(input)) {
         if(global.ArrayBuffer && input instanceof ArrayBuffer) {
             input = new Uint8Array(input);
         } else if(isArrayBufferView(input)) {

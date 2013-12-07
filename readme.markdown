@@ -163,11 +163,12 @@ All options are optional.
       * undefined, if err is not null,
       * otherwise, an object for HTTP response headers. Keys are lower-cased header names, values are strings.
 * **outputType** is a string for the type of the **output** argument of the **finished** option, one of `"text"` (default), `"bytearray"` or a custom value that has corresponding **converters**.
-* **inputType** is a string for the type of the **input** option, one of `"auto"`(default), `"bytearray"`, `"text"` or a custom value that has corresponding **converters**. If not `"auto"`, **input** must be not be undefined.
+* **inputType** is a string for the type of the **input** option, one of `"auto"`(default), `"bytearray"`, `"text"`, `"formdata"` or a custom value that has corresponding **converters**. If not `"auto"`, **input** must be not be undefined.
 * **input** must be either one of:
   * undefined (default), if **inputType** is `"auto"` and request **headers** does not have `Content-Type`,
   * a string, if **inputType** is `"text"` or `"auto"`,
   * a bytearray - instance of [ArrayBuffer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/ArrayBuffer) or instance of [ArrayBufferView](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/ArrayBufferView) or instance of [Blob](https://developer.mozilla.org/en-US/docs/Web/API/Blob) or instance of [File](https://developer.mozilla.org/en-US/docs/Web/API/File) or instance of [Buffer](http://nodejs.org/api/buffer.html) or instance of [Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) that has elements of type "number" with values ranging from `0` to `255` - if **inputType** is `"bytearray"` or `"auto"`.
+  * an instance of [FormData](https://developer.mozilla.org/en-US/docs/Web/API/FormData) - if **inputType** is `"formdata"` or `"auto"`,
 * **headers** is an object for HTTP request headers. Keys are header names, values are strings.
 * **converters** is an object to convert custom **inputType** and **outputType** values to `"bytearray"` or `"text"`. Example: `{"json text": JSON.stringify, "text json": JSON.parse}`. If you use custom **inputType**, then there must be at least one converter from that type to `"text"` or `"bytearray"`, and the other way around for **outputType**.
 * **corsExposedHeaders** is an array of HTTP response headers to be extracted in **gotStatus** call. Default simple headers like "Content-Type" are always extracted. Applicable only for cross-origin requests.

@@ -66,6 +66,9 @@ var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
     );
 }, isArray = function(object) {
     return Object.prototype.toString.call(object) === '[object Array]';
+}, isFormData = function(input) {
+    return typeof input === 'object' && input !== null && global.FormData &&
+        input instanceof global.FormData;
 }, isByteArray = function(input) {
     return typeof input === 'object' && input !== null && (
         (global.Buffer && input instanceof Buffer) ||

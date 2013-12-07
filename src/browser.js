@@ -182,7 +182,11 @@
         /*************** bind XHR event listeners **************/
         var onuploadprogress = function(progressEvent) {
             if(cb && progressEvent.lengthComputable) {
-                uploadProgress(progressEvent.loaded);
+                if(typeof inputLength === 'undefined') {
+                    inputLength = progressEvent.total || progressEvent.totalSize || 0;
+                    uploadProgress(0);
+                }
+                uploadProgress(progressEvent.loaded || progressEvent.position || 0);
             }
         };
         if('upload' in xhr) {
@@ -364,6 +368,10 @@
                 return;
             }
 
+            if(typeof inputLength === 'undefined') {
+                inputLength = 0;
+                uploadProgress(0);
+            }
             uploadProgress(inputLength);
             if(!cb) {
                 return;
@@ -504,7 +512,13 @@
                 } catch(err) {
                 }
             }
-            if(typeof input === 'object') {
+            if(isFormData(input)) {
+                try {
+                    xhr.send(input);
+                } catch(err) {
+                    return failWithoutRequest(cb, new Error('Unable to send'));
+                }
+            } else if(typeof input === 'object') {
                 var triedSendArrayBufferView = false;
                 var triedSendBlob = false;
                 var triedSendBinaryString = false;
@@ -624,19 +638,21 @@
                     nextTick(go);
                 };
                 go();
+                uploadProgress(0);
             } else {
                 try {
                     if(typeof input === 'string') {
                         inputLength = countStringBytes(input);
                         xhr.send(input);
                     } else {
+                        inputLength = 0;
                         xhr.send(null);
                     }
                 } catch(err) {
                     return failWithoutRequest(cb, new Error('Unable to send'));
                 }
+                uploadProgress(0);
             }
-            uploadProgress(0);
         });
 
         /*************** return "abort" function **************/
