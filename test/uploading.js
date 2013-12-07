@@ -6,11 +6,13 @@ describe('"uploading" option', function() {
     var input, inputs = [];
 
     inputs.push({
+        name: 'undefined',
         inputLength: 0
     });
 
     input = 'foobar';
     inputs.push({
+        name: 'text',
         inputType: 'text',
         input: input,
         inputLength: input.length
@@ -19,6 +21,7 @@ describe('"uploading" option', function() {
     if(!httpinvoke.requestTextOnly) {
         input = cfg.bytearrayTest();
         inputs.push({
+            name: 'bytearray',
             inputType: 'bytearray',
             input: input,
             inputLength: input.length
@@ -26,13 +29,16 @@ describe('"uploading" option', function() {
     }
 
     var eachInput = function(fn) {
+        var _undefined;
         for(var input = 0; input < inputs.length; input += 1) {
-            fn(inputs[input].inputType, inputs[input].input, inputs[input].inputLength);
+            fn(inputs[input].inputType, inputs[input].input, inputs[input].inputLength, inputs[input].name);
+            fn('auto', inputs[input].input, inputs[input].inputLength, inputs[input].name);
+            fn(_undefined, inputs[input].input, inputs[input].inputLength, inputs[input].name);
         }
     };
     cfg.eachBase(function(_postfix, url, crossDomain) {
-        eachInput(function(inputType, input, inputLength) {
-            var postfix = _postfix + ' (' + inputType + ')';
+        eachInput(function(inputType, input, inputLength, name) {
+            var postfix = _postfix + ' (' + name + '-' + inputType + ')';
             it('is called at least twice' + postfix, function(done) {
                 var count = 0;
                 httpinvoke(url, 'POST', {

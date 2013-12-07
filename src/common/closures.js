@@ -175,7 +175,7 @@ if(typeof options.input !== 'undefined') {
         return failWithoutRequest(cb, err);
     }
 } else {
-    if(options.inputType) {
+    if(options.inputType && options.inputType !== 'auto') {
         return failWithoutRequest(cb, new Error('"input" is undefined, but inputType is defined'));
     }
     if(inputHeaders['Content-Type']) {
