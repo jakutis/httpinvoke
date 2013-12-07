@@ -2,7 +2,19 @@
 
 httpinvoke is a 4.6kb no-dependencies HTTP client library for **browsers** and **Node.js** with a **promise**-based or Node.js-style callback-based API to **progress events**, text and **binary** file **upload** and **download**, partial response body, request and response headers, status code.
 
-[Ask a question](https://news.ycombinator.com/item?id=6498905)
+- [Ask a question](https://news.ycombinator.com/item?id=6498905)
+- [Overview](#overview)
+- [Installation](#installation)
+- [Examples](#examples)
+- [API](#api)
+  - [options](#options)
+  - [error conditions](#error-conditions)
+  - [callback sequence](#callback-sequence)
+  - [feature flags](#feature-flags)
+- [Development](#development)
+- [License](#license)
+
+## Overview
 
 * Gracefully upgrades to latest platform-specific features:
   * [cross-origin resource sharing](http://www.w3.org/TR/cors/) - do cross-domain requests with confidence;
