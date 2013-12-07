@@ -4,27 +4,6 @@ var zlib = require('zlib');
 
 var mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick;
 
-var decompress = function(output, encoding, cb) {
-    if(encoding === 'gzip') {
-        zlib.gunzip(output, cb);
-    } else if(encoding === 'deflate') {
-        zlib.inflate(output, function(err, out) {
-            if(err) {
-                return zlib.inflateRaw(output, cb);
-            }
-            cb(null, out);
-        });
-    } else if(encoding === 'identity') {
-        process.nextTick(function() {
-            cb(null, output);
-        });
-    } else {
-        process.nextTick(function() {
-            cb(new Error('unsupported encoding ' + encoding));
-        });
-    }
-};
-
 // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
 var forbiddenInputHeaders = ['accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'content-transfer-encoding', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
 var validateInputHeaders = function(headers) {
