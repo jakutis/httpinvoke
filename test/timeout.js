@@ -60,7 +60,6 @@ describe('"timeout" option', function() {
             httpinvoke(url + 'onesecondUpload', {
                 timeout: [200, 1073741823],
                 finished: function(err) {
-                    console.log(err);
                     if(typeof err !== 'object' || err === null || !(err instanceof Error) || err.message !== 'upload timeout') {
                         return done(new Error('A "upload timeout" error was not received'));
                     }
