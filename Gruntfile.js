@@ -1,10 +1,10 @@
 var fs = require('fs');
 
-var replace = function(contents, replacements) {
+var replace = function(contents, separator, replacements) {
     'use strict';
     replacements.forEach(function(replacement) {
         contents = contents.split(replacement.from);
-        contents = contents[0] + ';' + replacement.to + ';' + contents[1];
+        contents = contents[0] + separator + replacement.to + separator + contents[1];
     });
     return contents;
 };
@@ -12,7 +12,7 @@ var replace = function(contents, replacements) {
 var processCommon = function(globalVar) {
     'use strict';
     return function(contents) {
-        return replace(contents, [{
+        return replace(contents, ';', [{
             from: 'var mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData;',
             to: globalVar + ';' + fs.readFileSync('./src/common/static.js').toString()
         }, {
@@ -26,7 +26,7 @@ var processBrowser = function() {
     'use strict';
     var pc = processCommon('global = window;');
     return function(contents) {
-        return replace(fs.readFileSync('./src/umd.js').toString(), [{
+        return replace(fs.readFileSync('./src/umd.js').toString(), '', [{
             from: '__factory__',
             to: pc(contents)
         }]);
@@ -193,7 +193,7 @@ module.exports = function(grunt) {
             commonjs: {
                 options: {
                     process: function(contents) {
-                        return replace(contents, [{
+                        return replace(contents, ';', [{
                             from: 'var node;',
                             to: fs.readFileSync('./httpinvoke-node.js').toString()
                         }, {
