@@ -26,7 +26,7 @@ var processBrowser = function() {
     'use strict';
     var pc = processCommon('global = window;');
     return function(contents) {
-        return replace(fs.readFileSync('./src/umd.js'), [{
+        return replace(fs.readFileSync('./src/umd.js').toString(), [{
             from: '__factory__',
             to: pc(contents)
         }]);
