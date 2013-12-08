@@ -102,18 +102,20 @@ describe('promise', function() {
                 if(!done) {
                     return;
                 }
-                if(this !== global) {
+                if(this !== global && this !== null) {
+                    done(new Error('onResolved was not called as a function'));
                     done = null;
-                    return done(new Error('onResolved was not called as a function'));
+                    return;
                 }
                 httpinvoke(url, 'ERROR').then(function() {
                 }, function() {
                     if(!done) {
                         return;
                     }
-                    if(this !== global) {
+                    if(this !== global && this !== null) {
+                        done(new Error('onRejected was not called as a function'));
                         done = null;
-                        return done(new Error('onRejected was not called as a function'));
+                        return;
                     }
                     done();
                 });
@@ -122,9 +124,9 @@ describe('promise', function() {
                 if(!done) {
                     return;
                 }
-                if(this !== global) {
+                if(this !== global && this !== null) {
+                    done(new Error('onProgress was not called as a function'));
                     done = null;
-                    return done(new Error('onProgress was not called as a function'));
                 }
             });
         });
