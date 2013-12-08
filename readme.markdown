@@ -10,6 +10,7 @@ httpinvoke is a 4.6kb no-dependencies HTTP client library for **browsers** and *
 - [Examples](#examples)
   - [Basic](#basic)
   - [Basic with Promises](#basic-with-promises)
+  - [Promises and partial progress](#promises-and-partial-progress)
   - [Downloading and uploading a file](#downloading-and-uploading-a-file)
   - [Uploading an HTML form](#uploading-an-html-form)
   - [Streaming JSON](#streaming-json)
@@ -92,6 +93,33 @@ httpinvoke('http://example.org', 'GET').then(function(res) {
     console.log('Success', res.body, res.statusCode, res.headers);
 }, function(err) {
     console.log('Failure', err);
+});
+```
+
+### Promises and partial progress
+
+```javascript
+httpinvoke('http://example.org', {
+    partialOutputMode: 'chunked',
+    outputType: 'bytearray'
+}).then(function(res) {
+    console.log('Success', res.body, res.statusCode, res.headers);
+}, function(err) {
+    console.log('Error occurred', err);
+}, function(progress) {
+    if(progress.type === 'upload') {
+        // total and current are always defined
+        console.log('progress: ' + (progress.total - progress.current) + ' bytes left to upload');
+    } else if(progress.type === 'download') {
+        var partialinfo = ' (received chunk of ' + progress.partial.length + ' bytes)';
+        if(typeof progress.total === 'undefined') {
+            console.log('progress: ' + progress.current + ' bytes downloaded' + partialinfo);
+        } else {
+            console.log('progress: ' + (progress.total - progress.current) + ' bytes left to download' + partialinfo);
+        }
+    } else if(progress.type === 'headers') {
+        console.log('progress: received response with status code ' + progress.statusCode + ' and headers: ', progress.headers);
+    }
 });
 ```
 
