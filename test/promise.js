@@ -97,6 +97,25 @@ describe('promise', function() {
                 done = null;
             }
         });
+        it('supports skipping onresolved' + postfix, function(done) {
+            httpinvoke(url, {
+                finished: done
+            }).then(null, function() {
+            }, function() {
+            });
+        });
+        it('supports skipping onrejected' + postfix, function(done) {
+            httpinvoke('foo:bar', {
+                finished: function(err) {
+                    if(!err) {
+                        return done(new Error('expected error'));
+                    }
+                    done();
+                }
+            }).then(function() {
+            }, null, function() {
+            });
+        });
         it('supports Promises/A+ requirement, that callbacks must be called as functions' + postfix, function(done) {
             httpinvoke(url).then(function() {
                 if(!done) {
