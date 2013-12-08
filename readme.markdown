@@ -195,7 +195,7 @@ httpinvoke('https://bower-component-list.herokuapp.com/', {
 
 Any one, two or three arguments can be skipped, except the **url**.
 
-* **abort** is a function for aborting the HTTP request. It is also a [Promise/A+](http://promisesaplus.com/)-compliant promise (has the `then()` method) that receives all the same events as the callbacks - **uploading**, **downloading**, **gotStatus** and **finished** - see [an example](#basic). When invoked as a function, it immediately calls the "finished" callback with an Error. If "finished" callback is already called before the "abort", nothing happens.
+* **abort** is a function for aborting the HTTP request. It is also a [Promise/A+](http://promisesaplus.com/)-compliant promise (has the `then()` method) that receives all the same events as the callbacks - **uploading**, **downloading**, **gotStatus** and **finished** - see [an example](#basic-with-promises). When invoked as a function, it immediately calls the "finished" callback with an Error. If "finished" callback is already called before the "abort", nothing happens.
 * **url** is a string for URL, e.g. `"http://example.org/"`.
 * **method** is a string for HTTP method, one of `"HEAD"`, `"GET"`, `"PATCH"`, `"POST"`, `"PUT"`, `"DELETE"`.
 * **options** is an object for various options (see the Options section below) or a function, which is used as a "finished" option (see the first example).
