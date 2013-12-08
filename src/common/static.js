@@ -1,4 +1,5 @@
 var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
+    /* jshint expr:true */
     a && a.then && a.then(function() {
         b[resolve].apply(null, arguments);
     }, function() {
@@ -6,7 +7,8 @@ var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
     }, function() {
         b[progress].apply(null, arguments);
     });
-}, mixInPromise = function(o) {
+    /* jshint expr:false */
+}, nextTick = (global.process && global.process.nextTick) || global.setImmediate || global.setTimeout, mixInPromise = function(o) {
     var value, queue = [], state = progress;
     var makeState = function(newstate) {
         o[newstate] = function(newvalue) {
@@ -51,7 +53,7 @@ var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
         return item._;
     };
     return o;
-}, isArrayBufferView = function(input) {
+}, isArrayBufferView = /* jshint undef:false */function(input) {
     return typeof input === 'object' && input !== null && (
         (global.ArrayBufferView && input instanceof ArrayBufferView) ||
         (global.Int8Array && input instanceof Int8Array) ||
@@ -64,12 +66,12 @@ var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
         (global.Float32Array && input instanceof Float32Array) ||
         (global.Float64Array && input instanceof Float64Array)
     );
-}, isArray = function(object) {
+}/* jshint undef:true */, isArray = function(object) {
     return Object.prototype.toString.call(object) === '[object Array]';
 }, isFormData = function(input) {
     return typeof input === 'object' && input !== null && global.FormData &&
         input instanceof global.FormData;
-}, isByteArray = function(input) {
+}, isByteArray = /* jshint undef:false */function(input) {
     return typeof input === 'object' && input !== null && (
         (global.Buffer && input instanceof Buffer) ||
         (global.Blob && input instanceof Blob) ||
@@ -78,6 +80,6 @@ var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
         isArrayBufferView(input) ||
         isArray(input)
     );
-}, bytearrayMessage = 'an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array', supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,', pass = function(value) {
+}/* jshint undef:true */, bytearrayMessage = 'an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array', supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,', pass = function(value) {
     return value;
-}, nextTick = (global.process && global.process.nextTick) || global.setImmediate || global.setTimeout, _undefined;
+}, _undefined;

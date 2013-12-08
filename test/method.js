@@ -2,6 +2,7 @@ var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('supported HTTP methods', function() {
+    'use strict';
     this.timeout(10000);
     cfg.eachBase(function(postfix, url, crossDomain) {
         var i;

@@ -2,6 +2,7 @@ var http = require('http');
 var fs = require('fs');
 
 var serveFile = function(res, filename, mimeType) {
+    'use strict';
     fs.readFile(filename, function(err, file) {
         if(err) {
             res.writeHead(500);
@@ -17,9 +18,11 @@ var serveFile = function(res, filename, mimeType) {
 };
 
 var noop = function() {
+    'use strict';
 };
 
 http.createServer(function (req, res) {
+    'use strict';
     console.log(req.method + ' ' + req.url);
     if(req.method === 'GET') {
         if(req.url === '/httpinvoke.js') {

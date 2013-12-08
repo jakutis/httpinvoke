@@ -1,7 +1,71 @@
 var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
+function isValidReason(reason) {
+    'use strict';
+    return typeof reason === 'object' && reason !== null && reason instanceof Error;
+}
+
+function isValidResponse(response, crossDomain) {
+    'use strict';
+    return typeof response === 'object' && typeof response.body === 'string' && (typeof response.statusCode === 'number' || !(!crossDomain || httpinvoke.corsStatus)) && typeof response.headers === 'object';
+}
+
+function isValidProgress(progress, crossDomain) {
+    'use strict';
+    if(typeof progress !== 'object' || typeof progress.type !== 'string') {
+        return false;
+    }
+    if(progress.type === 'upload') {
+        if(typeof progress.current !== 'number') {
+            return false;
+        }
+        if(typeof progress.total !== 'number') {
+            return false;
+        }
+        if(progress.current > progress.total) {
+            return false;
+        }
+    } else if(progress.type === 'download') {
+        if(typeof progress.current !== 'number') {
+            return false;
+        }
+        if(typeof progress.total === 'number') {
+            if(progress.current > progress.total) {
+                return false;
+            }
+        }
+    } else if(progress.type === 'headers') {
+        if((!crossDomain || httpinvoke.corsStatus) && typeof progress.statusCode !== 'number') {
+            return false;
+        }
+        if(typeof progress.headers !== 'object') {
+            return false;
+        }
+        if(typeof progress.headers['content-type'] !== 'string') {
+            return false;
+        }
+    } else if(progress.type === 'body') {
+        if(typeof progress.statusCode !== 'number') {
+            return false;
+        }
+        if(typeof progress.headers !== 'object') {
+            return false;
+        }
+        if(typeof progress.headers['content-type'] !== 'string') {
+            return false;
+        }
+        if(typeof progress.body !== 'string') {
+            return false;
+        }
+    } else {
+        return false;
+    }
+    return true;
+}
+
 describe('promise', function() {
+    'use strict';
     this.timeout(10000);
     cfg.eachBase(function(postfix, url, crossDomain) {
         it('supports Promises/A' + postfix, function(done) {
@@ -43,7 +107,7 @@ describe('promise', function() {
                     return done(new Error('onResolved was not called as a function'));
                 }
                 httpinvoke(url, 'ERROR').then(function() {
-                }, function(err) {
+                }, function() {
                     if(!done) {
                         return;
                     }
@@ -143,7 +207,6 @@ describe('promise', function() {
         });
         ['chunked', 'joined'].forEach(function(partial) {
             it('supports .partial in "download" progress event, when option "partialOutputMode" is set to "' + partial + '"' + postfix, function(done) {
-                var err;
                 httpinvoke(url, {
                     partialOutputMode: partial
                 }).then(function() {
@@ -174,63 +237,3 @@ describe('promise', function() {
         });
     });
 });
-
-function isValidReason(reason) {
-    return typeof reason === 'object' && reason !== null && reason instanceof Error;
-}
-
-function isValidResponse(response, crossDomain) {
-    return typeof response === 'object' && typeof response.body === 'string' && (typeof response.statusCode === 'number' || !(!crossDomain || httpinvoke.corsStatus)) && typeof response.headers === 'object';
-}
-
-function isValidProgress(progress, crossDomain) {
-    if(typeof progress !== 'object' || typeof progress.type !== 'string') {
-        return false;
-    }
-    if(progress.type === 'upload') {
-        if(typeof progress.current !== 'number') {
-            return false;
-        }
-        if(typeof progress.total !== 'number') {
-            return false;
-        }
-        if(progress.current > progress.total) {
-            return false;
-        }
-    } else if(progress.type === 'download') {
-        if(typeof progress.current !== 'number') {
-            return false;
-        }
-        if(typeof progress.total === 'number') {
-            if(progress.current > progress.total) {
-                return false;
-            }
-        }
-    } else if(progress.type === 'headers') {
-        if((!crossDomain || httpinvoke.corsStatus) && typeof progress.statusCode !== 'number') {
-            return false;
-        }
-        if(typeof progress.headers !== 'object') {
-            return false;
-        }
-        if(typeof progress.headers['content-type'] !== 'string') {
-            return false;
-        }
-    } else if(progress.type === 'body') {
-        if(typeof progress.statusCode !== 'number') {
-            return false;
-        }
-        if(typeof progress.headers !== 'object') {
-            return false;
-        }
-        if(typeof progress.headers['content-type'] !== 'string') {
-            return false;
-        }
-        if(typeof progress.body !== 'string') {
-            return false;
-        }
-    } else {
-        return false;
-    }
-    return true;
-}

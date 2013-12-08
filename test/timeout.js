@@ -2,6 +2,7 @@ var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('"timeout" option', function() {
+    'use strict';
     this.timeout(10000);
     cfg.eachBase(function(postfix, url) {
         it('lets finish without an error when the whole request would take shorter than specified timeout' + postfix, function(done) {

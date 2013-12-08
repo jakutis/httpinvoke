@@ -2,6 +2,7 @@ var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('abort', function() {
+    'use strict';
     this.timeout(10000);
     cfg.eachBase(function(postfix, url) {
         it('does not throw' + postfix, function(done) {

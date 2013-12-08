@@ -2,6 +2,7 @@ var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 var arraysEqual = function(a, b) {
+    'use strict';
     if(a.length !== b.length) {
         return false;
     }
@@ -14,6 +15,7 @@ var arraysEqual = function(a, b) {
 };
 
 describe('"downloading" option', function() {
+    'use strict';
     this.timeout(10000);
     var urls = [];
     cfg.eachBase(function(postfix, url, crossDomain) {
@@ -38,7 +40,7 @@ describe('"downloading" option', function() {
             crossDomain: crossDomain
         });
     });
-    cfg.eachBase(function(postfix, url, crossDomain) {
+    cfg.eachBase(function(postfix, url) {
         ['chunked', 'joined'].forEach(function(partial) {
             it('has argument "partial", if option "partialOutputMode" is set to "' + partial + '"' + postfix, function(done) {
                 httpinvoke(url + 'big', {
@@ -153,7 +155,6 @@ describe('"downloading" option', function() {
     });
     urls.forEach(function(url) {
         var postfix = url.postfix;
-        var crossDomain = url.crossDomain;
         url = url.url;
         it('is called at least twice' + postfix, function(done) {
             var count = 0;
@@ -191,7 +192,7 @@ describe('"downloading" option', function() {
         });
         it('has the last total be always defined' + postfix, function(done) {
             var defined = false;
-            var abort = httpinvoke(url, {
+            httpinvoke(url, {
                 downloading: function(_, total) {
                     defined = typeof total !== 'undefined';
                 },
@@ -208,7 +209,7 @@ describe('"downloading" option', function() {
         });
         it('has total be always defined, after first time' + postfix, function(done) {
             var defined = false;
-            var abort = httpinvoke(url, {
+            httpinvoke(url, {
                 downloading: function(_, total) {
                     if(typeof total !== 'undefined') {
                         defined = true;

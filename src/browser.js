@@ -1,14 +1,15 @@
-(function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
-        define(factory);
-    } else if (typeof exports === 'object') {
-        module.exports = factory();
-    } else {
-        root.httpinvoke = factory();
-  }
-}(this, function () {
+/* jshint -W030 */
+/* jshint -W033 */
+/* jshint -W068 */
+(function() {
+/* jshint +W030 */
+/* jshint +W033 */
+/* jshint +W068 */
+    'use strict';
     var global;
-    var mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick;
+    /* jshint unused:true */
+    var mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData;
+    /* jshint unused:false */
     // this could be a simple map, but with this "compression" we save about 100 bytes, if minified (50 bytes, if also gzipped)
     var statusTextToCode = (function() {
         for(var group = arguments.length, map = {};group--;) {
@@ -32,7 +33,9 @@
     };
     var responseBodyToBytes, responseBodyLength;
     try {
+        /* jshint evil:true */
         execScript('Function httpinvoke0(B,A)\r\nDim i\r\nFor i=1 to LenB(B)\r\nA.push(AscB(MidB(B,i,1)))\r\nNext\r\nEnd Function\r\nFunction httpinvoke1(B)\r\nhttpinvoke1=LenB(B)\r\nEnd Function', 'vbscript');
+        /* jshint evil:false */
         responseBodyToBytes = function(binary) {
             var bytes = [];
             httpinvoke0(binary, bytes);
@@ -49,7 +52,9 @@
     };
     var binaryStringToByteArray = function(str) {
         for(var n = str.length, bytearray = new Array(n);n--;) {
+            /* jshint bitwise:false */
             bytearray[n] = str.charCodeAt(n) & 255;
+            /* jshint bitwise:true */
         }
         return bytearray;
     };
@@ -114,7 +119,9 @@
     };
     var createXHR;
     var httpinvoke = function(uri, method, options, cb) {
-        var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+        /* jshint unused:true */
+        var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode;
+        /* jshint unused:false */
         /*************** initialize helper variables **************/
         var xhr, i, j, currentLocation, crossDomain, output,
             getOutput = function() {
@@ -207,7 +214,9 @@
             xhr.upload.onerror = function() {
                 received.error = true;
                 // must check, because some callbacks are called synchronously, thus throwing exceptions and breaking code
+                /* jshint expr:true */
                 cb && cb(new Error('network error'));
+                /* jshint expr:false */
             };
             xhr.upload.onprogress = onuploadprogress;
         } else if('onuploadprogress' in xhr) {
@@ -237,7 +246,9 @@
 
                 // Opera 12 progress events has a bug - .loaded can be higher than .total
                 // see http://dev.opera.com/articles/view/xhr2/#comment-96081222
+                /* jshint expr:true */
                 cb && current <= outputLength && !statusCb && downloadProgressCb(current, outputLength, getOutputPartial());
+                /* jshint expr:false */
             } catch(_) {
             }
         };
@@ -319,10 +330,12 @@
                         received.headers = true;
                     }
                 }
-                for(var i = 0; i < exposedHeaders.length; i += 1) {
+                for(var i = 0; i < exposedHeaders.length; i++) {
                     var header;
                     try {
+                        /* jshint boss:true */
                         if(header = xhr.getResponseHeader(exposedHeaders[i])) {
+                        /* jshint boss:false */
                             outputHeaders[exposedHeaders[i].toLowerCase()] = header;
                             received.headers = true;
                         }
@@ -468,7 +481,7 @@
         };
         var onloadBound = 'onload' in xhr;
         if(onloadBound) {
-            xhr.onload = function(progressEvent) {
+            xhr.onload = function() {
                 received.success = true;
                 //dbg('onload');
                 onLoad();
@@ -668,7 +681,9 @@
 
         /*************** return "abort" function **************/
         promise = function() {
+            /* jshint expr:true */
             cb && cb(new Error('abort'));
+            /* jshint expr:false */
             try {
                 xhr.abort();
             } catch(err){
@@ -735,15 +750,16 @@
         var candidates = ['Microsoft.XMLHTTP', 'Msxml2.XMLHTTP.6.0', 'Msxml2.XMLHTTP.3.0', 'Msxml2.XMLHTTP'];
         for(var i = candidates.length; i--;) {
             try {
+                /* jshint loopfunc:true */
                 createXHR = function() {
                     return new ActiveXObject(candidates[i]);
                 };
+                /* jshint loopfunc:true */
                 createXHR();
                 httpinvoke.requestTextOnly = true;
                 return;
             } catch(err) {
             }
-            i -= 1;
         }
         createXHR = _undefined;
     })();
@@ -756,4 +772,4 @@
     })();
 
     return httpinvoke;
-}));
+})

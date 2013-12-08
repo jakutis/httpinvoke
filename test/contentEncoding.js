@@ -2,6 +2,7 @@ var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('support for "Content-Encoding" from server-side', function() {
+    'use strict';
     this.timeout(10000);
     cfg.eachBase(function(postfix, url) {
         ['gzip', 'deflate', 'identity'].forEach(function(encoding) {

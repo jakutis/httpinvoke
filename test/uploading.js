@@ -2,6 +2,7 @@ var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('"uploading" option', function() {
+    'use strict';
     this.timeout(10000);
     var input, inputs = [];
 
@@ -14,7 +15,7 @@ describe('"uploading" option', function() {
         inputs.push({
             name: 'formdata',
             inputType: 'formdata',
-            input: new FormData()
+            input: new global.FormData()
         });
     }
 
@@ -44,7 +45,7 @@ describe('"uploading" option', function() {
             fn(_undefined, inputs[input].input, inputs[input].inputLength, inputs[input].name);
         }
     };
-    cfg.eachBase(function(_postfix, url, crossDomain) {
+    cfg.eachBase(function(_postfix, url) {
         eachInput(function(inputType, input, inputLength, name) {
             var postfix = _postfix + ' (' + name + '-' + inputType + ')';
             it('is called at least twice' + postfix, function(done) {

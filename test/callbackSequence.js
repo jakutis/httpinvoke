@@ -2,6 +2,7 @@ var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('sequence of callback options', function() {
+    'use strict';
     this.timeout(10000);
     cfg.eachBase(function(postfix, url) {
         it('ensures that "uploading" is called before "gotStatus"' + postfix, function(done) {

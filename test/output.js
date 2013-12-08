@@ -2,12 +2,13 @@ var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('"output" argument of "finished" option', function() {
+    'use strict';
     this.timeout(10000);
     cfg.eachBase(function(postfix, url, crossDomain) {
         it('finishes with error, if "outputType" option is not one of: "text", "bytearray"' + postfix, function(done) {
             httpinvoke(url, {
-                outputType: "string",
-                finished: function(err, output) {
+                outputType: 'string',
+                finished: function(err) {
                     if(err) {
                         return done();
                     }
@@ -40,7 +41,7 @@ describe('"output" argument of "finished" option', function() {
                         if(err) {
                             return done(err);
                         }
-                        if(!(output instanceof Buffer)) {
+                        if(!(output instanceof global.Buffer)) {
                             return done(new Error('Received output is not a Buffer'));
                         }
                         done();
@@ -55,7 +56,7 @@ describe('"output" argument of "finished" option', function() {
                         if(err) {
                             return done(err);
                         }
-                        if(!(output instanceof Uint8Array)) {
+                        if(!(output instanceof global.Uint8Array)) {
                             return done(new Error('Received output is not an Uint8Array'));
                         }
                         done();

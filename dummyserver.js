@@ -8,6 +8,7 @@ var zlib = require('zlib');
 var hello = new Buffer('Hello World\n', 'utf8');
 
 var compress = function(output, encoding, cb) {
+    'use strict';
     if(encoding === 'gzip') {
         zlib.gzip(output, cb);
     } else if(encoding === 'deflate') {
@@ -24,6 +25,7 @@ var compress = function(output, encoding, cb) {
 };
 
 var readEntityBody = function(req, text, cb) {
+    'use strict';
     var chunks = [];
     req.on('data', function(chunk) {
         chunks.push(chunk);
@@ -39,10 +41,12 @@ var readEntityBody = function(req, text, cb) {
 };
 
 var endsWith = function(str, substr) {
+    'use strict';
     return str.substr(str.length - substr.length) === substr;
 };
 
 var beginsWith = function(str, substr) {
+    'use strict';
     return str.substr(0, substr.length) === substr;
 };
 
@@ -53,6 +57,7 @@ var beginsWith = function(str, substr) {
 // read more: http://www.kinvey.com/blog/107/how-to-build-a-service-that-supports-every-android-browser
 
 var corsHeaders = function(headers, req) {
+    'use strict';
     headers['Access-Control-Allow-Credentials'] = 'true';
     headers['Access-Control-Allow-Origin'] = '*';
     headers['Access-Control-Allow-Methods'] = 'OPTIONS, POST, HEAD, PATCH, PUT, DELETE, GET';
@@ -70,6 +75,7 @@ var corsHeaders = function(headers, req) {
 };
 
 var entityHeaders = function(headers) {
+    'use strict';
     // workaround for #2: avoiding cache
     headers.Pragma = 'no-cache';
     headers.Expires = 'Thu, 01 Jan 1970 00:00:00 GMT';
@@ -78,6 +84,7 @@ var entityHeaders = function(headers) {
 };
 
 var bigHello = function(req, res, interval) {
+    'use strict';
     var entity = 'This School Is Not Falling Apart.\n';
     var n = 100, headers = {
         'Content-Type': 'text/plain; charset=UTF-8',
@@ -101,6 +108,7 @@ var bigHello = function(req, res, interval) {
 };
 
 var outputStatus = function(req, res) {
+    'use strict';
     var code, i, max = 0;
     Object.keys(cfg.status).forEach(function(code) {
         Object.keys(cfg.status[code]).forEach(function(method) {
@@ -121,7 +129,7 @@ var outputStatus = function(req, res) {
         }
     })) {
         if(typeof cfg.status[code][req.method] !== 'undefined') {
-            readEntityBody(req, false, function(err, input) {
+            readEntityBody(req, false, function() {
                 var params = cfg.status[code][req.method][i];
                 var headers = {};
                 corsHeaders(headers, req);
@@ -158,6 +166,7 @@ var outputStatus = function(req, res) {
 };
 
 var listen = function (req, res) {
+    'use strict';
     var headers;
 
     req.proxyPath = req.url.substr(0, cfg.proxyPath.length) === cfg.proxyPath ? cfg.proxyPath : '';

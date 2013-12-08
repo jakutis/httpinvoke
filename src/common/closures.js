@@ -1,3 +1,8 @@
+/* global httpinvoke, url, method, options, cb */
+/* global nextTick, mixInPromise, pass, progress, reject, resolve, supportedMethods, isArray, isArrayBufferView, isFormData, isByteArray, bytearrayMessage */
+/* global setTimeout */
+/* global crossDomain */// this one is a hack, because when in nodejs this is not really defined, but it is never needed
+/* jshint -W020 */
 var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
 /*************** COMMON initialize parameters **************/
 var downloadTimeout, uploadTimeout, timeout;
@@ -173,10 +178,10 @@ if(typeof options.input !== 'undefined') {
         return failWithoutRequest(cb, new Error('There is no converter for specified inputType'));
     }
     if(typeof input === 'object' && !isFormData(input)) {
-        if(global.ArrayBuffer && input instanceof ArrayBuffer) {
-            input = new Uint8Array(input);
+        if(global.ArrayBuffer && input instanceof global.ArrayBuffer) {
+            input = new global.Uint8Array(input);
         } else if(isArrayBufferView(input)) {
-            input = new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+            input = new global.Uint8Array(input.buffer, input.byteOffset, input.byteLength);
         }
     }
     try {

@@ -5,6 +5,7 @@ var httpinvoke = require('../httpinvoke-node');
 var forbiddenInputHeaders = ['Accept-Charset', 'Accept-Encoding', 'Access-Control-Request-Headers', 'Access-Control-Request-Method', 'Connection', 'Content-Length', 'Content-Transfer-Encoding', 'Cookie', 'Cookie2', 'Date', 'DNT', 'Expect', 'Host', 'Keep-Alive', 'Origin', 'Referer', 'TE', 'Trailer', 'Transfer-Encoding', 'Upgrade', 'User-Agent', 'Via', 'Proxy-Authorization', 'Sec-From'];
 
 describe('"headers" option', function() {
+    'use strict';
     this.timeout(10000);
     cfg.eachBase(function(postfix, url, crossDomain) {
         if(!crossDomain || httpinvoke.corsRequestHeaders) {

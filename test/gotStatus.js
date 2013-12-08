@@ -2,6 +2,7 @@ var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('"gotStatus" option', function() {
+    'use strict';
     this.timeout(10000);
     cfg.eachBase(function(postfix, url, crossDomain) {
         it('receives Content-Type header when method=GET results in status 200 on server' + postfix, function(done) {
@@ -14,7 +15,7 @@ describe('"gotStatus" option', function() {
         if(!crossDomain || httpinvoke.corsStatus) {
             it('receives status 200 when method=GET results in status 200 on server' + postfix, function(done) {
                 httpinvoke(url, {
-                    gotStatus: function(status, __) {
+                    gotStatus: function(status) {
                         if(status !== 200) {
                             return done(new Error('status argument is not defined'));
                         }

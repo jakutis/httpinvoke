@@ -2,11 +2,14 @@ var http = require('http');
 var url = require('url');
 var zlib = require('zlib');
 
-var mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick;
+/* jshint unused:true */
+var mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData;
+/* jshint unused:false */
 
 // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
 var forbiddenInputHeaders = ['accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'content-transfer-encoding', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
 var validateInputHeaders = function(headers) {
+    'use strict';
     for(var header in headers) {
         if(headers.hasOwnProperty(header)) {
             var headerl = header.toLowerCase();
@@ -24,6 +27,7 @@ var validateInputHeaders = function(headers) {
 };
 
 var copy = function(from, to) {
+    'use strict';
     Object.keys(from).forEach(function(key) {
         to[key] = from[key];
     });
@@ -32,27 +36,33 @@ var copy = function(from, to) {
 
 var emptyBuffer = new Buffer([]);
 
-var utf8CharacterSizeFromHeaderByte = function(byte) {
-    if(byte < 128) {
+var utf8CharacterSizeFromHeaderByte = function(b) {
+    'use strict';
+    if(b < 128) {
         // one byte, ascii character
         return 1;
     }
+    /* jshint bitwise:false */
     var mask = (1 << 7) | (1 << 6);
     var test = 128;
-    if((byte & mask) === test) {
-        // byte is not a header byte
+    if((b & mask) === test) {
+        // b is not a header byte
         return 0;
     }
-    for(var length = 1; (byte & mask) !== test; length += 1) {
+    for(var length = 1; (b & mask) !== test; length += 1) {
         mask = (mask >> 1) | 128;
         test = (test >> 1) | 128;
     }
+    /* jshint bitwise:true */
     // multi byte utf8 character
     return length;
 };
 
 var httpinvoke = function(uri, method, options, cb) {
-    var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+    'use strict';
+    /* jshint unused:true */
+    var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode;
+    /* jshint unused:false */
     /*************** initialize helper variables **************/
     try {
         validateInputHeaders(inputHeaders);
@@ -211,7 +221,10 @@ var httpinvoke = function(uri, method, options, cb) {
     });
 
     nextTick(function() {
-        cb && uploadProgressCb(0, inputLength);
+        if(!cb) {
+            return;
+        }
+        uploadProgressCb(0, inputLength);
     });
     if(typeof input !== 'undefined') {
         input = new Buffer(input);
@@ -220,12 +233,18 @@ var httpinvoke = function(uri, method, options, cb) {
     } else {
         inputLength = 0;
     }
-    req.on('error', function(e) {
-        cb && cb(new Error('network error'));
+    req.on('error', function() {
+        if(!cb) {
+            return;
+        }
+        cb(new Error('network error'));
     });
     req.end();
     promise = function() {
-        cb && cb(new Error('abort'));
+        if(!cb) {
+            return;
+        }
+        cb(new Error('abort'));
     };
     return mixInPromise(promise);
 };

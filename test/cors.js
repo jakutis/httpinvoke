@@ -2,13 +2,11 @@ var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('"cors" feature flag', function() {
+    'use strict';
     this.timeout(10000);
     it('exists', function(done) {
         if(typeof httpinvoke.cors !== 'boolean') {
             return done(new Error('The httpinvoke.cors flag was not found'));
-        }
-        if(!httpinvoke.cors) {
-            console.log('CORS is not supported');
         }
         done();
     });

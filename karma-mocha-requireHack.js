@@ -1,3 +1,4 @@
+/* jshint -W020 */
 if(typeof window === 'undefined') {
     window = {};
 } else {
@@ -7,6 +8,7 @@ if(typeof window === 'undefined') {
 if(typeof location === 'undefined') {
     location = {};
 }
+/* jshint +W020 */
 
 window._httpinvoke = window.httpinvoke;
 
@@ -282,6 +284,7 @@ window._cfg = {
         }
     },
     makeTextFinished: function(done) {
+        'use strict';
         var cfg = require('./dummyserver-config');
         return function(err, output) {
             if(err) {
@@ -297,6 +300,7 @@ window._cfg = {
         };
     },
     makeByteArrayFinished: function(done) {
+        'use strict';
         var cfg = require('./dummyserver-config');
         return function(err, output) {
             if(err) {
@@ -322,6 +326,7 @@ window._cfg = {
         };
     },
     eachBase: function(fn) {
+        'use strict';
         var httpinvoke = require('./httpinvoke-node');
         if(httpinvoke.cors) {
             try {
@@ -335,6 +340,7 @@ window._cfg = {
         }
     },
     jsonTest: function() {
+        'use strict';
         return [{
             a: 0,
             b: false,
@@ -343,6 +349,7 @@ window._cfg = {
         }];
     },
     jsonTestPasses: function(json) {
+        'use strict';
         if(typeof json !== 'object' || json === null) {
             return false;
         }
@@ -370,9 +377,11 @@ window._cfg = {
         return true;
     },
     textTest: function() {
+        'use strict';
         return 'ąčęėįšųū„“–ž1234567890-=!@#$%^&*()_+´¬¿,./;[]';
     },
     bytearrayTest: function() {
+        'use strict';
         var i, bytes = [];
         for(i = 0; i < 64; i += 1) {
             bytes.push(0);
@@ -391,6 +400,7 @@ window._cfg.corsURL = 'http://' + window._cfg.host + ':' + (window._cfg.port ===
 window._cfg.url = 'http://' + window._cfg.host + ':' + window._cfg.port + (window._cfg.port === window._cfg.dummyserverPort ? '' : window._cfg.proxyPath) + '/';
 
 window.require = function(module) {
+    'use strict';
     if(module === '../dummyserver-config' || module === './dummyserver-config') {
         return window._cfg;
     }
@@ -405,6 +415,7 @@ if(!global.console) {
     global.console = {
         _log: [],
         log: function() {
+            'use strict';
             this._log.push([].slice.call(arguments));
         }
     };

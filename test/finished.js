@@ -2,6 +2,7 @@ var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('"finished" option', function() {
+    'use strict';
     this.timeout(10000);
     cfg.eachBase(function(postfix, url, crossDomain) {
         it('is called exactly once' + postfix, function(done) {
@@ -14,7 +15,7 @@ describe('"finished" option', function() {
                 }
                 count += 1;
                 if(count === 1) {
-                    setTimeout(function() {
+                    global.setTimeout(function() {
                         if(done === null) {
                             return;
                         }
@@ -28,7 +29,9 @@ describe('"finished" option', function() {
         });
         it('receives Content-Type header when method=GET results in status 200 on server' + postfix, function(done) {
             httpinvoke(url, {
+                /* jshint unused:false */
                 finished: function(err, _, __, headers) {
+                /* jshint unused:true */
                     if(err) {
                         return done(err);
                     }
@@ -39,7 +42,7 @@ describe('"finished" option', function() {
         if(!crossDomain || httpinvoke.corsStatus) {
             it('receives status 200 when method=GET results in status 200 on server' + postfix, function(done) {
                 httpinvoke(url, {
-                    finished: function(err, _, status, __) {
+                    finished: function(err, _, status) {
                         if(err) {
                             return done(err);
                         }

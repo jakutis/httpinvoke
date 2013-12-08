@@ -1,5 +1,9 @@
 if(typeof process !== 'undefined' && typeof process.versions !== 'undefined' && typeof process.versions.node !== 'undefined') {
-var node;
+/* jshint unused:true */
+    var node;
+/* jshint unused:false */
 } else {
-var browser;
+/* jshint unused:true */
+    var browser;
+/* jshint unused:false */
 }

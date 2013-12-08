@@ -2,8 +2,9 @@ var cfg = require('../dummyserver-config');
 var httpinvoke = require('../httpinvoke-node');
 
 describe('"err" argument in "finished" callback', function() {
+    'use strict';
     this.timeout(10000);
-    cfg.eachBase(function(postfix, url, crossDomain) {
+    cfg.eachBase(function(postfix, url) {
         it('is set to the same error that input converter threw' + postfix, function(done) {
             var err = new Error();
             httpinvoke(url, 'POST', {
