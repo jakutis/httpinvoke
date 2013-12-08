@@ -70,7 +70,7 @@
         }
         var bytearray = binaryStringToByteArray(xhr.responseText);
         // firefox 4 supports typed arrays but not xhr2
-        return global.Uint8Array ? new global.Uint8Array(bytearray) : bytearray;
+        return global.Uint8Array ? new Uint8Array(bytearray) : bytearray;
     };
     var getOutputLengthText = function(xhr) {
         return countStringBytes(getOutputText(xhr));
@@ -134,7 +134,7 @@
                 if(partialOutputMode === 'disabled') {
                     return;
                 }
-                var joined = getOutput(), partial = partialOutputMode === 'joined' ? joined : (outputBinary ? (isArrayBufferView(joined) ? new global.Uint8Array(bufferSlice(joined, joined.length, partialPosition, joined.length)) : joined.slice(partialPosition)) : joined.substr(partialPosition));
+                var joined = getOutput(), partial = partialOutputMode === 'joined' ? joined : (outputBinary ? (isArrayBufferView(joined) ? new Uint8Array(bufferSlice(joined, joined.length, partialPosition, joined.length)) : joined.slice(partialPosition)) : joined.substr(partialPosition));
                 partialPosition = joined.length;
                 return partial;
             };
@@ -581,14 +581,18 @@
                                 toBlob();
                             }
                         } else {
+                            inputLength = input.byteLength;
                             try {
-                                inputLength = input.byteLength;
-                                // if there is ArrayBufferView, then the browser supports sending instances of subclasses of ArayBufferView, otherwise we must send an ArrayBuffer
-                                xhr.send(global.ArrayBufferView ? input : bufferSlice(input.buffer, input.buffer.byteLength, input.byteOffset, input.byteOffset + input.byteLength));
+                                xhr.send(input);
                                 return;
                             } catch(_) {
-                                triedSendArrayBufferView = true;
+                                try {
+                                    xhr.send(bufferSlice(input.buffer, input.buffer.byteLength, input.byteOffset, input.byteOffset + input.byteLength));
+                                    return;
+                                } catch(__) {
+                                }
                             }
+                            triedSendArrayBufferView = true;
                         }
                     } else if(global.Blob && input instanceof Blob) {
                         if(triedSendBlob) {
