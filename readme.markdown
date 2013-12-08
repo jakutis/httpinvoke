@@ -156,7 +156,7 @@ httpinvoke('https://bower-component-list.herokuapp.com/', 'GET', {
 
 ### Streaming JSON
 
-```
+```javascript
 var clarinet = require('clarinet');
 var httpinvoke = require('httpinvoke');
 
