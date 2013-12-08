@@ -54,5 +54,10 @@
     "email": "vytautas@jakut.is",
     "url": "https://jakut.is/"
   },
-  "contributors": []
+  "contributors": [],
+  "engines" : {
+    "node" : ">=0.8.0 <0.11"
+  },
+  "engineStrict": true,
+  "private": false
 }
