@@ -137,43 +137,45 @@ if(partialOutputMode.indexOf(',') >= 0 || ',disabled,chunked,joined,'.indexOf(',
 if(method.indexOf(',') >= 0 || supportedMethods.indexOf(',' + method + ',') < 0) {
     return failWithoutRequest(cb, new Error('Unsupported method ' + method));
 }
-outputBinary = options.outputType === 'bytearray';
-if(!options.outputType || options.outputType === 'text' || outputBinary) {
+var optionsOutputType = options.outputType;
+outputBinary = optionsOutputType === 'bytearray';
+if(!optionsOutputType || optionsOutputType === 'text' || outputBinary) {
     outputConverter = pass;
-} else if(converters['text ' + options.outputType]) {
-    outputConverter = converters['text ' + options.outputType];
+} else if(converters['text ' + optionsOutputType]) {
+    outputConverter = converters['text ' + optionsOutputType];
     outputBinary = false;
-} else if(converters['bytearray ' + options.outputType]) {
-    outputConverter = converters['bytearray ' + options.outputType];
+} else if(converters['bytearray ' + optionsOutputType]) {
+    outputConverter = converters['bytearray ' + optionsOutputType];
     outputBinary = true;
 } else {
-    return failWithoutRequest(cb, new Error('Unsupported outputType ' + options.outputType));
+    return failWithoutRequest(cb, new Error('Unsupported outputType ' + optionsOutputType));
 }
 inputConverter = pass;
-if(typeof options.input !== 'undefined') {
-    input = options.input;
-    if(!options.inputType || options.inputType === 'auto') {
+var optionsInputType = options.inputType;
+input = options.input;
+if(typeof input !== 'undefined') {
+    if(!optionsInputType || optionsInputType === 'auto') {
         if(typeof input !== 'string' && !isByteArray(input) && !isFormData(input)) {
             return failWithoutRequest(cb, new Error('inputType is undefined or auto and input is neither string, nor FormData, nor ' + bytearrayMessage));
         }
-    } else if(options.inputType === 'text') {
+    } else if(optionsInputType === 'text') {
         if(typeof input !== 'string') {
             return failWithoutRequest(cb, new Error('inputType is text, but input is not a string'));
         }
-    } else if (options.inputType === 'formdata') {
+    } else if (optionsInputType === 'formdata') {
         if(!isFormData(input)) {
             return failWithoutRequest(cb, new Error('inputType is formdata, but input is not an instance of FormData'));
         }
-    } else if (options.inputType === 'bytearray') {
+    } else if (optionsInputType === 'bytearray') {
         if(!isByteArray(input)) {
             return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither ' + bytearrayMessage));
         }
-    } else if(converters[options.inputType + ' text']) {
-        inputConverter = converters[options.inputType + ' text'];
-    } else if(converters[options.inputType + ' bytearray']) {
-        inputConverter = converters[options.inputType + ' bytearray'];
-    } else if(converters[options.inputType + ' formdata']) {
-        inputConverter = converters[options.inputType + ' formdata'];
+    } else if(converters[optionsInputType + ' text']) {
+        inputConverter = converters[optionsInputType + ' text'];
+    } else if(converters[optionsInputType + ' bytearray']) {
+        inputConverter = converters[optionsInputType + ' bytearray'];
+    } else if(converters[optionsInputType + ' formdata']) {
+        inputConverter = converters[optionsInputType + ' formdata'];
     } else {
         return failWithoutRequest(cb, new Error('There is no converter for specified inputType'));
     }
@@ -190,7 +192,7 @@ if(typeof options.input !== 'undefined') {
         return failWithoutRequest(cb, err);
     }
 } else {
-    if(options.inputType && options.inputType !== 'auto') {
+    if(optionsInputType && optionsInputType !== 'auto') {
         return failWithoutRequest(cb, new Error('"input" is undefined, but inputType is defined'));
     }
     if(inputHeaders['Content-Type']) {
@@ -200,15 +202,16 @@ if(typeof options.input !== 'undefined') {
 var isValidTimeout = function(timeout) {
     return timeout > 0 && timeout < 1073741824;
 };
-if(typeof options.timeout !== 'undefined') {
-    if(typeof options.timeout === 'number' && isValidTimeout(options.timeout)) {
-        timeout = options.timeout;
-    } else if(isArray(options.timeout) && options.timeout.length === 2 && isValidTimeout(options.timeout[0]) && isValidTimeout(options.timeout[1])) {
+var optionsTimeout = options.timeout;
+if(typeof optionsTimeout !== 'undefined') {
+    if(typeof optionsTimeout === 'number' && isValidTimeout(optionsTimeout)) {
+        timeout = optionsTimeout;
+    } else if(isArray(optionsTimeout) && optionsTimeout.length === 2 && isValidTimeout(optionsTimeout[0]) && isValidTimeout(optionsTimeout[1])) {
         if(httpinvoke.corsFineGrainedTimeouts || !crossDomain) {
-            uploadTimeout = options.timeout[0];
-            downloadTimeout = options.timeout[1];
+            uploadTimeout = optionsTimeout[0];
+            downloadTimeout = optionsTimeout[1];
         } else {
-            timeout = options.timeout[0] + options.timeout[1];
+            timeout = optionsTimeout[0] + optionsTimeout[1];
         }
     } else {
         return failWithoutRequest(cb, new Error('"timeout" value is not valid'));
