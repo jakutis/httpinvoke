@@ -95,7 +95,7 @@ describe('"err" argument in "finished" callback', function() {
                 }
             });
         });
-        it('is set, if url is not valid', function() {
+        it('is set, if url is not valid', function(done) {
             httpinvoke('invalid:url', function(err) {
                 if(!err) {
                     return done(new Error('expected error, but none received'));
