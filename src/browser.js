@@ -136,8 +136,8 @@
         }
         crossDomain = isCrossDomain(currentLocation, uri);
         /*************** start XHR **************/
-        if(typeof input === 'object' && httpinvoke.requestTextOnly) {
-            return failWithoutRequest(cb, new Error('bytearray inputType is not supported on this platform, please always test using requestTextOnly feature flag'));
+        if(typeof input === 'object' && !isFormData(input) && httpinvoke.requestTextOnly) {
+            return failWithoutRequest(cb, new Error('bytearray inputType is not supported on this platform, please always test using requestTextOnly feature flag - hint - you may want to try sending FormData (formdata type)'));
         }
         if(crossDomain && !httpinvoke.cors) {
             return failWithoutRequest(cb, new Error('Cross-origin requests are not supported'));
