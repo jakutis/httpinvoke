@@ -583,14 +583,10 @@
                         } else {
                             inputLength = input.byteLength;
                             try {
-                                xhr.send(input);
+                                // if there is ArrayBufferView, then the browser supports sending instances of subclasses of ArayBufferView, otherwise we must send an ArrayBuffer
+                                xhr.send(global.ArrayBufferView ? input : bufferSlice(input.buffer, input.buffer.byteLength, input.byteOffset, input.byteOffset + input.byteLength));
                                 return;
                             } catch(_) {
-                                try {
-                                    xhr.send(bufferSlice(input.buffer, input.buffer.byteLength, input.byteOffset, input.byteOffset + input.byteLength));
-                                    return;
-                                } catch(__) {
-                                }
                             }
                             triedSendArrayBufferView = true;
                         }
