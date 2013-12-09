@@ -185,7 +185,11 @@
             return failWithoutRequest(cb, new Error('unable to construct XMLHttpRequest object'));
         }
         xhr = createXHR(crossDomain);
-        xhr.open(method, uri, true);
+        try {
+            xhr.open(method, uri, true);
+        } catch(e) {
+            return failWithoutRequest(cb, e);
+        }
         if(options.corsCredentials && httpinvoke.corsCredentials && typeof xhr.withCredentials === 'boolean') {
             xhr.withCredentials = true;
         }
