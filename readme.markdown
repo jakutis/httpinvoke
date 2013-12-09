@@ -1,6 +1,6 @@
 # httpinvoke
 
-httpinvoke is a 4.6kb no-dependencies HTTP client library for **browsers** and **Node.js** with a **promise**-based or Node.js-style callback-based API to **progress events**, text and **binary** file **upload** and **download**, partial response body, request and response headers, status code.
+httpinvoke is a 5.1kb no-dependencies HTTP client library for **browsers** and **Node.js** with a **promise**-based or Node.js-style callback-based API to **progress events**, text and **binary** file **upload** and **download**, partial response body, request and response headers, status code.
 
 [![Build Status](https://travis-ci.org/jakutis/httpinvoke.png?branch=master)](https://travis-ci.org/jakutis/httpinvoke)
 
@@ -36,7 +36,7 @@ httpinvoke is a 4.6kb no-dependencies HTTP client library for **browsers** and *
   * Emits the HTTP response status code and headers as soon as they are available.
   * Gives you HTTP status code instead of an error, that is for example HTTP 404 would just return success, with status 404.
   * Throws an error only when the HTTP request did not actually completely finished.
-* Well tested - over 277 unit tests.
+* Well tested - over 560 unit tests.
 * Detects the presence of [CommonJS](http://www.commonjs.org/) and [AMD](https://www.google.com/search?q=advanced+module+definition) script loaders.
 * Supports [npm](https://npmjs.org/), [Bower](http://bower.io/) and [Component](http://component.io/) package managers.
 * Tested on these web browsers:
