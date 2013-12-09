@@ -2,137 +2,9 @@ var http = require('http');
 var url = require('url');
 var zlib = require('zlib');
 
-;;var isArrayBufferView = function(input) {
-    return typeof input === 'object' && input !== null && (
-        (global.ArrayBufferView && input instanceof ArrayBufferView) ||
-        (global.Int8Array && input instanceof Int8Array) ||
-        (global.Uint8Array && input instanceof Uint8Array) ||
-        (global.Uint8ClampedArray && input instanceof Uint8ClampedArray) ||
-        (global.Int16Array && input instanceof Int16Array) ||
-        (global.Uint16Array && input instanceof Uint16Array) ||
-        (global.Int32Array && input instanceof Int32Array) ||
-        (global.Uint32Array && input instanceof Uint32Array) ||
-        (global.Float32Array && input instanceof Float32Array) ||
-        (global.Float64Array && input instanceof Float64Array)
-    );
-}, isArray = function(object) {
-    return Object.prototype.toString.call(object) === '[object Array]';
-}, isByteArray = function(input) {
-    return typeof input === 'object' && input !== null && (
-        (global.Buffer && input instanceof Buffer) ||
-        (global.Blob && input instanceof Blob) ||
-        (global.File && input instanceof File) ||
-        (global.ArrayBuffer && input instanceof ArrayBuffer) ||
-        isArrayBufferView(input) ||
-        isArray(input)
-    );
-}, bytearrayMessage = 'an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array', supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,', pass = function(value) {
-    return value;
-}, nextTick = (global.process && global.process.nextTick) || global.setImmediate || global.setTimeout, _undefined;
-;
-
-var decompress = function(output, encoding, cb) {
-    if(encoding === 'gzip') {
-        zlib.gunzip(output, cb);
-    } else if(encoding === 'deflate') {
-        zlib.inflate(output, function(err, out) {
-            if(err) {
-                return zlib.inflateRaw(output, cb);
-            }
-            cb(null, out);
-        });
-    } else if(encoding === 'identity') {
-        process.nextTick(function() {
-            cb(null, output);
-        });
-    } else {
-        process.nextTick(function() {
-            cb(new Error('unsupported encoding ' + encoding));
-        });
-    }
-};
-
-// http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
-var forbiddenInputHeaders = ['accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'content-transfer-encoding', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
-var validateInputHeaders = function(headers) {
-    for(var header in headers) {
-        if(headers.hasOwnProperty(header)) {
-            var headerl = header.toLowerCase();
-            if(forbiddenInputHeaders.indexOf(headerl) >= 0) {
-                throw new Error('Input header ' + header + ' is forbidden to be set programmatically');
-            }
-            if(headerl.substr(0, 'proxy-'.length) === 'proxy-') {
-                throw new Error('Input header ' + header + ' (to be precise, all Proxy-*) is forbidden to be set programmatically');
-            }
-            if(headerl.substr(0, 'sec-'.length) === 'sec-') {
-                throw new Error('Input header ' + header + ' (to be precise, all Sec-*) is forbidden to be set programmatically');
-            }
-        }
-    }
-};
-
-var copy = function(from, to) {
-    Object.keys(from).forEach(function(key) {
-        to[key] = from[key];
-    });
-    return to;
-};
-
-var httpinvoke = function(uri, method, options, cb) {
-    ;var mixInPromise, promise, failWithoutRequest, uploadProgressCb, inputLength, noData, timeout, inputHeaders, statusCb, initDownload, updateDownload, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
-/*************** COMMON initialize parameters **************/
-if(!method) {
-    // 1 argument
-    // method, options, cb skipped
-    method = 'GET';
-    options = {};
-} else if(!options) {
-    // 2 arguments
-    if(typeof method === 'string') {
-        // options. cb skipped
-        options = {};
-    } else if(typeof method === 'object') {
-        // method, cb skipped
-        options = method;
-        method = 'GET';
-    } else {
-        // method, options skipped
-        options = {
-            finished: method
-        };
-        method = 'GET';
-    }
-} else if(!cb) {
-    // 3 arguments
-    if(typeof method === 'object') {
-        // method skipped
-        method.finished = options;
-        options = method;
-        method = 'GET';
-    } else if(typeof options === 'function') {
-        // options skipped
-        options = {
-            finished: options
-        };
-    }
-    // cb skipped
-} else {
-    // 4 arguments
-    options.finished = cb;
-}
-var safeCallback = function(name, aspect) {
-    if(name in options) {
-        return function(a, b, c, d) {
-            try {
-                options[name](a, b, c, d);
-            } catch(_) {
-            }
-            aspect(a, b, c, d);
-        };
-    }
-    return aspect;
-};
-var chain = function(a, b) {
+/* jshint unused:true */
+;;var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
+    /* jshint expr:true */
     a && a.then && a.then(function() {
         b[resolve].apply(null, arguments);
     }, function() {
@@ -140,9 +12,8 @@ var chain = function(a, b) {
     }, function() {
         b[progress].apply(null, arguments);
     });
-};
-var resolve = 0, reject = 1, progress = 2;
-mixInPromise = function(o) {
+    /* jshint expr:false */
+}, nextTick = (global.process && global.process.nextTick) || global.setImmediate || global.setTimeout, mixInPromise = function(o) {
     var value, queue = [], state = progress;
     var makeState = function(newstate) {
         o[newstate] = function(newvalue) {
@@ -187,6 +58,150 @@ mixInPromise = function(o) {
         return item._;
     };
     return o;
+}, isArrayBufferView = /* jshint undef:false */function(input) {
+    return typeof input === 'object' && input !== null && (
+        (global.ArrayBufferView && input instanceof ArrayBufferView) ||
+        (global.Int8Array && input instanceof Int8Array) ||
+        (global.Uint8Array && input instanceof Uint8Array) ||
+        (global.Uint8ClampedArray && input instanceof Uint8ClampedArray) ||
+        (global.Int16Array && input instanceof Int16Array) ||
+        (global.Uint16Array && input instanceof Uint16Array) ||
+        (global.Int32Array && input instanceof Int32Array) ||
+        (global.Uint32Array && input instanceof Uint32Array) ||
+        (global.Float32Array && input instanceof Float32Array) ||
+        (global.Float64Array && input instanceof Float64Array)
+    );
+}/* jshint undef:true */, isArray = function(object) {
+    return Object.prototype.toString.call(object) === '[object Array]';
+}, isFormData = function(input) {
+    return typeof input === 'object' && input !== null && global.FormData &&
+        input instanceof global.FormData;
+}, isByteArray = /* jshint undef:false */function(input) {
+    return typeof input === 'object' && input !== null && (
+        (global.Buffer && input instanceof Buffer) ||
+        (global.Blob && input instanceof Blob) ||
+        (global.File && input instanceof File) ||
+        (global.ArrayBuffer && input instanceof ArrayBuffer) ||
+        isArrayBufferView(input) ||
+        isArray(input)
+    );
+}/* jshint undef:true */, bytearrayMessage = 'an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array', supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,', pass = function(value) {
+    return value;
+}, _undefined;
+;
+/* jshint unused:false */
+
+// http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
+var forbiddenInputHeaders = ['accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'content-transfer-encoding', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
+var validateInputHeaders = function(headers) {
+    'use strict';
+    for(var header in headers) {
+        if(headers.hasOwnProperty(header)) {
+            var headerl = header.toLowerCase();
+            if(forbiddenInputHeaders.indexOf(headerl) >= 0) {
+                throw new Error('Input header ' + header + ' is forbidden to be set programmatically');
+            }
+            if(headerl.substr(0, 'proxy-'.length) === 'proxy-') {
+                throw new Error('Input header ' + header + ' (to be precise, all Proxy-*) is forbidden to be set programmatically');
+            }
+            if(headerl.substr(0, 'sec-'.length) === 'sec-') {
+                throw new Error('Input header ' + header + ' (to be precise, all Sec-*) is forbidden to be set programmatically');
+            }
+        }
+    }
+};
+
+var copy = function(from, to) {
+    'use strict';
+    Object.keys(from).forEach(function(key) {
+        to[key] = from[key];
+    });
+    return to;
+};
+
+var emptyBuffer = new Buffer([]);
+
+var utf8CharacterSizeFromHeaderByte = function(b) {
+    'use strict';
+    if(b < 128) {
+        // one byte, ascii character
+        return 1;
+    }
+    /* jshint bitwise:false */
+    var mask = (1 << 7) | (1 << 6);
+    var test = 128;
+    if((b & mask) === test) {
+        // b is not a header byte
+        return 0;
+    }
+    for(var length = 1; (b & mask) !== test; length += 1) {
+        mask = (mask >> 1) | 128;
+        test = (test >> 1) | 128;
+    }
+    /* jshint bitwise:true */
+    // multi byte utf8 character
+    return length;
+};
+
+var httpinvoke = function(uri, method, options, cb) {
+    'use strict';
+    /* jshint unused:true */
+    ;/* global httpinvoke, url, method, options, cb */
+/* global nextTick, mixInPromise, pass, progress, reject, resolve, supportedMethods, isArray, isArrayBufferView, isFormData, isByteArray, bytearrayMessage, _undefined */
+/* global setTimeout */
+/* global crossDomain */// this one is a hack, because when in nodejs this is not really defined, but it is never needed
+/* jshint -W020 */
+var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+/*************** COMMON initialize parameters **************/
+var downloadTimeout, uploadTimeout, timeout;
+if(!method) {
+    // 1 argument
+    // method, options, cb skipped
+    method = 'GET';
+    options = {};
+} else if(!options) {
+    // 2 arguments
+    if(typeof method === 'string') {
+        // options. cb skipped
+        options = {};
+    } else if(typeof method === 'object') {
+        // method, cb skipped
+        options = method;
+        method = 'GET';
+    } else {
+        // method, options skipped
+        options = {
+            finished: method
+        };
+        method = 'GET';
+    }
+} else if(!cb) {
+    // 3 arguments
+    if(typeof method === 'object') {
+        // method skipped
+        method.finished = options;
+        options = method;
+        method = 'GET';
+    } else if(typeof options === 'function') {
+        // options skipped
+        options = {
+            finished: options
+        };
+    }
+    // cb skipped
+} else {
+    // 4 arguments
+    options.finished = cb;
+}
+var safeCallback = function(name, aspectBefore, aspectAfter) {
+    return function(a, b, c, d) {
+        aspectBefore(a, b, c, d);
+        try {
+            options[name](a, b, c, d);
+        } catch(_) {
+        }
+        aspectAfter(a, b, c, d);
+    };
 };
 failWithoutRequest = function(cb, err) {
     nextTick(function() {
@@ -200,28 +215,42 @@ failWithoutRequest = function(cb, err) {
     return mixInPromise(promise);
 };
 
-uploadProgressCb = safeCallback('uploading', function(current, total) {
+uploadProgressCb = safeCallback('uploading', pass, function(current, total) {
     promise[progress]({
         type: 'upload',
         current: current,
         total: total
     });
 });
-var downloadProgressCb = safeCallback('downloading', function(current, total) {
+downloadProgressCb = safeCallback('downloading', pass, function(current, total, partial) {
     promise[progress]({
         type: 'download',
         current: current,
-        total: total
+        total: total,
+        partial: partial
     });
 });
-statusCb = safeCallback('gotStatus', function(statusCode, headers) {
+statusCb = safeCallback('gotStatus', function() {
+    statusCb = null;
+    if(downloadTimeout) {
+        setTimeout(function() {
+            if(cb) {
+                cb(new Error('download timeout'));
+                promise();
+            }
+        }, downloadTimeout);
+    }
+}, function(statusCode, headers) {
     promise[progress]({
         type: 'headers',
         statusCode: statusCode,
         headers: headers
     });
 });
-cb = safeCallback('finished', function(err, body, statusCode, headers) {
+cb = safeCallback('finished', function() {
+    cb = null;
+    promise();
+}, function(err, body, statusCode, headers) {
     if(err) {
         return promise[reject](err);
     }
@@ -231,57 +260,78 @@ cb = safeCallback('finished', function(err, body, statusCode, headers) {
         headers: headers
     });
 });
-timeout = options.timeout || 0;
+var fixPositiveOpt = function(opt) {
+    if(options[opt] === _undefined) {
+        options[opt] = 0;
+    } else if(typeof options[opt] === 'number') {
+        if(options[opt] < 0) {
+            return failWithoutRequest(cb, new Error('Option "' + opt + '" is less than zero'));
+        }
+    } else {
+        return failWithoutRequest(cb, new Error('Option "' + opt + '" is not a number'));
+    }
+};
 var converters = options.converters || {};
 var inputConverter;
-inputLength = 0;
 inputHeaders = options.headers || {};
 outputHeaders = {};
 exposedHeaders = options.corsExposedHeaders || [];
-exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma', 'Content-Range']);
+exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma', 'Content-Range', 'Content-Encoding']);
 /*************** COMMON convert and validate parameters **************/
+var partialOutputMode = options.partialOutputMode || 'disabled';
+if(partialOutputMode.indexOf(',') >= 0 || ',disabled,chunked,joined,'.indexOf(',' + partialOutputMode + ',') < 0) {
+    return failWithoutRequest(cb, new Error('Option "partialOutputMode" is neither "disabled", nor "chunked", nor "joined"'));
+}
 if(method.indexOf(',') >= 0 || supportedMethods.indexOf(',' + method + ',') < 0) {
     return failWithoutRequest(cb, new Error('Unsupported method ' + method));
 }
-outputBinary = options.outputType === 'bytearray';
-if(!options.outputType || options.outputType === 'text' || outputBinary) {
+var optionsOutputType = options.outputType;
+outputBinary = optionsOutputType === 'bytearray';
+if(!optionsOutputType || optionsOutputType === 'text' || outputBinary) {
     outputConverter = pass;
-} else if(converters['text ' + options.outputType]) {
-    outputConverter = converters['text ' + options.outputType];
+} else if(converters['text ' + optionsOutputType]) {
+    outputConverter = converters['text ' + optionsOutputType];
     outputBinary = false;
-} else if(converters['bytearray ' + options.outputType]) {
-    outputConverter = converters['bytearray ' + options.outputType];
+} else if(converters['bytearray ' + optionsOutputType]) {
+    outputConverter = converters['bytearray ' + optionsOutputType];
     outputBinary = true;
 } else {
-    return failWithoutRequest(cb, new Error('Unsupported outputType ' + options.outputType));
+    return failWithoutRequest(cb, new Error('Unsupported outputType ' + optionsOutputType));
 }
 inputConverter = pass;
-if('input' in options) {
-    input = options.input;
-    if(!options.inputType || options.inputType === 'auto') {
-        if(typeof input !== 'string' && !isByteArray(input)) {
-            return failWithoutRequest(cb, new Error('inputType is undefined or auto and input is neither string, nor ' + bytearrayMessage));
+var optionsInputType = options.inputType;
+input = options.input;
+if(input !== _undefined) {
+    if(!optionsInputType || optionsInputType === 'auto') {
+        if(typeof input !== 'string' && !isByteArray(input) && !isFormData(input)) {
+            return failWithoutRequest(cb, new Error('inputType is undefined or auto and input is neither string, nor FormData, nor ' + bytearrayMessage));
         }
-    } else if(options.inputType === 'text') {
+    } else if(optionsInputType === 'text') {
         if(typeof input !== 'string') {
             return failWithoutRequest(cb, new Error('inputType is text, but input is not a string'));
         }
-    } else if (options.inputType === 'bytearray') {
+    } else if (optionsInputType === 'formdata') {
+        if(!isFormData(input)) {
+            return failWithoutRequest(cb, new Error('inputType is formdata, but input is not an instance of FormData'));
+        }
+    } else if (optionsInputType === 'bytearray') {
         if(!isByteArray(input)) {
             return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither ' + bytearrayMessage));
         }
-    } else if(converters[options.inputType + ' text']) {
-        inputConverter = converters[options.inputType + ' text'];
-    } else if(converters[options.inputType + ' bytearray']) {
-        inputConverter = converters[options.inputType + ' bytearray'];
+    } else if(converters[optionsInputType + ' text']) {
+        inputConverter = converters[optionsInputType + ' text'];
+    } else if(converters[optionsInputType + ' bytearray']) {
+        inputConverter = converters[optionsInputType + ' bytearray'];
+    } else if(converters[optionsInputType + ' formdata']) {
+        inputConverter = converters[optionsInputType + ' formdata'];
     } else {
         return failWithoutRequest(cb, new Error('There is no converter for specified inputType'));
     }
-    if(typeof input === 'object') {
-        if(global.ArrayBuffer && input instanceof ArrayBuffer) {
-            input = new Uint8Array(input);
+    if(typeof input === 'object' && !isFormData(input)) {
+        if(global.ArrayBuffer && input instanceof global.ArrayBuffer) {
+            input = new global.Uint8Array(input);
         } else if(isArrayBufferView(input)) {
-            input = new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+            input = new global.Uint8Array(input.buffer, input.byteOffset, input.byteLength);
         }
     }
     try {
@@ -290,34 +340,50 @@ if('input' in options) {
         return failWithoutRequest(cb, err);
     }
 } else {
-    if(options.inputType) {
+    if(optionsInputType && optionsInputType !== 'auto') {
         return failWithoutRequest(cb, new Error('"input" is undefined, but inputType is defined'));
     }
     if(inputHeaders['Content-Type']) {
         return failWithoutRequest(cb, new Error('"input" is undefined, but Content-Type request header is defined'));
     }
 }
+var isValidTimeout = function(timeout) {
+    return timeout > 0 && timeout < 1073741824;
+};
+var optionsTimeout = options.timeout;
+if(optionsTimeout !== _undefined) {
+    if(typeof optionsTimeout === 'number' && isValidTimeout(optionsTimeout)) {
+        timeout = optionsTimeout;
+    } else if(isArray(optionsTimeout) && optionsTimeout.length === 2 && isValidTimeout(optionsTimeout[0]) && isValidTimeout(optionsTimeout[1])) {
+        if(httpinvoke.corsFineGrainedTimeouts || !crossDomain) {
+            uploadTimeout = optionsTimeout[0];
+            downloadTimeout = optionsTimeout[1];
+        } else {
+            timeout = optionsTimeout[0] + optionsTimeout[1];
+        }
+    } else {
+        return failWithoutRequest(cb, new Error('"timeout" value is not valid'));
+    }
+}
+if(uploadTimeout) {
+    setTimeout(function() {
+        if(statusCb) {
+            cb(new Error('upload timeout'));
+            promise();
+        }
+    }, uploadTimeout);
+}
+if(timeout) {
+    setTimeout(function() {
+        if(cb) {
+            cb(new Error('timeout'));
+            promise();
+        }
+    }, timeout);
+}
 
-/*************** COMMON initialize helper variables **************/
-var downloaded;
-initDownload = function(total) {
-    if(typeof outputLength === 'undefined') {
-        downloadProgressCb(downloaded, outputLength = total);
-    }
-};
-updateDownload = function(value) {
-    if(value !== downloaded) {
-        downloadProgressCb(downloaded = value, outputLength);
-    }
-};
-noData = function() {
-    initDownload(0);
-    if(cb) {
-        cb(null, _undefined, status, outputHeaders);
-        cb = null;
-    }
-};
 ;
+    /* jshint unused:false */
     /*************** initialize helper variables **************/
     try {
         validateInputHeaders(inputHeaders);
@@ -332,12 +398,6 @@ noData = function() {
         res.on('end', pass);
     };
     uri = url.parse(uri);
-    if(timeout > 0) {
-        setTimeout(function() {
-            cb(new Error('Timeout of ' + timeout + 'ms exceeded'));
-            cb = null;
-        }, timeout);
-    }
     var req = http.request({
         hostname: uri.hostname,
         port: Number(uri.port),
@@ -346,14 +406,18 @@ noData = function() {
         headers: inputHeaders
     }, function(res) {
         var contentEncoding;
-        if(cb === null) {
-            ignorantlyConsume(res);
-            return;
+        if(!cb) {
+            return ignorantlyConsume(res);
         }
 
         outputHeaders = res.headers;
         if('content-encoding' in outputHeaders) {
             contentEncoding = outputHeaders['content-encoding'];
+            if(['identity', 'gzip', 'deflate'].indexOf(contentEncoding) < 0) {
+                cb(new Error('unsupported Content-Encoding ' + contentEncoding));
+                cb = null;
+                return ignorantlyConsume(res);
+            }
             delete outputHeaders['content-encoding'];
         } else {
             contentEncoding = 'identity';
@@ -362,83 +426,123 @@ noData = function() {
         status = res.statusCode;
 
         uploadProgressCb(inputLength, inputLength);
-        if(cb === null) {
-            ignorantlyConsume(res);
-            return;
+        if(!cb) {
+            return ignorantlyConsume(res);
         }
 
         statusCb(status, outputHeaders);
-        if(cb === null) {
-            ignorantlyConsume(res);
-            return;
+        if(!cb) {
+            return ignorantlyConsume(res);
         }
 
-        updateDownload(0);
-        if(cb === null) {
-            ignorantlyConsume(res);
-            return;
-        }
-        if(typeof outputHeaders['content-length'] !== 'undefined') {
-            initDownload(Number(outputHeaders['content-length']));
-            if(cb === null) {
-                ignorantlyConsume(res);
-                return;
-            }
-        }
-        if(method === 'HEAD' || typeof outputHeaders['content-type'] === 'undefined') {
-            ignorantlyConsume(res);
-            return noData();
+        if(contentEncoding === 'identity' && 'content-length' in outputHeaders) {
+            outputLength = Number(outputHeaders['content-length']);
         }
 
-        var output = [], downloaded = 0;
-        res.on('data', function(chunk) {
-            if(cb === null) {
+        var partial = partialOutputMode === 'disabled' ? _undefined : (outputBinary ? [] : '');
+
+        downloadProgressCb(0, outputLength, partial);
+        if(!cb) {
+            return ignorantlyConsume(res);
+        }
+        if(method === 'HEAD') {
+            ignorantlyConsume(res);
+            downloadProgressCb(0, 0, partial);
+            return cb && cb(null, _undefined, status, outputHeaders);
+        }
+
+        var inputStream;
+        if(contentEncoding === 'identity') {
+            inputStream = res;
+        } else {
+            inputStream = zlib['create' + (contentEncoding === 'gzip' ? 'Gunzip' : 'InflateRaw')]();
+            res.pipe(inputStream);
+        }
+
+        var output = [], downloaded = 0, leftover = emptyBuffer;
+        inputStream.on('data', function(chunk) {
+            if(!cb) {
                 return;
             }
+
+            if(partialOutputMode !== 'disabled' && !outputBinary) {
+                chunk = Buffer.concat([leftover, chunk]);
+                var charsize = 0, newLeftoverLength = 0;
+                while(charsize === 0 && newLeftoverLength < chunk.length) {
+                    newLeftoverLength += 1;
+                    charsize = utf8CharacterSizeFromHeaderByte(chunk[chunk.length - newLeftoverLength]);
+                }
+                if(newLeftoverLength === charsize) {
+                    leftover = emptyBuffer;
+                } else {
+                    leftover = chunk.slice(chunk.length - newLeftoverLength);
+                    chunk = chunk.slice(0, chunk.length - newLeftoverLength);
+                }
+            }
+
             downloaded += chunk.length;
             output.push(chunk);
-            updateDownload(downloaded);
-            if(cb === null) {
-                return;
+
+            var partial;
+
+            if(partialOutputMode !== 'disabled') {
+                partial = partialOutputMode === 'chunked' ? chunk : Buffer.concat(output);
+                if(!outputBinary) {
+                    partial = partial.toString('utf8');
+                }
             }
+
+            downloadProgressCb(downloaded, outputLength, partial);
         });
-        res.on('end', function() {
-            if(cb === null) {
+        inputStream.on('error', cb);
+        inputStream.on('end', function() {
+            if(!cb) {
                 return;
             }
-            updateDownload(downloaded);
-            if(cb === null) {
-                return;
-            }
+
+            // just in case the utf8 text stream was damaged, and there is leftover
+            output.push(leftover);
+            downloaded += leftover.length;
 
             if(typeof outputLength === 'undefined') {
                 outputLength = downloaded;
             }
 
-            decompress(Buffer.concat(output, downloaded), contentEncoding, function(err, output) {
-                if(!cb) {
-                    return;
-                }
-                if(err) {
-                    cb(err);
-                    cb = null;
-                    return;
-                }
-                if(!outputBinary) {
-                    output = output.toString('utf8');
-                }
-                try {
-                    cb(null, outputConverter(output), status, outputHeaders);
-                } catch(err) {
-                    cb(err);
-                }
-                cb = null;
-            });
+            if(downloaded !== outputLength) {
+                return cb(new Error('network error'));
+            }
+
+            output = Buffer.concat(output, downloaded);
+            if(!outputBinary) {
+                output = output.toString('utf8');
+            }
+
+            var partial;
+            if(partialOutputMode === 'chunked') {
+                partial = outputBinary ? leftover : leftover.toString('utf8');
+            } else if(partialOutputMode === 'joined') {
+                partial = outputBinary ? output : output.toString('utf8');
+            }
+
+            downloadProgressCb(outputLength, outputLength, partial);
+            if(!cb) {
+                return;
+            }
+
+            if(outputLength === 0 && typeof outputHeaders['content-type'] === 'undefined') {
+                return cb(null, _undefined, status, outputHeaders);
+            }
+
+            try {
+                cb(null, outputConverter(output), status, outputHeaders);
+            } catch(err) {
+                cb(err);
+            }
         });
     });
 
     nextTick(function() {
-        if(cb === null) {
+        if(!cb) {
             return;
         }
         uploadProgressCb(0, inputLength);
@@ -447,24 +551,21 @@ noData = function() {
         input = new Buffer(input);
         inputLength = input.length;
         req.write(input);
+    } else {
+        inputLength = 0;
     }
-    req.on('error', function(e) {
-        if(cb === null) {
+    req.on('error', function() {
+        if(!cb) {
             return;
         }
-        cb(e);
-        cb = null;
+        cb(new Error('network error'));
     });
     req.end();
     promise = function() {
-        if(cb === null) {
+        if(!cb) {
             return;
         }
-
-        // these statements are in case "abort" is called in "finished" callback
-        var _cb = cb;
-        cb = null;
-        _cb(new Error('abort'));
+        cb(new Error('abort'));
     };
     return mixInPromise(promise);
 };
@@ -479,5 +580,7 @@ httpinvoke.corsPUT = true;
 httpinvoke.corsStatus = true;
 httpinvoke.corsResponseTextOnly = false;
 httpinvoke.requestTextOnly = false;
+httpinvoke.PATCH = true;
+httpinvoke.corsFineGrainedTimeouts = true;
 
 module.exports = httpinvoke;
