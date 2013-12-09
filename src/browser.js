@@ -203,7 +203,7 @@
         /*************** bind XHR event listeners **************/
         var onuploadprogress = function(progressEvent) {
             if(cb && progressEvent.lengthComputable) {
-                if(typeof inputLength === 'undefined') {
+                if(inputLength === _undefined) {
                     inputLength = progressEvent.total || progressEvent.totalSize || 0;
                     uploadProgress(0);
                 }
@@ -395,7 +395,7 @@
                 return;
             }
 
-            if(typeof inputLength === 'undefined') {
+            if(inputLength === _undefined) {
                 inputLength = 0;
                 uploadProgress(0);
             }
@@ -431,7 +431,7 @@
             } catch(_) {
                 length = 0;
             }
-            if(typeof outputLength !== 'undefined') {
+            if(outputLength !== _undefined) {
                 if(mustBeIdentity) {
                     if(length !== outputLength && method !== 'HEAD') {
                         return cb(new Error('network error'));
@@ -445,7 +445,7 @@
                 outputLength = length;
             }
 
-            var noentity = !received.entity && outputLength === 0 && typeof outputHeaders['content-type'] === 'undefined';
+            var noentity = !received.entity && outputLength === 0 && outputHeaders['content-type'] === _undefined;
 
             if((noentity && status === 200) || (!received.success && !status && (received.error || ('onreadystatechange' in xhr && !received.readyStateLOADING)))) {
                 /*
@@ -713,7 +713,7 @@
                 return new XMLHttpRequest();
             };
             var tmpxhr = createXHR();
-            httpinvoke.requestTextOnly = typeof Uint8Array === 'undefined' && typeof tmpxhr.sendAsBinary === 'undefined';
+            httpinvoke.requestTextOnly = global.Uint8Array === _undefined && tmpxhr.sendAsBinary === _undefined;
             httpinvoke.cors = 'withCredentials' in tmpxhr;
             if(httpinvoke.cors) {
                 httpinvoke.corsRequestHeaders = true;
@@ -728,7 +728,7 @@
         } catch(err) {
         }
         try {
-            if(typeof XDomainRequest === 'undefined') {
+            if(global.XDomainRequest === _undefined) {
                 createXHR = function() {
                     return new XMLHttpRequest();
                 };

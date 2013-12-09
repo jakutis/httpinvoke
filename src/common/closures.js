@@ -1,5 +1,5 @@
 /* global httpinvoke, url, method, options, cb */
-/* global nextTick, mixInPromise, pass, progress, reject, resolve, supportedMethods, isArray, isArrayBufferView, isFormData, isByteArray, bytearrayMessage */
+/* global nextTick, mixInPromise, pass, progress, reject, resolve, supportedMethods, isArray, isArrayBufferView, isFormData, isByteArray, bytearrayMessage, _undefined */
 /* global setTimeout */
 /* global crossDomain */// this one is a hack, because when in nodejs this is not really defined, but it is never needed
 /* jshint -W020 */
@@ -113,7 +113,7 @@ cb = safeCallback('finished', function() {
     });
 });
 var fixPositiveOpt = function(opt) {
-    if(typeof options[opt] === 'undefined') {
+    if(options[opt] === _undefined) {
         options[opt] = 0;
     } else if(typeof options[opt] === 'number') {
         if(options[opt] < 0) {
@@ -153,7 +153,7 @@ if(!optionsOutputType || optionsOutputType === 'text' || outputBinary) {
 inputConverter = pass;
 var optionsInputType = options.inputType;
 input = options.input;
-if(typeof input !== 'undefined') {
+if(input !== _undefined) {
     if(!optionsInputType || optionsInputType === 'auto') {
         if(typeof input !== 'string' && !isByteArray(input) && !isFormData(input)) {
             return failWithoutRequest(cb, new Error('inputType is undefined or auto and input is neither string, nor FormData, nor ' + bytearrayMessage));
@@ -203,7 +203,7 @@ var isValidTimeout = function(timeout) {
     return timeout > 0 && timeout < 1073741824;
 };
 var optionsTimeout = options.timeout;
-if(typeof optionsTimeout !== 'undefined') {
+if(optionsTimeout !== _undefined) {
     if(typeof optionsTimeout === 'number' && isValidTimeout(optionsTimeout)) {
         timeout = optionsTimeout;
     } else if(isArray(optionsTimeout) && optionsTimeout.length === 2 && isValidTimeout(optionsTimeout[0]) && isValidTimeout(optionsTimeout[1])) {
