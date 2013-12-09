@@ -31,22 +31,6 @@
         }
         return buffer.slice ? buffer.slice(begin, end) : new Uint8Array(Array.prototype.slice.call(new Uint8Array(buffer), begin, end)).buffer;
     };
-    var responseBodyToBytes, responseBodyLength;
-    try {
-        /* jshint evil:true */
-        execScript('Function httpinvoke0(B,A,C)\r\nDim i\r\nFor i=C to LenB(B)\r\nA.push(AscB(MidB(B,i,1)))\r\nNext\r\nEnd Function\r\nFunction httpinvoke1(B)\r\nhttpinvoke1=LenB(B)\r\nEnd Function', 'vbscript');
-        /* jshint evil:false */
-        responseBodyToBytes = function(binary, bytearray) {
-            // that vbscript counts from 1, not from 0
-            httpinvoke0(binary, bytearray, bytearray.length + 1);
-            return bytearray;
-        };
-        // cannot just assign the function, because httpinvoke1 is not a javascript 'function'
-        responseBodyLength = function(binary) {
-            return httpinvoke1(binary);
-        };
-    } catch(err) {
-    }
     var getOutputText = function(xhr) {
         return xhr.response || xhr.responseText;
     };
@@ -58,18 +42,11 @@
         }
         return bytearray;
     };
-    var getOutputBinaryPreXHR2Style = function(xhr, bytearray) {
-        // xhr.responseBody must be checked this way, because otherwise
-        // it is falsy and then accessing responseText for binary data
-        // results in the "c00ce514" error.
-        // Also responseBodyToBytes on some Internet Explorers is not defined, because of removed vbscript support
-        return ('responseBody' in xhr && responseBodyToBytes) ? responseBodyToBytes(xhr.responseBody, bytearray) : binaryStringToByteArray(xhr.responseText, bytearray);
-    };
     var getOutputBinary = function(xhr) {
         if('response' in xhr) {
             return new Uint8Array(xhr.response || []);
         }
-        return getOutputBinaryPreXHR2Style(xhr, []);
+        return binaryStringToByteArray(xhr.responseText, []);
     };
     var getOutputLengthText = function(xhr) {
         return countStringBytes(getOutputText(xhr));
@@ -77,12 +54,6 @@
     var getOutputLengthBinary = function(xhr) {
         if('response' in xhr) {
             return xhr.response ? xhr.response.byteLength : 0;
-        }
-        // responseBody must be checked this way, because otherwise
-        // it is falsy and then accessing responseText for binary data
-        // results in the "c00ce514" error
-        if('responseBody' in xhr) {
-            return responseBodyLength(xhr.responseBody);
         }
         return xhr.responseText.length;
     };
@@ -133,7 +104,7 @@
                     return;
                 }
                 if(outputBinary) {
-                    getOutputBinaryPreXHR2Style(xhr, partialBuffer);
+                    binaryStringToByteArray(xhr.responseText, partialBuffer);
                 } else {
                     partialBuffer = xhr.responseText;
                 }
