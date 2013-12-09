@@ -198,7 +198,7 @@
                 // Opera 12 progress events has a bug - .loaded can be higher than .total
                 // see http://dev.opera.com/articles/view/xhr2/#comment-96081222
                 /* jshint expr:true */
-                cb && current <= outputLength && !statusCb && (partialUpdate(), downloadProgressCb(partialPosition || current, outputLength, partial));
+                cb && current <= outputLength && !statusCb && (partialUpdate(), downloadProgressCb(current, outputLength, partial));
                 /* jshint expr:false */
             } catch(_) {
             }
