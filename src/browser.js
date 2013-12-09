@@ -25,15 +25,9 @@
         'Bad Request,Unauthorized,Payment Required,Forbidden,Not Found,Method Not Allowed,Not Acceptable,Proxy Authentication Required,Request Timeout,Conflict,Gone,Length Required,Precondition Failed,Request Entity Too Large,Request-URI Too Long,Unsupported Media Type,Requested Range Not Satisfiable,Expectation Failed',
         'Internal Server Error,Not Implemented,Bad Gateway,Service Unavailable,Gateway Time-out,HTTP Version Not Supported'
     );
-    var bufferSlice = function(buffer, length, begin, end) {
-        if(begin === 0 && end === length) {
-            return buffer;
-        }
-        return buffer.slice ? buffer.slice(begin, end) : new Uint8Array(Array.prototype.slice.call(new Uint8Array(buffer), begin, end)).buffer;
-    };
-    var getOutputText = function(xhr) {
-        return xhr.response || xhr.responseText;
-    };
+    var upgradeByteArray = global.Uint8Array ? function(array) {
+        return new Uint8Array(array);
+    } : pass;
     var binaryStringToByteArray = function(str, bytearray) {
         for(var i = bytearray.length; i < str.length;) {
             /* jshint bitwise:false */
@@ -42,22 +36,6 @@
         }
         return bytearray;
     };
-    var getOutputBinary = function(xhr) {
-        if('response' in xhr) {
-            return new Uint8Array(xhr.response || []);
-        }
-        return binaryStringToByteArray(xhr.responseText, []);
-    };
-    var getOutputLengthText = function(xhr) {
-        return countStringBytes(getOutputText(xhr));
-    };
-    var getOutputLengthBinary = function(xhr) {
-        if('response' in xhr) {
-            return xhr.response ? xhr.response.byteLength : 0;
-        }
-        return xhr.responseText.length;
-    };
-
     var countStringBytes = function(string) {
         for(var c, n = 0, i = string.length;i--;) {
             c = string.charCodeAt(i);
@@ -400,7 +378,22 @@
 
             var length;
             try {
-                length = partialOutputMode !== 'disabled' ? xhr.responseText.length : (outputBinary ? getOutputLengthBinary : getOutputLengthText)(xhr);
+                length =
+                    partialOutputMode !== 'disabled' ?
+                    xhr.responseText.length :
+                    (
+                        outputBinary ?
+                        (
+                            'response' in xhr ?
+                            (
+                                xhr.response ?
+                                xhr.response.byteLength :
+                                0
+                            ) :
+                            xhr.responseText.length
+                        ) :
+                        countStringBytes(xhr.responseText)
+                    );
             } catch(_) {
                 length = 0;
             }
@@ -448,7 +441,19 @@
             }
 
             try {
-                cb(null, outputConverter(partialBuffer || (outputBinary ? getOutputBinary : getOutputText)(xhr)), status, outputHeaders);
+                // If XHR2 (there is xhr.response), then there must also be Uint8Array.
+                // But Uint8Array might exist even if not XHR2 (on Firefox 4).
+                cb(null, outputConverter(
+                    partialBuffer || (
+                        outputBinary ?
+                        upgradeByteArray(
+                            'response' in xhr ?
+                            xhr.response || [] :
+                            binaryStringToByteArray(xhr.responseText, [])
+                        ) :
+                        xhr.responseText
+                    )
+                ), status, outputHeaders);
             } catch(err) {
                 cb(err);
             }
@@ -558,7 +563,19 @@
                             inputLength = input.byteLength;
                             try {
                                 // if there is ArrayBufferView, then the browser supports sending instances of subclasses of ArayBufferView, otherwise we must send an ArrayBuffer
-                                xhr.send(global.ArrayBufferView ? input : bufferSlice(input.buffer, input.buffer.byteLength, input.byteOffset, input.byteOffset + input.byteLength));
+                                xhr.send(
+                                    global.ArrayBufferView ?
+                                    input :
+                                    (
+                                        input.byteOffset === 0 && input.length === input.buffer.byteLength ?
+                                        input.buffer :
+                                        (
+                                            input.buffer.slice ?
+                                            input.buffer.slice(input.byteOffset, input.byteOffset + input.length) :
+                                            new Uint8Array([].slice.call(new Uint8Array(input.buffer), input.byteOffset, input.byteOffset + input.length)).buffer
+                                        )
+                                    )
+                                );
                                 return;
                             } catch(_) {
                             }
@@ -683,7 +700,7 @@
                 return new XMLHttpRequest();
             };
             var tmpxhr = createXHR();
-            httpinvoke.requestTextOnly = global.Uint8Array === _undefined && tmpxhr.sendAsBinary === _undefined;
+            httpinvoke.requestTextOnly = !global.Uint8Array && !tmpxhr.sendAsBinary;
             httpinvoke.cors = 'withCredentials' in tmpxhr;
             if(httpinvoke.cors) {
                 httpinvoke.corsRequestHeaders = true;
