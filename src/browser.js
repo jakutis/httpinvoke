@@ -34,12 +34,12 @@
     var responseBodyToBytes, responseBodyLength;
     try {
         /* jshint evil:true */
-        execScript('Function httpinvoke0(B,A)\r\nDim i\r\nFor i=1 to LenB(B)\r\nA.push(AscB(MidB(B,i,1)))\r\nNext\r\nEnd Function\r\nFunction httpinvoke1(B)\r\nhttpinvoke1=LenB(B)\r\nEnd Function', 'vbscript');
+        execScript('Function httpinvoke0(B,A,C)\r\nDim i\r\nFor i=C to LenB(B)\r\nA.push(AscB(MidB(B,i,1)))\r\nNext\r\nEnd Function\r\nFunction httpinvoke1(B)\r\nhttpinvoke1=LenB(B)\r\nEnd Function', 'vbscript');
         /* jshint evil:false */
-        responseBodyToBytes = function(binary) {
-            var bytes = [];
-            httpinvoke0(binary, bytes);
-            return bytes;
+        responseBodyToBytes = function(binary, bytearray) {
+            // that vbscript counts from 1, not from 0
+            httpinvoke0(binary, bytearray, bytearray.length + 1);
+            return bytearray;
         };
         // cannot just assign the function, because httpinvoke1 is not a javascript 'function'
         responseBodyLength = function(binary) {
@@ -50,35 +50,31 @@
     var getOutputText = function(xhr) {
         return xhr.response || xhr.responseText;
     };
-    var binaryStringToByteArray = function(str) {
-        for(var n = str.length, bytearray = new Array(n);n--;) {
+    var binaryStringToByteArray = function(str, bytearray) {
+        for(var i = bytearray.length; i < str.length;) {
             /* jshint bitwise:false */
-            bytearray[n] = str.charCodeAt(n) & 255;
+            bytearray.push(str.charCodeAt(i++) & 255);
             /* jshint bitwise:true */
         }
         return bytearray;
     };
-    var getOutputBinary = function(xhr, partial) {
-        if(!partial && 'response' in xhr) {
+    var getOutputBinaryPreXHR2Style = function(xhr, bytearray) {
+        // xhr.responseBody must be checked this way, because otherwise
+        // it is falsy and then accessing responseText for binary data
+        // results in the "c00ce514" error.
+        // Also responseBodyToBytes on some Internet Explorers is not defined, because of removed vbscript support
+        return ('responseBody' in xhr && responseBodyToBytes) ? responseBodyToBytes(xhr.responseBody, bytearray) : binaryStringToByteArray(xhr.responseText, bytearray);
+    };
+    var getOutputBinary = function(xhr) {
+        if('response' in xhr) {
             return new Uint8Array(xhr.response || []);
         }
-        // responseBody must be checked this way, because otherwise
-        // it is falsy and then accessing responseText for binary data
-        // results in the "c00ce514" error
-        if('responseBody' in xhr) {
-            return responseBodyToBytes(xhr.responseBody);
-        }
-        var bytearray = binaryStringToByteArray(xhr.responseText);
-        // firefox 4 supports typed arrays but not xhr2
-        return global.Uint8Array ? new Uint8Array(bytearray) : bytearray;
+        return getOutputBinaryPreXHR2Style(xhr, []);
     };
     var getOutputLengthText = function(xhr) {
         return countStringBytes(getOutputText(xhr));
     };
-    var getOutputLengthBinary = function(xhr, partial) {
-        if(partial) {
-            return getOutputBinary(xhr, partial).length;
-        }
+    var getOutputLengthBinary = function(xhr) {
         if('response' in xhr) {
             return xhr.response ? xhr.response.byteLength : 0;
         }
@@ -125,18 +121,24 @@
         /*************** initialize helper variables **************/
         var xhr, i, j, currentLocation, crossDomain, output,
             getOutput = function() {
-                return outputBinary ? getOutputBinary(xhr, partialOutputMode !== 'disabled') : getOutputText(xhr);
+                return outputBinary ? getOutputBinary(xhr) : getOutputText(xhr);
             },
             getOutputLength = outputBinary ? getOutputLengthBinary : getOutputLengthText,
             uploadProgressCbCalled = false,
             partialPosition = 0,
-            getOutputPartial = function() {
+            partialBuffer = partialOutputMode === 'disabled' ? _undefined : (outputBinary ? [] : ''),
+            partial = partialBuffer,
+            partialUpdate = function() {
                 if(partialOutputMode === 'disabled') {
                     return;
                 }
-                var joined = getOutput(), partial = partialOutputMode === 'joined' ? joined : (outputBinary ? (isArrayBufferView(joined) ? new Uint8Array(bufferSlice(joined, joined.length, partialPosition, joined.length)) : joined.slice(partialPosition)) : joined.substr(partialPosition));
-                partialPosition = joined.length;
-                return partial;
+                if(outputBinary) {
+                    getOutputBinaryPreXHR2Style(xhr, partialBuffer);
+                } else {
+                    partialBuffer = xhr.responseText;
+                }
+                partial = partialOutputMode === 'joined' ? partialBuffer : partialBuffer.slice(partialPosition);
+                partialPosition = partialBuffer.length;
             };
         var uploadProgress = function(uploaded) {
             if(!uploadProgressCb) {
@@ -251,7 +253,7 @@
                 // Opera 12 progress events has a bug - .loaded can be higher than .total
                 // see http://dev.opera.com/articles/view/xhr2/#comment-96081222
                 /* jshint expr:true */
-                cb && current <= outputLength && !statusCb && downloadProgressCb(current, outputLength, getOutputPartial());
+                cb && current <= outputLength && !statusCb && (partialUpdate(), downloadProgressCb(partialPosition || current, outputLength, partial));
                 /* jshint expr:false */
             } catch(_) {
             }
@@ -413,12 +415,12 @@
                 return;
             }
 
-            downloadProgressCb(0, outputLength, getOutputPartial());
+            downloadProgressCb(0, outputLength, partial);
             if(!cb) {
                 return;
             }
             if(method === 'HEAD') {
-                downloadProgressCb(0, 0, getOutputPartial());
+                downloadProgressCb(0, 0, partial);
                 return cb && cb(null, _undefined, status, outputHeaders);
             }
         };
@@ -431,7 +433,7 @@
 
             var length;
             try {
-                length = getOutputLength(xhr, partialOutputMode !== 'disabled');
+                length = partialOutputMode !== 'disabled' ? xhr.responseText.length : getOutputLength(xhr);
             } catch(_) {
                 length = 0;
             }
@@ -468,17 +470,18 @@
             }
 
             if(noentity) {
-                downloadProgressCb(0, 0, getOutputPartial());
+                downloadProgressCb(0, 0, partial);
                 return cb(null, _undefined, status, outputHeaders);
             }
 
-            downloadProgressCb(outputLength, outputLength, getOutputPartial());
+            partialUpdate();
+            downloadProgressCb(outputLength, outputLength, partial);
             if(!cb) {
                 return;
             }
 
             try {
-                cb(null, outputConverter(getOutput()), status, outputHeaders);
+                cb(null, outputConverter(partialBuffer || getOutput()), status, outputHeaders);
             } catch(err) {
                 cb(err);
             }
@@ -646,7 +649,7 @@
                         if(triedSendBinaryString) {
                             if(!triedSendArrayBufferView) {
                                 try {
-                                    input = binaryStringToByteArray(input);
+                                    input = binaryStringToByteArray(input, []);
                                 } catch(_) {
                                     triedSendArrayBufferView = true;
                                 }
