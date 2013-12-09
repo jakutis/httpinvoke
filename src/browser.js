@@ -43,7 +43,32 @@
         }
         return n;
     };
-
+    var responseBodyToBytes, responseBodyLength;
+    try {
+        /* jshint evil:true */
+        execScript('Function httpinvoke0(B,A,C)\r\nDim i\r\nFor i=C to LenB(B)\r\nA.push(AscB(MidB(B,i,1)))\r\nNext\r\nEnd Function\r\nFunction httpinvoke1(B)\r\nhttpinvoke1=LenB(B)\r\nEnd Function', 'vbscript');
+        /* jshint evil:false */
+        responseBodyToBytes = function(binary, bytearray) {
+            // that vbscript counts from 1, not from 0
+            httpinvoke0(binary, bytearray, bytearray.length + 1);
+            return bytearray;
+        };
+        // cannot just assign the function, because httpinvoke1 is not a javascript 'function'
+        responseBodyLength = function(binary) {
+            return httpinvoke1(binary);
+        };
+    } catch(err) {
+    }
+    var responseByteArray = function(xhr, bytearray) {
+        // If response body has bytes out of printable ascii character range, then
+        // accessing xhr.responseText on Internet Explorer throws "Could not complete the operation due to error c00ce514".
+        // Therefore, try getting the bytearray from xhr.responseBody.
+        // Also responseBodyToBytes on some Internet Explorers is not defined, because of removed vbscript support.
+        return 'responseBody' in xhr && responseBodyToBytes ? responseBodyToBytes(xhr.responseBody, bytearray) : binaryStringToByteArray(xhr.responseText, bytearray);
+    };
+    var responseByteArrayLength = function(xhr) {
+        return 'responseBody' in xhr && responseBodyLength ? responseBodyLength(xhr.responseBody) : xhr.responseText.length;
+    };
     var fillOutputHeaders = function(xhr, outputHeaders) {
         var headers = xhr.getAllResponseHeaders().split(/\r?\n/);
         var atLeastOne = false;
@@ -78,7 +103,7 @@
                     return;
                 }
                 if(outputBinary) {
-                    binaryStringToByteArray(xhr.responseText, partialBuffer);
+                    responseByteArray(xhr, partialBuffer);
                 } else {
                     partialBuffer = xhr.responseText;
                 }
@@ -266,6 +291,12 @@
                 }
             } catch(_) {
             }
+            try {
+                if(responseBodyLength(xhr.responseBody)) {
+                    received.entity = true;
+                }
+            } catch(_) {
+            }
 
             if(!statusCb) {
                 return;
@@ -380,7 +411,7 @@
             try {
                 length =
                     partialOutputMode !== 'disabled' ?
-                    xhr.responseText.length :
+                    responseByteArrayLength(xhr) :
                     (
                         outputBinary ?
                         (
@@ -390,7 +421,7 @@
                                 xhr.response.byteLength :
                                 0
                             ) :
-                            xhr.responseText.length
+                            responseByteArrayLength(xhr)
                         ) :
                         countStringBytes(xhr.responseText)
                     );
@@ -449,7 +480,7 @@
                         upgradeByteArray(
                             'response' in xhr ?
                             xhr.response || [] :
-                            binaryStringToByteArray(xhr.responseText, [])
+                            responseByteArray(xhr, [])
                         ) :
                         xhr.responseText
                     )
