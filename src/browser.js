@@ -91,10 +91,6 @@
         /* jshint unused:false */
         /*************** initialize helper variables **************/
         var xhr, i, j, currentLocation, crossDomain, output,
-            getOutput = function() {
-                return outputBinary ? getOutputBinary(xhr) : getOutputText(xhr);
-            },
-            getOutputLength = outputBinary ? getOutputLengthBinary : getOutputLengthText,
             uploadProgressCbCalled = false,
             partialPosition = 0,
             partialBuffer = partialOutputMode === 'disabled' ? _undefined : (outputBinary ? [] : ''),
@@ -404,7 +400,7 @@
 
             var length;
             try {
-                length = partialOutputMode !== 'disabled' ? xhr.responseText.length : getOutputLength(xhr);
+                length = partialOutputMode !== 'disabled' ? xhr.responseText.length : (outputBinary ? getOutputLengthBinary : getOutputLengthText)(xhr);
             } catch(_) {
                 length = 0;
             }
@@ -452,7 +448,7 @@
             }
 
             try {
-                cb(null, outputConverter(partialBuffer || getOutput()), status, outputHeaders);
+                cb(null, outputConverter(partialBuffer || (outputBinary ? getOutputBinary : getOutputText)(xhr)), status, outputHeaders);
             } catch(err) {
                 cb(err);
             }
