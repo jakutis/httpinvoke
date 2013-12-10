@@ -25,6 +25,7 @@
   ],
   "dependencies": {},
   "development": {},
+  "local": [],
   "main": "httpinvoke-browser.js",
   "scripts": [
     "httpinvoke-browser.js"
@@ -33,5 +34,9 @@
   "styles": [],
   "images": [],
   "fonts": [],
+  "files": [],
+  "remotes": [],
+  "paths": [],
+  "demo": "http://jakut.is:1337/",
   "license": "MIT"
 }
