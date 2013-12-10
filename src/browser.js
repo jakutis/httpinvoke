@@ -140,27 +140,27 @@
         crossDomain = isCrossDomain(currentLocation, uri);
         /*************** start XHR **************/
         if(typeof input === 'object' && !isFormData(input) && httpinvoke.requestTextOnly) {
-            return failWithoutRequest(cb, new Error('bytearray inputType is not supported on this platform, please always test using requestTextOnly feature flag - hint - you may want to try sending FormData (formdata type)'));
+            return failWithoutRequest(cb, [17]);
         }
         if(crossDomain && !httpinvoke.cors) {
-            return failWithoutRequest(cb, new Error('Cross-origin requests are not supported'));
+            return failWithoutRequest(cb, [18]);
         }
         for(j = ['DELETE', 'PATCH', 'PUT', 'HEAD'], i = j.length;i-- > 0;) {
             if(crossDomain && method === j[i] && !httpinvoke['cors' + j[i]]) {
-                return failWithoutRequest(cb, new Error(j[i] + ' method in cross-origin requests is not supported in this browser'));
+                return failWithoutRequest(cb, [19, method]);
             }
         }
         if(method === 'PATCH' && !httpinvoke.PATCH) {
-            return failWithoutRequest(cb, new Error('PATCH method is not supported in this browser'));
+            return failWithoutRequest(cb, [20]);
         }
         if(!createXHR) {
-            return failWithoutRequest(cb, new Error('unable to construct XMLHttpRequest object'));
+            return failWithoutRequest(cb, [21]);
         }
         xhr = createXHR(crossDomain);
         try {
             xhr.open(method, uri, true);
         } catch(e) {
-            return failWithoutRequest(cb, e);
+            return failWithoutRequest(cb, [22, uri]);
         }
         if(options.corsCredentials && httpinvoke.corsCredentials && typeof xhr.withCredentials === 'boolean') {
             xhr.withCredentials = true;
@@ -525,7 +525,7 @@
                     try {
                         xhr.setRequestHeader(inputHeaderName, inputHeaders[inputHeaderName]);
                     } catch(err) {
-                        return failWithoutRequest(cb, err);
+                        return failWithoutRequest(cb, [23, inputHeaderName]);
                     }
                 }
             }
@@ -550,7 +550,7 @@
                 try {
                     xhr.send(input);
                 } catch(err) {
-                    return failWithoutRequest(cb, new Error('Unable to send'));
+                    return failWithoutRequest(cb, [24]);
                 }
             } else if(typeof input === 'object') {
                 var triedSendArrayBufferView = false;
@@ -577,7 +577,7 @@
                 var go = function() {
                     var reader;
                     if(triedSendBlob && triedSendArrayBufferView && triedSendBinaryString) {
-                        return failWithoutRequest(cb, new Error('Unable to send'));
+                        return failWithoutRequest(cb, [24]);
                     }
                     if(isArrayBufferView(input)) {
                         if(triedSendArrayBufferView) {
@@ -695,7 +695,7 @@
                         xhr.send(null);
                     }
                 } catch(err) {
-                    return failWithoutRequest(cb, new Error('Unable to send'));
+                    return failWithoutRequest(cb, [24]);
                 }
                 uploadProgress(0);
             }

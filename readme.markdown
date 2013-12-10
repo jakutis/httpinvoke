@@ -16,9 +16,10 @@ httpinvoke is a 5.1kb no-dependencies HTTP client library for **browsers** and *
   - [Streaming JSON](#streaming-json)
 - [API](#api)
   - [options](#options)
-  - [error conditions](#error-conditions)
   - [callback sequence](#callback-sequence)
   - [feature flags](#feature-flags)
+  - [error conditions](#error-conditions)
+  - [error codes](#error-codes)
 - [Development](#development)
 - [License](#license)
 
@@ -279,21 +280,6 @@ All options are optional.
 * **corsCredentials** is a boolean for requesting to send credentials. Applicable only for a cross-origin request. See Feature Flags section. Defaults to `false`.
 * **corsOriginHeader** is a string for the request header name for browsers with buggy CORS implementations (e.g. Android Browser 2.3.7) - which do not send the Origin request header in actual request. By default **corsOriginHeader** is not set, as it needs a proper `Access-Control-Allow-Headers` server-side header, see `dummyserver.js` for an example of server-side part of the workaround implementation.
 
-#### Error Conditions
-
-The **finished** callback will be called with an instance of Error only when strictly either one of these things happen:
-
-* **abort** function was called (error message `"abort"`);
-* number of received bytes does not equal the Content-Type value or native XMLHttpRequest called .onerror without a .status or .statusText (error message `"network error"`) - this can happen due to various network errors, server response sending or request receiving errors, or simply an unsupported status code - e.g. Firefox 3.0 ends up here after a status 408 response;
-* sending request timed out (error message `"upload timeout"`);
-* receiving response timed out (error message `"download timeout"`);
-* sending request and receiving response timed out (error message `"timeout"`);
-* converter from **converters** option threw an error (the thrown error message is passed);
-* request did not even start - calling options validation failed or a feature that is not supported by the platform was used (various error messages are passed, e.g. "Unsupported method TRACE").
-
-So generally, finishing with an error means that a response has not been received.
-Please note that a request can finish successfully, with an **err** set to `null`, but also with an undefined **status**, undefined **output** and an empty **headers** object - generally **status** is defined at all times, but some older browsers provide status code only for 2XX responses - e.g. Opera 11.50.
-
 #### Callback Sequence
 
 The callbacks are called in this strict sequence:
@@ -324,6 +310,48 @@ There are feature flags to be queried for platform-specific features.
 * **corsStatus** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports **status** argument in **gotStatus** option
 * **corsResponseTextOnly** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports only **outputType** `"text"`
 * **corsFineGrainedTimeouts** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports "upload timeout" and "download timeout" errors.
+
+#### Error Conditions
+
+The **finished** callback will be called with an instance of Error only when strictly either one of these things happen:
+
+* **abort** function was called (error message `"abort"`);
+* number of received bytes does not equal the Content-Type value or native XMLHttpRequest called .onerror without a .status or .statusText (error message `"network error"`) - this can happen due to various network errors, server response sending or request receiving errors, or simply an unsupported status code - e.g. Firefox 3.0 ends up here after a status 408 response;
+* sending request timed out (error message `"upload timeout"`);
+* receiving response timed out (error message `"download timeout"`);
+* sending request and receiving response timed out (error message `"timeout"`);
+* converter from **converters** option threw an error (the thrown error message is passed);
+* request did not even start (error message `"Error code #%. See https://github.com/jakutis/httpinvoke#error-codes"`)  - calling options validation failed or a feature that is not supported by the platform was used (various error messages are passed, e.g. "Unsupported method TRACE"). See [error codes](#error-codes).
+
+So generally, finishing with an error means that a response has not been received.
+Please note that a request can finish successfully, with an **err** set to `null`, but also with an undefined **status**, undefined **output** and an empty **headers** object - generally **status** is defined at all times, but some older browsers provide status code only for 2XX responses - e.g. Opera 11.50.
+
+#### Error Codes
+
+* **001** Option % is less than zero
+* **002** Option % is not a number
+* **003** Option "partialOutputMode" is neither "disabled", nor "chunked", nor "joined"
+* **004** Unsupported method %
+* **005** Unsupported outputType %
+* **006** "inputType" is undefined or auto and input is neither string, nor FormData, nor an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array
+* **007** "inputType" is text, but input is not a string
+* **008** "inputType" is formdata, but input is not an instance of FormData
+* **009** "inputType" is bytearray, but input is neither an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array
+* **010** There is no converter for specified "inputType" %
+* **011** "input" is undefined, but "inputType" is defined
+* **012** "input" is undefined, but "Content-Type" input header is defined
+* **013** "timeout" value is not valid
+* **014** Input header % is forbidden to be set programmatically
+* **015** Input header % (to be precise, all Proxy-*) is forbidden to be set programmatically
+* **016** Input header % (to be precise, all Sec-*) is forbidden to be set programmatically
+* **017** bytearray inputType is not supported on this platform, please always test using requestTextOnly feature flag - hint - you may want to try sending FormData (formdata type)
+* **018** Cross-origin requests are not supported in this browser
+* **019** % method cross-origin requests are not supported in this browser
+* **020** PATCH method requests are not supported in this browser
+* **021** Unable to construct XMLHttpRequest object
+* **022** Unable to open uri %
+* **023** Unable to set input header %
+* **024** Unable to send
 
 ## Development
 

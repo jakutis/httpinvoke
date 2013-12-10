@@ -80,6 +80,6 @@ var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
         isArrayBufferView(input) ||
         isArray(input)
     );
-}/* jshint undef:true */, bytearrayMessage = 'an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array', supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,', pass = function(value) {
+}/* jshint undef:true */, supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,', pass = function(value) {
     return value;
 }, _undefined;
