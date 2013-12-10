@@ -98,7 +98,7 @@
         isArrayBufferView(input) ||
         isArray(input)
     );
-}/* jshint undef:true */, bytearrayMessage = 'an instance of Buffer, nor Blob, nor File, nor ArrayBuffer, nor ArrayBufferView, nor Int8Array, nor Uint8Array, nor Uint8ClampedArray, nor Int16Array, nor Uint16Array, nor Int32Array, nor Uint32Array, nor Float32Array, nor Float64Array, nor Array', supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,', pass = function(value) {
+}/* jshint undef:true */, supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,', pass = function(value) {
     return value;
 }, _undefined;
 ;
@@ -184,7 +184,7 @@
     var httpinvoke = function(uri, method, options, cb) {
         /* jshint unused:true */
         ;/* global httpinvoke, url, method, options, cb */
-/* global nextTick, mixInPromise, pass, progress, reject, resolve, supportedMethods, isArray, isArrayBufferView, isFormData, isByteArray, bytearrayMessage, _undefined */
+/* global nextTick, mixInPromise, pass, progress, reject, resolve, supportedMethods, isArray, isArrayBufferView, isFormData, isByteArray, _undefined */
 /* global setTimeout */
 /* global crossDomain */// this one is a hack, because when in nodejs this is not really defined, but it is never needed
 /* jshint -W020 */
@@ -241,6 +241,10 @@ var safeCallback = function(name, aspectBefore, aspectAfter) {
     };
 };
 failWithoutRequest = function(cb, err) {
+    if(!(err instanceof Error)) {
+        // create error here, instead of nextTick, to preserve stack
+        err = new Error('Error code #' + err +'. See https://github.com/jakutis/httpinvoke#error-codes');
+    }
     nextTick(function() {
         if(cb === null) {
             return;
@@ -302,10 +306,10 @@ var fixPositiveOpt = function(opt) {
         options[opt] = 0;
     } else if(typeof options[opt] === 'number') {
         if(options[opt] < 0) {
-            return failWithoutRequest(cb, new Error('Option "' + opt + '" is less than zero'));
+            return failWithoutRequest(cb, [1, opt]);
         }
     } else {
-        return failWithoutRequest(cb, new Error('Option "' + opt + '" is not a number'));
+        return failWithoutRequest(cb, [2, opt]);
     }
 };
 var converters = options.converters || {};
@@ -317,10 +321,10 @@ exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 
 /*************** COMMON convert and validate parameters **************/
 var partialOutputMode = options.partialOutputMode || 'disabled';
 if(partialOutputMode.indexOf(',') >= 0 || ',disabled,chunked,joined,'.indexOf(',' + partialOutputMode + ',') < 0) {
-    return failWithoutRequest(cb, new Error('Option "partialOutputMode" is neither "disabled", nor "chunked", nor "joined"'));
+    return failWithoutRequest(cb, [3]);
 }
 if(method.indexOf(',') >= 0 || supportedMethods.indexOf(',' + method + ',') < 0) {
-    return failWithoutRequest(cb, new Error('Unsupported method ' + method));
+    return failWithoutRequest(cb, [4, method]);
 }
 var optionsOutputType = options.outputType;
 outputBinary = optionsOutputType === 'bytearray';
@@ -333,7 +337,7 @@ if(!optionsOutputType || optionsOutputType === 'text' || outputBinary) {
     outputConverter = converters['bytearray ' + optionsOutputType];
     outputBinary = true;
 } else {
-    return failWithoutRequest(cb, new Error('Unsupported outputType ' + optionsOutputType));
+    return failWithoutRequest(cb, [5, optionsOutputType]);
 }
 inputConverter = pass;
 var optionsInputType = options.inputType;
@@ -341,19 +345,19 @@ input = options.input;
 if(input !== _undefined) {
     if(!optionsInputType || optionsInputType === 'auto') {
         if(typeof input !== 'string' && !isByteArray(input) && !isFormData(input)) {
-            return failWithoutRequest(cb, new Error('inputType is undefined or auto and input is neither string, nor FormData, nor ' + bytearrayMessage));
+            return failWithoutRequest(cb, [6]);
         }
     } else if(optionsInputType === 'text') {
         if(typeof input !== 'string') {
-            return failWithoutRequest(cb, new Error('inputType is text, but input is not a string'));
+            return failWithoutRequest(cb, [7]);
         }
     } else if (optionsInputType === 'formdata') {
         if(!isFormData(input)) {
-            return failWithoutRequest(cb, new Error('inputType is formdata, but input is not an instance of FormData'));
+            return failWithoutRequest(cb, [8]);
         }
     } else if (optionsInputType === 'bytearray') {
         if(!isByteArray(input)) {
-            return failWithoutRequest(cb, new Error('inputType is bytearray, but input is neither ' + bytearrayMessage));
+            return failWithoutRequest(cb, [9]);
         }
     } else if(converters[optionsInputType + ' text']) {
         inputConverter = converters[optionsInputType + ' text'];
@@ -362,7 +366,7 @@ if(input !== _undefined) {
     } else if(converters[optionsInputType + ' formdata']) {
         inputConverter = converters[optionsInputType + ' formdata'];
     } else {
-        return failWithoutRequest(cb, new Error('There is no converter for specified inputType'));
+        return failWithoutRequest(cb, [10, optionsInputType]);
     }
     if(typeof input === 'object' && !isFormData(input)) {
         if(global.ArrayBuffer && input instanceof global.ArrayBuffer) {
@@ -378,10 +382,10 @@ if(input !== _undefined) {
     }
 } else {
     if(optionsInputType && optionsInputType !== 'auto') {
-        return failWithoutRequest(cb, new Error('"input" is undefined, but inputType is defined'));
+        return failWithoutRequest(cb, [11]);
     }
     if(inputHeaders['Content-Type']) {
-        return failWithoutRequest(cb, new Error('"input" is undefined, but Content-Type request header is defined'));
+        return failWithoutRequest(cb, [12]);
     }
 }
 var isValidTimeout = function(timeout) {
@@ -399,7 +403,7 @@ if(optionsTimeout !== _undefined) {
             timeout = optionsTimeout[0] + optionsTimeout[1];
         }
     } else {
-        return failWithoutRequest(cb, new Error('"timeout" value is not valid'));
+        return failWithoutRequest(cb, [13]);
     }
 }
 if(uploadTimeout) {
@@ -469,27 +473,27 @@ if(timeout) {
         crossDomain = isCrossDomain(currentLocation, uri);
         /*************** start XHR **************/
         if(typeof input === 'object' && !isFormData(input) && httpinvoke.requestTextOnly) {
-            return failWithoutRequest(cb, new Error('bytearray inputType is not supported on this platform, please always test using requestTextOnly feature flag - hint - you may want to try sending FormData (formdata type)'));
+            return failWithoutRequest(cb, [17]);
         }
         if(crossDomain && !httpinvoke.cors) {
-            return failWithoutRequest(cb, new Error('Cross-origin requests are not supported'));
+            return failWithoutRequest(cb, [18]);
         }
         for(j = ['DELETE', 'PATCH', 'PUT', 'HEAD'], i = j.length;i-- > 0;) {
             if(crossDomain && method === j[i] && !httpinvoke['cors' + j[i]]) {
-                return failWithoutRequest(cb, new Error(j[i] + ' method in cross-origin requests is not supported in this browser'));
+                return failWithoutRequest(cb, [19, method]);
             }
         }
         if(method === 'PATCH' && !httpinvoke.PATCH) {
-            return failWithoutRequest(cb, new Error('PATCH method is not supported in this browser'));
+            return failWithoutRequest(cb, [20]);
         }
         if(!createXHR) {
-            return failWithoutRequest(cb, new Error('unable to construct XMLHttpRequest object'));
+            return failWithoutRequest(cb, [21]);
         }
         xhr = createXHR(crossDomain);
         try {
             xhr.open(method, uri, true);
         } catch(e) {
-            return failWithoutRequest(cb, e);
+            return failWithoutRequest(cb, [22, uri]);
         }
         if(options.corsCredentials && httpinvoke.corsCredentials && typeof xhr.withCredentials === 'boolean') {
             xhr.withCredentials = true;
@@ -854,7 +858,7 @@ if(timeout) {
                     try {
                         xhr.setRequestHeader(inputHeaderName, inputHeaders[inputHeaderName]);
                     } catch(err) {
-                        return failWithoutRequest(cb, err);
+                        return failWithoutRequest(cb, [23, inputHeaderName]);
                     }
                 }
             }
@@ -879,7 +883,7 @@ if(timeout) {
                 try {
                     xhr.send(input);
                 } catch(err) {
-                    return failWithoutRequest(cb, new Error('Unable to send'));
+                    return failWithoutRequest(cb, [24]);
                 }
             } else if(typeof input === 'object') {
                 var triedSendArrayBufferView = false;
@@ -906,7 +910,7 @@ if(timeout) {
                 var go = function() {
                     var reader;
                     if(triedSendBlob && triedSendArrayBufferView && triedSendBinaryString) {
-                        return failWithoutRequest(cb, new Error('Unable to send'));
+                        return failWithoutRequest(cb, [24]);
                     }
                     if(isArrayBufferView(input)) {
                         if(triedSendArrayBufferView) {
@@ -1024,7 +1028,7 @@ if(timeout) {
                         xhr.send(null);
                     }
                 } catch(err) {
-                    return failWithoutRequest(cb, new Error('Unable to send'));
+                    return failWithoutRequest(cb, [24]);
                 }
                 uploadProgress(0);
             }
