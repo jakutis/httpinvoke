@@ -27,7 +27,7 @@ httpinvoke is a 4.8kb no-dependencies HTTP client library for **browsers** and *
 
 * Gracefully upgrades to latest platform-specific features:
   * [cross-origin resource sharing](http://www.w3.org/TR/cors/) - do cross-domain requests with confidence;
-  * [streaming](http://www.w3.org/TR/streams-api/) - currently only streaming downloads, see description of option **partialOutputMode** below.
+  * [streaming](http://www.w3.org/TR/streams-api/) - currently only streaming downloads, see [description of option **partialOutputMode** below](#options).
   * [progress events](http://www.w3.org/TR/progress-events/) - get current and total bytes downloaded or uploaded;
   * [binary file uploads and downloads](http://www.w3.org/TR/XMLHttpRequest/) - easily use Blob, FormData, ArrayBuffer, Uint8Array or a simple array of bytes;
 * Supports both NodeJS style callbacks and [Promises/A+](http://promisesaplus.com/) (with progress events, see [an example](https://github.com/jakutis/httpinvoke/blob/master/test/promise.js)).
@@ -237,7 +237,7 @@ Any one, two or three arguments can be skipped, except the **url**.
 See the Examples section for all the options being used.
 All options are optional.
 
-* **partialOutputMode** is a string for the type of the **partial** argument of the **downloading** option, one of `"disabled"` (default, **downloading** will not receive this argument), `"chunked"` (the received value will be the latest chunk), `"joined"` (the received value will be the entire partial body).
+* **partialOutputMode** is a string for the type of the **partial** argument of the **downloading** option, one of `"disabled"` (default, **downloading** will not receive the **partial** argument), `"chunked"` (the received value will be the latest chunk), `"joined"` (the received value will be the entire partial body).
 * **timeout** must be either one of:
   * undefined (default), means that **finished** must never be called with any of the timeout errors,
   * a number (greater than 0 and less than 1073741824) for maximum duration in milliseconds between the httpinvoke call and **finished** call, if it timeouts - **finished** must be called with `"timeout"` error,
