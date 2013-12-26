@@ -70,6 +70,13 @@ var httpinvoke = function(uri, method, options, cb) {
         return failWithoutRequest(cb, err);
     }
     inputHeaders = copy(inputHeaders, {});
+    if(typeof input !== 'undefined') {
+        input = new Buffer(input);
+        inputLength = input.length;
+        inputHeaders['Content-Length'] = String(inputLength);
+    } else {
+        inputLength = 0;
+    }
     inputHeaders['Accept-Encoding'] = 'gzip, deflate, identity';
 
     var ignorantlyConsume = function(res) {
@@ -227,11 +234,7 @@ var httpinvoke = function(uri, method, options, cb) {
         uploadProgressCb(0, inputLength);
     });
     if(typeof input !== 'undefined') {
-        input = new Buffer(input);
-        inputLength = input.length;
         req.write(input);
-    } else {
-        inputLength = 0;
     }
     req.on('error', function() {
         if(!cb) {
