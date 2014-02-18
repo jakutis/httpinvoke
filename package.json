@@ -47,15 +47,13 @@
     "test-browser": "./node_modules/.bin/grunt && node ./dummyserver.js && ./node_modules/karma/bin/karma start && kill $(cat ./dummyserver.pid) && rm ./dummyserver.pid",
     "test-node": "./node_modules/.bin/grunt && node ./dummyserver.js && ./node_modules/.bin/mocha --watch && kill $(cat ./dummyserver.pid) && rm ./dummyserver.pid"
   },
+  "homepage": "https://www.npmjs.org/package/httpinvoke",
+  "bugs": "https://github.com/jakutis/httpinvoke/issues",
   "repository": {
     "type": "git",
     "url": "https://github.com/jakutis/httpinvoke"
   },
-  "author": {
-    "name": "Vytautas Jakutis",
-    "email": "vytautas@jakut.is",
-    "url": "https://jakut.is/"
-  },
+  "author": "Vytautas Jakutis <vytautas@jakut.is> (https://jakut.is/)",
   "contributors": [],
   "engines" : {
     "node" : ">=0.8.0 <0.11"
