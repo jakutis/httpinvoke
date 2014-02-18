@@ -21,7 +21,6 @@ httpinvoke is a 4.8kb no-dependencies HTTP client library for **browsers** and *
   - [error conditions](#error-conditions)
   - [error codes](#error-codes)
 - [Development](#development)
-- [License](#license)
 
 ## Overview
 
@@ -52,23 +51,21 @@ httpinvoke is a 4.8kb no-dependencies HTTP client library for **browsers** and *
 
 ## Installation
 
-#### manually
+  Install manually by adding to your HTML file:
 
-Adding to your HTML file:
+    <script src="/path/to/httpinvoke/httpinvoke-browser.js"></script>
 
-    <script src="/path_to_http_invoke/httpinvoke-browser.js"></script>
+  Install with [npm](https://www.npmjs.org/package/httpinvoke):
 
-#### with [npm](https://npmjs.org/package/httpinvoke)
+    $ npm install --save httpinvoke
 
-    npm install --save httpinvoke
+  Install with [component](http://component.io/jakutis/httpinvoke):
 
-#### with [Bower](http://bower.io)
+    $ component install jakutis/httpinvoke
 
-    bower install --save httpinvoke
+  Install with [bower](http://bower.io):
 
-#### with [Component](http://component.io/jakutis/httpinvoke)
-
-    component install jakutis/httpinvoke
+    $ bower install --save httpinvoke
 
 ## Examples
 
@@ -364,26 +361,3 @@ To test for web browser functionality run `npm run test-browser`, copy the URL l
 * package.json, bower.json and component.json version number bumped
 * file size, number of tests in readme.markdown updated
 * httpinvoke-* files regenerated
-
-## License
-
-    The MIT License (MIT)
-
-    Copyright (c) 2013 Vytautas Jakutis <vytautas@jakut.is>
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy of
-    this software and associated documentation files (the "Software"), to deal in
-    the Software without restriction, including without limitation the rights to
-    use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-    the Software, and to permit persons to whom the Software is furnished to do so,
-    subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-    FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-    COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-    IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-    CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
