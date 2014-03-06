@@ -1,5 +1,8 @@
 # To do
 
+    Goal:  catch intentionally uncaught errors so that test would pass
+    To do: Thu Mar  6 20:04:42 UTC 2014
+
     Goal:  nodejs streams
     To do: Mon Feb 17 14:35:45 UTC 2014
 
