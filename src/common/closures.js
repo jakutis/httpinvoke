@@ -51,7 +51,7 @@ var safeCallback = function(name, aspectBefore, aspectAfter) {
         try {
             options[name](a, b, c, d);
         } catch(err) {
-            setTimeout(function() {
+            nextTick(function() {
                 throw err;
             });
         }
