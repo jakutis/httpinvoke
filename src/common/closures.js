@@ -50,7 +50,10 @@ var safeCallback = function(name, aspectBefore, aspectAfter) {
         aspectBefore(a, b, c, d);
         try {
             options[name](a, b, c, d);
-        } catch(_) {
+        } catch(err) {
+            setTimeout(function() {
+                throw err;
+            });
         }
         aspectAfter(a, b, c, d);
     };
