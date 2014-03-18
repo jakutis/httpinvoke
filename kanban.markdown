@@ -1,5 +1,8 @@
 # To do
 
+    Goal:  create high-level httpinvoke-partial, httpinvoke-backoff libraries
+    To do: Tue Mar 18 09:58:48 UTC 2014
+
     Goal:  catch intentionally uncaught errors so that test would pass
     To do: Thu Mar  6 20:04:42 UTC 2014
 

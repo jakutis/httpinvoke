@@ -1,0 +1,51 @@
+httpinvoke does not do neither exponential backoff,
+neither application-level request/response entity body chunking, neither
+multiple-connection simultaneous uploading/downloading.
+
+The goal of httpinvoke is to simultaneously maximise the power of what could be
+done with a _single_ request and minimise the file size.
+
+The interface of httpinvoke is not entirely suitable for the implementation to
+do more than one request. All options and values could be perfectly abstracted
+around multiple requests, except these:
+- `gotStatus`
+  - After which response should `gotStatus` be called?
+  - Which response should be used to take status code and headers and provide
+    them in `gotStatus` call?
+- `headers`
+  - Which request should receive the `headers`?
+
+Also, these changes should be made:
+- `httpinvoke` (function) option should be added to pass the lower level
+  implementation function to be wrapped. For `httpinvoke-partial`
+  described below in conclusions - it could be either the original
+  `httpinvoke` or `httpinvoke-backoff` also described below.
+- `backoff` (boolean) option should be added to switch on/off the exponential
+  backoff feature.
+- `partialSimultaneous` (boolean) option should be added to switch on/off
+  simultaneous uploading/downloading of chunks.
+- `partialChunkSize` (number) option should be added.
+- `partial` (boolean) option should be added and this should happen:
+  - (if `input` is not undefined) only for uploading:
+    - 'Content-Range' request header should be sent with each request for each
+      chunk.
+  - (otherwise) only for downloading:
+    - HEAD request should be made to get 'Content-Length' response header
+    - 'Range' request header should be sent with each request for each chunk.
+
+So to sum up:
+- doing more than one request does not align with the phylosophy of httpinvoke.
+- the two - exponential backoff and chunked/resumable up/downloading - features
+  are orthogonal, and thus could be implemented independently and then composed
+  with each other (using the new `httpinvoke` option above).
+- a thin (looking from interface point-of-view) library, perhaps called
+  `httpinvoke-backoff` could be created - it would give the same API as
+  `httpinvoke`, but with the additional options `httpinvoke` and `backoff`
+  written above. The `gotStatus` would be called with the final successful
+  response. `headers` would be sent with every request.
+- a thin (looking from interface point-of-view) library, perhaps called
+  `httpinvoke-partial` could be created - it would give the same API as
+  `httpinvoke`, but with the additional options `httpinvoke`, `partial`,
+  `partialSimultaneous`, `partialChunkSize`. The `gotStatus` would be called
+  with the `gotStatus` values from the chunk that was first to get `gotStatus`.
+  `headers` would be sent with every request.
