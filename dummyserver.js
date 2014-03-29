@@ -4,6 +4,9 @@ var daemon = require('daemon');
 var fs = require('fs');
 var mime = require('mime');
 var zlib = require('zlib');
+var promptly = require('promptly');
+var sb = require('surfboard');
+var open = sb.openUrl;
 
 var hello = new Buffer('Hello World\n', 'utf8');
 
@@ -311,11 +314,20 @@ if(fs.existsSync('./dummyserver.pid')) {
     console.log('Error: file ./dummyserver.pid already exists');
     process.exit(1);
 } else {
-    console.log('HTML test runner available at http://localhost:' + cfg.dummyserverPort + '/test/index.html');
-    if(process.argv[2] !== 'nodaemon') {
-        daemon();
-    }
-    fs.writeFileSync('./dummyserver.pid', String(process.pid));
-    http.createServer(listen).listen(cfg.dummyserverPort, cfg.host);
-    http.createServer(listen).listen(cfg.dummyserverPortAlternative, cfg.host);
+    var testURL = 'http://localhost:' + cfg.dummyserverPort + '/test/index.html';
+    console.log('HTML test runner available at ' + testURL);
+    promptly.confirm('Do you want to open it in the browser? ', function (err, openConfirmed) {
+        if(err) {
+            throw err;
+        }
+        if(openConfirmed) {
+            open(testURL);
+        }
+        if(process.argv[2] !== 'nodaemon') {
+            daemon();
+        }
+        fs.writeFileSync('./dummyserver.pid', String(process.pid));
+        http.createServer(listen).listen(cfg.dummyserverPort, cfg.host);
+        http.createServer(listen).listen(cfg.dummyserverPortAlternative, cfg.host);
+    });
 }
