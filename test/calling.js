@@ -35,16 +35,26 @@ describe('calling', function() {
             httpinvoke(url);
             done();
         });
-        it('does not break when callbacks throw errors' + postfix, function(done) {
+        it('does not break when uploading callback throws an error' + postfix, function(done) {
             httpinvoke(url, {
                 uploading: function() {
-                    throw new Error('foobar');
+                    throw new Error('fake error in uploading callback');
                 },
+                finished: done
+            });
+        });
+        it('does not break when gotStatus callback throws an error' + postfix, function(done) {
+            httpinvoke(url, {
                 gotStatus: function() {
-                    throw new Error('foobar');
+                    throw new Error('fake error in gotStatus callback');
                 },
+                finished: done
+            });
+        });
+        it('does not break when downloading callback throws an error' + postfix, function(done) {
+            httpinvoke(url, {
                 downloading: function() {
-                    throw new Error('foobar');
+                    throw new Error('fake error in downloading callback');
                 },
                 finished: done
             });
