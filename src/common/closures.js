@@ -48,12 +48,14 @@ if(!method) {
 var safeCallback = function(name, aspectBefore, aspectAfter) {
     return function(a, b, c, d) {
         aspectBefore(a, b, c, d);
-        try {
-            options[name](a, b, c, d);
-        } catch(err) {
-            nextTick(function() {
-                throw err;
-            });
+        if(options[name]) {
+            try {
+                options[name](a, b, c, d);
+            } catch(err) {
+                nextTick(function() {
+                    throw err;
+                });
+            }
         }
         aspectAfter(a, b, c, d);
     };
