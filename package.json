@@ -46,7 +46,7 @@
   },
   "scripts": {
     "test": "node ./dummyserver.js || exit 1;./node_modules/.bin/grunt test;E=$?;kill -9 $(cat ./dummyserver.pid);rm ./dummyserver.pid;exit $E",
-    "test-browser": "./node_modules/.bin/grunt && node ./dummyserver.js && ./node_modules/karma/bin/karma start && kill $(cat ./dummyserver.pid) && rm ./dummyserver.pid",
+    "test-browser": "./node_modules/.bin/grunt && node ./dummyserver.js && ./node_modules/karma/bin/karma start;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid",
     "test-node": "./node_modules/.bin/grunt && node ./dummyserver.js && ./node_modules/.bin/mocha --watch && kill $(cat ./dummyserver.pid) && rm ./dummyserver.pid"
   },
   "homepage": "https://www.npmjs.org/package/httpinvoke",
