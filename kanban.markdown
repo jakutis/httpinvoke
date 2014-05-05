@@ -1,5 +1,8 @@
 # To do
 
+    Goal:  generator based API, http://strongloop.com/strongblog/node-js-callback-hell-promises-generators/
+    To do: Tue Apr 29 10:45:31 UTC 2014
+
     Goal:  create high-level httpinvoke-partial, httpinvoke-backoff libraries
     To do: Tue Mar 18 09:58:48 UTC 2014
 
