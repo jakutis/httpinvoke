@@ -1,5 +1,8 @@
 # To do
 
+    Goal:  remove built-in Promise implementation, require one provided by browser or polyfilled, https://github.com/getify/native-promise-only
+    To do: Sat May 17 12:12:29 UTC 2014
+
     Goal:  generator based API, http://strongloop.com/strongblog/node-js-callback-hell-promises-generators/
     To do: Tue Apr 29 10:45:31 UTC 2014
 
