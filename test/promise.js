@@ -165,6 +165,19 @@ describe('promise', function() {
                 done();
             }, null);
         });
+        it('supports Promises/A+ requirement, that If onResolved returns a value x, returned promise must be resolved using x' + postfix, function(done) {
+            var value = {};
+            httpinvoke(url).then(function() {
+                return value;
+            }).then(function(v) {
+                if(value !== v) {
+                    done(new Error('was not resolved with same value'));
+                }
+                done();
+            }, function() {
+                done(new Error('was rejected'));
+            });
+        });
         it('supports Promises/A+ requirement, that If onResolved throws an exception e, returned promise must be rejected with e as the reason' + postfix, function(done) {
             var e = {};
             httpinvoke(url).then(function() {
@@ -176,6 +189,19 @@ describe('promise', function() {
                     done(new Error('was not rejected with same reason'));
                 }
                 done();
+            });
+        });
+        it('supports Promises/A+ requirement, that If onRejected returns a value x, returned promise must be resolved using x' + postfix, function(done) {
+            var v = {};
+            httpinvoke(url, 'ERROR').then(null, function() {
+                return v;
+            }).then(function(v) {
+                if(value !== v) {
+                    done(new Error('was not resolved with the same value'));
+                }
+                done();
+            }, function(err) {
+                done(new Error('was rejected'));
             });
         });
         it('supports Promises/A+ requirement, that If onRejected throws an exception e, returned promise must be rejected with e as the reason' + postfix, function(done) {
