@@ -192,9 +192,9 @@ describe('promise', function() {
             });
         });
         it('supports Promises/A+ requirement, that If onRejected returns a value x, returned promise must be resolved using x' + postfix, function(done) {
-            var v = {};
+            var value = {};
             httpinvoke(url, 'ERROR').then(null, function() {
-                return v;
+                return value;
             }).then(function(v) {
                 if(value !== v) {
                     done(new Error('was not resolved with the same value'));
