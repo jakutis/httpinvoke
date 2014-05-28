@@ -200,7 +200,7 @@ describe('promise', function() {
                     done(new Error('was not resolved with the same value'));
                 }
                 done();
-            }, function(err) {
+            }, function() {
                 done(new Error('was rejected'));
             });
         });
