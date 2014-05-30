@@ -1,12 +1,16 @@
 var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
     /* jshint expr:true */
-    a && a.then && a.then(function() {
-        b[resolve].apply(null, arguments);
-    }, function() {
-        b[reject].apply(null, arguments);
-    }, function() {
-        b[progress].apply(null, arguments);
-    });
+    if(a && a.then) {
+        a.then(function() {
+            b[resolve].apply(null, arguments);
+        }, function() {
+            b[reject].apply(null, arguments);
+        }, function() {
+            b[progress].apply(null, arguments);
+        });
+    } else {
+        b[resolve](a);
+    }
     /* jshint expr:false */
 }, nextTick = (global.process && global.process.nextTick) || global.setImmediate || global.setTimeout, mixInPromise = function(o) {
     var value, queue = [], state = progress;
