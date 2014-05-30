@@ -358,6 +358,7 @@ To test for web browser functionality run `npm run test-browser`, copy the URL l
 
 #### Checklist before releasing
 
+* tests pass on node and browser
 * package.json, bower.json and component.json version number bumped
+* `npm run compile`
 * file size, number of tests in readme.markdown updated
-* httpinvoke-* files regenerated

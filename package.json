@@ -35,19 +35,20 @@
     "es5-shim": "3.4.x",
     "grunt": "0.4.x",
     "grunt-cli": "0.1.x",
-    "grunt-contrib-uglify": "0.4.x",
     "grunt-contrib-concat": "0.4.x",
     "grunt-contrib-jshint": "0.10.x",
     "grunt-mocha-test": "0.10.x",
     "daemon": "1.1.x",
     "mocha": "1.20.x",
     "karma": "0.12.x",
-    "karma-mocha": "0.1.x"
+    "karma-mocha": "0.1.x",
+    "uglify-js": "2.4.x"
   },
   "scripts": {
     "test": "node ./dummyserver.js || exit 1;node ./node_modules/.bin/grunt test;E=$?;kill -9 $(cat ./dummyserver.pid);rm ./dummyserver.pid;exit $E",
-    "test-browser": "node ./node_modules/.bin/grunt && node ./dummyserver.js suggestopen && node ./node_modules/karma/bin/karma start;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid",
-    "test-node": "node ./node_modules/.bin/grunt && node ./dummyserver.js && node ./node_modules/.bin/mocha --watch && kill $(cat ./dummyserver.pid) && rm ./dummyserver.pid"
+    "test-browser": "node ./node_modules/.bin/grunt compile && node ./dummyserver.js suggestopen && node ./node_modules/karma/bin/karma start;kill $(cat ./dummyserver.pid);rm ./dummyserver.pid",
+    "test-node": "node ./node_modules/.bin/grunt compile && node ./dummyserver.js && node ./node_modules/.bin/mocha --watch && kill $(cat ./dummyserver.pid) && rm ./dummyserver.pid",
+    "compile": "node ./node_modules/.bin/grunt compile && node ./node_modules/.bin/uglifyjs < httpinvoke-browser.js > httpinvoke-browser.min.js"
   },
   "homepage": "https://www.npmjs.org/package/httpinvoke",
   "bugs": "https://github.com/jakutis/httpinvoke/issues",

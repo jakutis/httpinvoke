@@ -166,15 +166,6 @@ module.exports = function(grunt) {
                 src: ['test/*.js']
             }
         },
-        uglify: {
-            options: {
-                banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
-            },
-            build: {
-                src: './<%= pkg.name %>-browser.js',
-                dest: './<%= pkg.name %>-browser.min.js'
-            }
-        },
         concat: {
             browser: {
                 options: {
@@ -208,11 +199,10 @@ module.exports = function(grunt) {
         }
     });
 
-    grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-mocha-test');
 
-    grunt.registerTask('default', ['concat', 'uglify']);
-    grunt.registerTask('test', ['concat', 'jshint', 'mochaTest']);
+    grunt.registerTask('compile', ['concat', 'jshint']);
+    grunt.registerTask('test', ['compile', 'mochaTest']);
 };
