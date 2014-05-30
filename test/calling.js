@@ -36,27 +36,58 @@ describe('calling', function() {
             done();
         });
         it('does not break when uploading callback throws an error' + postfix, function(done) {
+            var runnable = this.runnable();
+            runnable.state = 'failed';
+            var calledOnce = false;
             httpinvoke(url, {
                 uploading: function() {
+                    if(calledOnce) {
+                        return;
+                    }
+                    calledOnce = true;
                     throw new Error('fake error in uploading callback');
                 },
-                finished: done
+                finished: function(err) {
+                    if(!err) {
+                        runnable.state = 'passed';
+                    }
+                    done.apply(null, arguments);
+                }
             });
         });
         it('does not break when gotStatus callback throws an error' + postfix, function(done) {
+            var runnable = this.runnable();
+            runnable.state = 'failed';
             httpinvoke(url, {
                 gotStatus: function() {
                     throw new Error('fake error in gotStatus callback');
                 },
-                finished: done
+                finished: function(err) {
+                    if(!err) {
+                        runnable.state = 'passed';
+                    }
+                    done.apply(null, arguments);
+                }
             });
         });
         it('does not break when downloading callback throws an error' + postfix, function(done) {
+            var runnable = this.runnable();
+            runnable.state = 'failed';
+            var calledOnce = false;
             httpinvoke(url, {
                 downloading: function() {
+                    if(calledOnce) {
+                        return;
+                    }
+                    calledOnce = true;
                     throw new Error('fake error in downloading callback');
                 },
-                finished: done
+                finished: function(err) {
+                    if(!err) {
+                        runnable.state = 'passed';
+                    }
+                    done.apply(null, arguments);
+                }
             });
         });
     });
