@@ -362,3 +362,5 @@ To test for web browser functionality run `npm run test-browser`, copy the URL l
 * package.json, bower.json and component.json version number bumped
 * `npm run compile`
 * file size, number of tests in readme.markdown updated
+* `release X.X.X` commit created and tagged as `X.X.X`
+* `npm publish`
