@@ -18,13 +18,17 @@
     /* jshint unused:true */
     ;global = window;;var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
     /* jshint expr:true */
-    a && a.then && a.then(function() {
-        b[resolve].apply(null, arguments);
-    }, function() {
-        b[reject].apply(null, arguments);
-    }, function() {
-        b[progress].apply(null, arguments);
-    });
+    if(a && a.then) {
+        a.then(function() {
+            b[resolve].apply(null, arguments);
+        }, function() {
+            b[reject].apply(null, arguments);
+        }, function() {
+            b[progress].apply(null, arguments);
+        });
+    } else {
+        b[resolve](a);
+    }
     /* jshint expr:false */
 }, nextTick = (global.process && global.process.nextTick) || global.setImmediate || global.setTimeout, mixInPromise = function(o) {
     var value, queue = [], state = progress;
@@ -232,10 +236,21 @@ if(!method) {
 }
 var safeCallback = function(name, aspectBefore, aspectAfter) {
     return function(a, b, c, d) {
+        var _cb;
         aspectBefore(a, b, c, d);
-        try {
-            options[name](a, b, c, d);
-        } catch(_) {
+        if(options[name]) {
+            try {
+                options[name](a, b, c, d);
+            } catch(err) {
+                _cb = cb;
+                cb = null;
+                nextTick(function() {
+                    /* jshint expr:true */
+                    _cb && _cb(err);
+                    /* jshint expr:false */
+                    promise();
+                });
+            }
         }
         aspectAfter(a, b, c, d);
     };
