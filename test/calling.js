@@ -35,58 +35,60 @@ describe('calling', function() {
             httpinvoke(url);
             done();
         });
-        it('does not break when uploading callback throws an error' + postfix, function(done) {
-            var runnable = this.runnable();
-            runnable.state = 'failed';
-            var calledOnce = false;
+        it('exits with the same error that uploading callback throws' + postfix, function(done) {
+            var error = new Error('fake error in uploading callback');
             httpinvoke(url, {
                 uploading: function() {
-                    if(calledOnce) {
-                        return;
-                    }
-                    calledOnce = true;
-                    throw new Error('fake error in uploading callback');
+                    throw error;
                 },
                 finished: function(err) {
                     if(!err) {
-                        runnable.state = 'passed';
+                        return done(new Error('error was not thrown'));
                     }
-                    done.apply(null, arguments);
+
+                    if(error === err) {
+                        done();
+                    } else {
+                        done(err);
+                    }
                 }
             });
         });
-        it('does not break when gotStatus callback throws an error' + postfix, function(done) {
-            var runnable = this.runnable();
-            runnable.state = 'failed';
+        it('exits with the same error that gotStatus callback throws' + postfix, function(done) {
+            var error = new Error('fake error in gotStatus callback');
             httpinvoke(url, {
                 gotStatus: function() {
-                    throw new Error('fake error in gotStatus callback');
+                    throw error;
                 },
                 finished: function(err) {
                     if(!err) {
-                        runnable.state = 'passed';
+                        return done(new Error('error was not thrown'));
                     }
-                    done.apply(null, arguments);
+
+                    if(error === err) {
+                        done();
+                    } else {
+                        done(err);
+                    }
                 }
             });
         });
-        it('does not break when downloading callback throws an error' + postfix, function(done) {
-            var runnable = this.runnable();
-            runnable.state = 'failed';
-            var calledOnce = false;
+        it('exits with the same error that downloading callback throws' + postfix, function(done) {
+            var error = new Error('fake error in gotStatus callback');
             httpinvoke(url, {
                 downloading: function() {
-                    if(calledOnce) {
-                        return;
-                    }
-                    calledOnce = true;
-                    throw new Error('fake error in downloading callback');
+                    throw error;
                 },
                 finished: function(err) {
                     if(!err) {
-                        runnable.state = 'passed';
+                        return done(new Error('error was not thrown'));
                     }
-                    done.apply(null, arguments);
+
+                    if(error === err) {
+                        done();
+                    } else {
+                        done(err);
+                    }
                 }
             });
         });

@@ -47,13 +47,19 @@ if(!method) {
 }
 var safeCallback = function(name, aspectBefore, aspectAfter) {
     return function(a, b, c, d) {
+        var _cb;
         aspectBefore(a, b, c, d);
         if(options[name]) {
             try {
                 options[name](a, b, c, d);
             } catch(err) {
+                _cb = cb;
+                cb = null;
                 nextTick(function() {
-                    throw err;
+                    /* jshint expr:true */
+                    _cb && _cb(err);
+                    /* jshint expr:false */
+                    promise();
                 });
             }
         }
