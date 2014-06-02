@@ -272,7 +272,7 @@ var listen = function (req, res) {
             output(200, new Buffer(cfg.bytearrayTest()), false, 'application/octet-stream');
         } else if(req.url === req.proxyPath + '/bytearray/empty') {
             output(200, new Buffer([]), false, 'application/octet-stream');
-        } else if(req.url === req.proxyPath + '/onesecondDownload') {
+        } else if(req.url === req.proxyPath + '/twosecondDownload') {
             headers = {
                 'Content-Length': '10244',
                 'Content-Type': 'text/plain'
@@ -283,11 +283,11 @@ var listen = function (req, res) {
             res.write(new Buffer(new Array(10241).join('.')));
             setTimeout(function() {
                 res.end(new Buffer('test'));
-            }, 1000);
-        } else if(req.url === req.proxyPath + '/onesecondUpload') {
+            }, 2000);
+        } else if(req.url === req.proxyPath + '/twosecondUpload') {
             setTimeout(function() {
                 output(200, hello, false, 'text/plain; charset=UTF-8');
-            }, 1000);
+            }, 2000);
         } else {
             var url = req.url.substr(req.proxyPath.length);
             if(url.lastIndexOf('?') >= 0) {
