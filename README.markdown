@@ -41,7 +41,7 @@ A 4.8kb no-dependencies HTTP client library for browsers and Node.js with a prom
 * Supports [npm](https://npmjs.org/), [Bower](http://bower.io/) and [Component](http://component.io/) package managers.
 * Tested on these web browsers:
   * Internet Explorer 6 and later;
-  * Firefox 1.5 and later;
+  * Firefox 3.0 and later;
   * Chrome 1 and later;
   * Safari 4.0 and later;
   * Opera 10.50 and later;
