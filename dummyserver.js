@@ -326,7 +326,7 @@ var startListen = function() {
 if(fs.existsSync('./dummyserver.pid')) {
     console.log('Error: file ./dummyserver.pid already exists');
     process.exit(1);
-} else if(process.argv.indexOf('suggestopen') < 0) {
+} else if(process.argv.indexOf('suggestopen') < 0 || process.env.__daemon) {
     startListen();
 } else {
     promptly.confirm('Do you want to open it in the browser? ', function (err, openConfirmed) {
