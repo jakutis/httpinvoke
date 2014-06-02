@@ -1,6 +1,6 @@
 # To do
 
-    Goal:  investigate why Kindle fails Content-Encoding=deflate tests
+    Goal:  investigate why Kindle and Android-2.3.3 fails Content-Encoding=deflate tests
     To do: Mon Jun  2 18:07:09 UTC 2014
 
     Goal:  remove built-in Promise implementation, require one provided by browser or polyfilled, https://github.com/getify/native-promise-only
