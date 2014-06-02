@@ -45,8 +45,9 @@ A 4.8kb no-dependencies HTTP client library for browsers and Node.js with a prom
   * Chrome 1 and later;
   * Safari 4.0 and later;
   * Opera 10.60 and later;
-  * Mobile Safari 7.0.0;
-  * Kindle 3.0.0;
+  * Mobile Safari 7.0;
+  * Kindle 3.0 (Version/4.0);
+  * Samsung Smart-TV 4.5 (Webkit/537.42 Chromium/25.0);
   * Android 2.3.7.
 
 ## Installation
