@@ -37,7 +37,7 @@
     "grunt-cli": "0.1.x",
     "grunt-contrib-concat": "0.4.x",
     "grunt-contrib-jshint": "0.10.x",
-    "grunt-mocha-test": "0.10.x",
+    "grunt-mocha-test": "0.11.x",
     "daemon": "1.1.x",
     "mocha": "1.20.x",
     "karma": "0.12.x",
