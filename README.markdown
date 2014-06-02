@@ -44,7 +44,7 @@ A 4.8kb no-dependencies HTTP client library for browsers and Node.js with a prom
   * Firefox 3.0 and later;
   * Chrome 1 and later;
   * Safari 4.0 and later;
-  * Opera 10.50 and later;
+  * Opera 10.60 and later;
   * Mobile Safari 7.0.0;
   * Kindle 3.0.0;
   * Android 2.3.7.
