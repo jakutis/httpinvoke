@@ -1,5 +1,8 @@
 # To do
 
+    Goal:  check correctness of asynchronicity in promise implementation, try to find official tests of Promises/A+
+    To do: Tue Jun  3 13:35:39 UTC 2014
+
     Goal:  investigate why Kindle and Android-2.3.3 fails Content-Encoding=deflate tests
     To do: Mon Jun  2 18:07:09 UTC 2014
 
@@ -15,7 +18,7 @@
     Goal:  catch intentionally uncaught errors so that test would pass
     To do: Thu Mar  6 20:04:42 UTC 2014
 
-    Goal:  nodejs streams
+    Goal:  "input" and "output" options using nodejs streams
     To do: Mon Feb 17 14:35:45 UTC 2014
 
     Goal:  try to use gulpjs
