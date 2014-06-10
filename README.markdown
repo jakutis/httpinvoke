@@ -48,6 +48,10 @@ A 5.7kb no-dependencies HTTP client library for browsers and Node.js with a prom
   * Android 2.3.3 and later;
   * Kindle 3.0 (Version/4.0);
   * Samsung Smart-TV 4.5 (Webkit/537.42 Chromium/25.0).
+* Tested on these Node versions:
+  * 0.8
+  * 0.10
+  * 0.11
 
 ## Installation
 
@@ -358,7 +362,7 @@ To test for web browser functionality run `npm run test-browser`, copy the URL l
 
 #### Checklist before releasing
 
-* tests pass on node and browser
+* tests pass on the versions of node and browser indicated in [overview](#overview).
 * package.json, bower.json and component.json version number bumped
 * `npm run compile`
 * file size, number of tests in readme.markdown updated
