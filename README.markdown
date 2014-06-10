@@ -49,9 +49,9 @@ A 5.7kb no-dependencies HTTP client library for browsers and Node.js with a prom
   * Kindle 3.0 (Version/4.0);
   * Samsung Smart-TV 4.5 (Webkit/537.42 Chromium/25.0).
 * Tested on these Node versions:
-  * 0.8
-  * 0.10
-  * 0.11
+  * 0.8;
+  * 0.10;
+  * 0.11.
 
 ## Installation
 
