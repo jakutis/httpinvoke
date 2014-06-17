@@ -6,7 +6,7 @@
     Goal:  investigate why Kindle and Android-2.3.3 fails Content-Encoding=deflate tests
     To do: Mon Jun  2 18:07:09 UTC 2014
 
-    Goal:  remove built-in Promise implementation, require one provided by browser or polyfilled, https://github.com/getify/native-promise-only
+    Goal:  remove built-in Promise implementation, require one provided by browser or polyfilled, https://github.com/getify/native-promise-only or https://github.com/rse/thenable
     To do: Sat May 17 12:12:29 UTC 2014
 
     Goal:  generator based API, http://strongloop.com/strongblog/node-js-callback-hell-promises-generators/
