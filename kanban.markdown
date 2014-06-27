@@ -1,13 +1,10 @@
 # To do
 
-    Goal:  check correctness of asynchronicity in promise implementation, try to find official tests of Promises/A+
-    To do: Tue Jun  3 13:35:39 UTC 2014
+    Goal:  merge https://github.com/rse/thenable and promiseMixIn
+    To do: Wed Jun 18 07:50:20 UTC 2014
 
     Goal:  investigate why Kindle and Android-2.3.3 fails Content-Encoding=deflate tests
     To do: Mon Jun  2 18:07:09 UTC 2014
-
-    Goal:  remove built-in Promise implementation, require one provided by browser or polyfilled, https://github.com/getify/native-promise-only or https://github.com/rse/thenable
-    To do: Sat May 17 12:12:29 UTC 2014
 
     Goal:  generator based API, http://strongloop.com/strongblog/node-js-callback-hell-promises-generators/
     To do: Tue Apr 29 10:45:31 UTC 2014
@@ -91,5 +88,15 @@
     To do: Sat Feb  1 11:24:33 UTC 2014
 
 # Doing
+
+    Goal:  remove built-in Promise implementation, require one provided by browser or polyfilled, https://github.com/getify/native-promise-only or https://github.com/rse/thenable
+    To do: Sat May 17 12:12:29 UTC 2014
+    Doing: Tue Jun 17 14:48:17 UTC 2014
+    Log:   Tue Jun 17 14:48:20 UTC 2014 - Tue Jun 17 14:52:54 UTC 2014 - read the readmes of the two links
+
+    Goal:  check correctness of asynchronicity in promise implementation, try to find official tests of Promises/A+
+    To do: Tue Jun  3 13:35:39 UTC 2014
+    Doing: Tue Jun 17 14:53:50 UTC 2014
+    Log:   Tue Jun 17 14:54:10 UTC 2014 - Tue Jun 17 14:57:00 UTC 2014 - find the official tests https://github.com/promises-aplus/promises-tests
 
 # Done
