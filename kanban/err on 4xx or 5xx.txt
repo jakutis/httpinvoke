@@ -1,0 +1,37 @@
+create a plugin architecture and a plugin that calls back with err on HTTP 4xx and 5xx responses
+
+https://github.com/jakutis/httpinvoke/issues/8
+
+# mb21
+
+I would like to have a rejected promise returned when the HTTP response is a 404 or similar. Am I missing something or is currently the only way to do that to check the `res.statusCode` for 4xx and 5xx, then create a new promise, reject it immediately and return that?
+
+Would be nice if we could set something in the options object like:
+- **failOn** is an array of HTTP status codes on which `err` is set when using callbacks or the promise rejected respectively. Allows strings of the form "4xx".
+
+# jakutis
+
+Yes, currently you have to check `res.statusCode`.
+
+Adding something like *failOn* option would be useful, but it is currently against the wish to keep `httpinvoke` as bare as possible - to abstract only the browser web apis. If something could be implemented purely (without hacking into browser web apis) on top of - it should be implemented so.
+
+But your issue and a [private suggestion on exponential backoff I received](https://github.com/jakutis/httpinvoke/blob/master/kanban/create%20high-level%20httpinvoke-partial%2C%20httpinvoke-backoff%20libraries.txt) makes me think what to do about this.
+
+As of now, I can think of these options:
+* create separate micro libraries that build on top of bare httpinvoke, as described in exponential backoff suggestion text
+* implement custom builds (similar to what jquery does) and decide which features are small enough to be embedded into the default build, and which are big enough to be left for custom builds or separate libraries
+
+What do you think?
+
+# mb21
+
+Thanks for the quick reply! I'm no `npm` expert but here some thoughts.
+
+The disadvantage of micro-wrapper-lib is that it makes it hard to combine just the combination of features you want. Custom builds add some hassle because you cannot simply do `npm install` anymore.
+
+Maybe some kind of module system would be the most flexible, something like [Express.js's middleware](http://expressjs.com/4x/api.html#middleware) where each extension is in a separate npm package, must be required separately and then injected into your app. Something like:
+
+    var httpinvoke = require('httpinvoke');
+    var failon = require('httpinvoke-failon');
+
+    httpinvoke.use(failon);

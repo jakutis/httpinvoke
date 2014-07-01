@@ -1,5 +1,8 @@
 # To do
 
+    Goal:  err on 4xx or 5xx.txt
+    To do: Tue Jul  1 19:34:29 UTC 2014
+
     Goal:  merge https://github.com/rse/thenable and promiseMixIn
     To do: Wed Jun 18 07:50:20 UTC 2014
 
