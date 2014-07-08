@@ -5,8 +5,6 @@ describe('supported HTTP methods', function() {
     'use strict';
     this.timeout(10000);
     cfg.eachBase(function(postfix, url, crossDomain) {
-        var i;
-
         var method = function(method) {
             if(crossDomain && method === 'DELETE' && !httpinvoke.corsDELETE) {
                 return;
@@ -24,11 +22,6 @@ describe('supported HTTP methods', function() {
                 httpinvoke(url, method, done);
             });
         };
-        var methods = ['GET', 'HEAD', 'PATCH', 'POST', 'PUT', 'DELETE'];
-        for(i = 0; i < methods.length; i += 1) {
-            method(methods[i]);
-        }
-
         var nomethod = function(method) {
             it('do not include the "' + method + '" method' + postfix, function(done) {
                 httpinvoke(url, method, function(err) {
@@ -40,9 +33,9 @@ describe('supported HTTP methods', function() {
                 });
             });
         };
-        var nomethods = ['OPTIONS', 'TRACE', 'CONNECT', 'NOTREALLYAMETHODNAME'];
-        for(i = 0; i < nomethods.length; i += 1) {
-            nomethod(nomethods[i]);
-        }
+
+        ['GET', 'HEAD', 'PATCH', 'POST', 'PUT', 'DELETE'].forEach(method);
+        ['OPTIONS', 'TRACE'].forEach(httpinvoke.anyMethod ? method : nomethod);
+        ['CONNECT', 'NOTREALLYAMETHODNAME'].forEach(nomethod);
     });
 });

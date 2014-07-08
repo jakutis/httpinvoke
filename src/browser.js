@@ -725,6 +725,7 @@
     httpinvoke.corsResponseTextOnly = false;
     httpinvoke.corsFineGrainedTimeouts = true;
     httpinvoke.requestTextOnly = false;
+    httpinvoke.anyMethod = false;
     (function() {
         try {
             createXHR = function() {
