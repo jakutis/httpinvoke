@@ -303,7 +303,7 @@ var partialOutputMode = options.partialOutputMode || 'disabled';
 if(partialOutputMode.indexOf(',') >= 0 || ',disabled,chunked,joined,'.indexOf(',' + partialOutputMode + ',') < 0) {
     return failWithoutRequest(cb, [3]);
 }
-if(method.indexOf(',') >= 0 || supportedMethods.indexOf(',' + method + ',') < 0) {
+if(method.indexOf(',') >= 0 || !httpinvoke.anyMethod && supportedMethods.indexOf(',' + method + ',') < 0) {
     return failWithoutRequest(cb, [4, method]);
 }
 var optionsOutputType = options.outputType;
@@ -606,6 +606,7 @@ httpinvoke.corsResponseTextOnly = false;
 httpinvoke.requestTextOnly = false;
 httpinvoke.PATCH = true;
 httpinvoke.corsFineGrainedTimeouts = true;
+httpinvoke.anyMethod = true;
 
 module.exports = httpinvoke;
 ;
@@ -952,7 +953,7 @@ var partialOutputMode = options.partialOutputMode || 'disabled';
 if(partialOutputMode.indexOf(',') >= 0 || ',disabled,chunked,joined,'.indexOf(',' + partialOutputMode + ',') < 0) {
     return failWithoutRequest(cb, [3]);
 }
-if(method.indexOf(',') >= 0 || supportedMethods.indexOf(',' + method + ',') < 0) {
+if(method.indexOf(',') >= 0 || !httpinvoke.anyMethod && supportedMethods.indexOf(',' + method + ',') < 0) {
     return failWithoutRequest(cb, [4, method]);
 }
 var optionsOutputType = options.outputType;
@@ -1687,6 +1688,7 @@ if(timeout) {
     httpinvoke.corsResponseTextOnly = false;
     httpinvoke.corsFineGrainedTimeouts = true;
     httpinvoke.requestTextOnly = false;
+    httpinvoke.anyMethod = false;
     (function() {
         try {
             createXHR = function() {

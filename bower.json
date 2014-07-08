@@ -1,6 +1,6 @@
 {
   "name": "httpinvoke",
-  "version": "1.1.5",
+  "version": "1.2.0",
   "main": "httpinvoke-browser.js",
   "description": "A 5.7kb no-dependencies HTTP client library for browsers and Node.js with a promise-based or Node.js-style callback-based API to progress events, text and binary file upload and download, partial response body, request and response headers, status code.",
   "location": "https://github.com/jakutis/httpinvoke",
