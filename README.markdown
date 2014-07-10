@@ -296,7 +296,8 @@ The callbacks are called in this strict sequence:
 ##### .hook(type, hook)
 
 **hook** is a function to hook into how httpinvoke works.
-It leaves the current instance of httpinvoke untouched and returns a new instance of httpinvoke (a function), with hooks copied from the parent httpinvoke and the current one added.
+It leaves the current instance of httpinvoke untouched.
+It returns a new instance of httpinvoke with a new hook, and all the hooks inherited from the old httpinvoke.
 It takes these arguments:
 
 * **type** - a string, one of 'uploading', 'gotStatus', 'downloading', 'finished'
