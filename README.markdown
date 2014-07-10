@@ -17,6 +17,7 @@ A no-dependencies HTTP client library for browsers and Node.js with a promise-ba
 - [API](#api)
   - [options](#options)
   - [callback sequence](#callback-sequence)
+  - [static methods](#static-methods)
   - [feature flags](#feature-flags)
   - [error conditions](#error-conditions)
   - [error codes](#error-codes)
