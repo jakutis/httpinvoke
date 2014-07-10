@@ -290,6 +290,41 @@ The callbacks are called in this strict sequence:
 0. **downloading** (two or more times);
 0. **finished** (one time), except the case that **finished** can be called with Error any time, and then no callbacks will be called.
 
+#### Static methods
+
+##### hook
+
+**hook** is a function to hook into how httpinvoke works.
+It returns a function - a new instance of httpinvoke, with hooks copied from the parent httpinvoke.
+It takes these arguments:
+
+* **type** - a string, one of 'uploading', 'gotStatus', 'downloading', 'finished'
+* **hook** - a function that is called with arguments in accordance with what type defines. It must return an array of the same (or modified) arguments which is passed to the next hook that is added after the current (of the same type).
+
+    // a new httpinvoke with a hook to fail on 4xx and 5xx statuses, just like jQuery
+    httpinvoke = httpinvoke.hook('downloading', function(err, output, status, headers) {
+        if(err) {
+            return arguments;
+        }
+        if(status >= 400 && status <= 599) {
+            return [new Error('Server or client error - HTTP status ' + status), output, status, headers];
+        }
+        return arguments;
+    });
+
+    // err will be set; output, status, headers are unchanged
+    httpinvoke('http://example.org/foobar', function(err, output, status, headers) {
+        console.log(err, output, status, headers);
+    });
+
+    // will be rejected (prints 'Failure')
+    httpinvoke('http://example.org/foobar').then(function(res) {
+        console.log('Success', res.body, res.statusCode, res.headers);
+    }, function(err) {
+        console.log('Failure', err);
+    });
+
+
 #### Feature Flags
 
 There are feature flags to be queried for platform-specific features.

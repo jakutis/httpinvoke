@@ -3,7 +3,7 @@ var url = require('url');
 var zlib = require('zlib');
 
 /* jshint unused:true */
-var mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData;
+var addHook, initHooks, mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData;
 /* jshint unused:false */
 
 // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
@@ -58,10 +58,12 @@ var utf8CharacterSizeFromHeaderByte = function(b) {
     return length;
 };
 
+var build = function() {
+'use strict';
+
 var httpinvoke = function(uri, method, options, cb) {
-    'use strict';
     /* jshint unused:true */
-    var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode;
+    var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode;
     /* jshint unused:false */
     /*************** initialize helper variables **************/
     try {
@@ -265,5 +267,10 @@ httpinvoke.requestTextOnly = false;
 httpinvoke.PATCH = true;
 httpinvoke.corsFineGrainedTimeouts = true;
 httpinvoke.anyMethod = true;
+httpinvoke._hooks = initHooks();
+httpinvoke.hook = addHook;
 
-module.exports = httpinvoke;
+return httpinvoke;
+};
+
+module.exports = build();

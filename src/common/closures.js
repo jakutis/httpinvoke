@@ -3,7 +3,14 @@
 /* global setTimeout */
 /* global crossDomain */// this one is a hack, because when in nodejs this is not really defined, but it is never needed
 /* jshint -W020 */
-var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+hook = function(type, args) {
+    var hooks = httpinvoke._hooks[type];
+    for(var i = 0; i < hooks.length; i += 1) {
+        args = hooks[i].apply(null, args);
+    }
+    return args;
+};
 /*************** COMMON initialize parameters **************/
 var downloadTimeout, uploadTimeout, timeout;
 if(!method) {
@@ -46,24 +53,36 @@ if(!method) {
     options.finished = cb;
 }
 var safeCallback = function(name, aspectBefore, aspectAfter) {
-    return function(a, b, c, d) {
-        var _cb;
-        aspectBefore(a, b, c, d);
+    return function() {
+        var args, _cb, failedOnHook = false, fail = function(err, args) {
+            _cb = cb;
+            cb = null;
+            nextTick(function() {
+                /* jshint expr:true */
+                _cb && _cb(err);
+                /* jshint expr:false */
+                promise();
+                if(!_cb && !failedOnHook) {
+                    throw err;
+                }
+            });
+            return name === 'finished' ? [err] : args;
+        };
+        aspectBefore.apply(null, args);
+        try {
+            args = hook(name, [].slice.call(arguments));
+        } catch(err) {
+            failedOnHook = true;
+            args = fail(err, args);
+        }
         if(options[name]) {
             try {
-                options[name](a, b, c, d);
+                options[name].apply(null, args);
             } catch(err) {
-                _cb = cb;
-                cb = null;
-                nextTick(function() {
-                    /* jshint expr:true */
-                    _cb && _cb(err);
-                    /* jshint expr:false */
-                    promise();
-                });
+                args = fail(err, args);
             }
         }
-        aspectAfter(a, b, c, d);
+        aspectAfter.apply(null, args);
     };
 };
 failWithoutRequest = function(cb, err) {

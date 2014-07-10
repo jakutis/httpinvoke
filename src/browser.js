@@ -8,7 +8,7 @@
     'use strict';
     var global;
     /* jshint unused:true */
-    var mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData;
+    var addHook, initHooks, mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData;
     /* jshint unused:false */
     // this could be a simple map, but with this "compression" we save about 100 bytes, if minified (50 bytes, if also gzipped)
     var statusTextToCode = (function() {
@@ -87,10 +87,12 @@
         location = urlPartitioningRegExp.exec(location.toLowerCase()) || [];
         return !!(uri && (uri[1] !== location[1] || uri[2] !== location[2] || (uri[3] || (uri[1] === 'http:' ? '80' : '443')) !== (location[3] || (location[1] === 'http:' ? '80' : '443'))));
     };
+
+var build = function() {
     var createXHR;
     var httpinvoke = function(uri, method, options, cb) {
         /* jshint unused:true */
-        var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode;
+        var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode;
         /* jshint unused:false */
         /*************** initialize helper variables **************/
         var xhr, i, j, currentLocation, crossDomain, output,
@@ -793,6 +795,10 @@
         } catch(_) {
         }
     })();
+    httpinvoke._hooks = initHooks();
+    httpinvoke.hook = addHook;
 
     return httpinvoke;
+};
+    return build();
 })

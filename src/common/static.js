@@ -21,7 +21,7 @@ var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
                 value = newvalue;
                 state = newstate;
 
-                for(i = 0; i < queue.length; i++) {
+                for(i = 0; i < queue.length; i += 1) {
                     if(typeof queue[i][state] === 'function') {
                         try {
                             p = queue[i][state].call(null, value);
@@ -86,4 +86,27 @@ var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
     );
 }/* jshint undef:true */, supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,', pass = function(value) {
     return value;
-}, _undefined;
+}, _undefined, addHook = function(type, hook) {
+    'use strict';
+    if(typeof hook !== 'function') {
+        throw new Error('TODO error');
+    }
+    if(!this._hooks[type]) {
+        throw new Error('TODO error');
+    }
+    var httpinvoke = build();
+    for(var i in this._hooks) {
+        if(this._hooks.hasOwnProperty(i)) {
+            httpinvoke._hooks[i].push.apply(httpinvoke._hooks[i], this._hooks[i]);
+        }
+    }
+    httpinvoke._hooks[type].push(hook);
+    return httpinvoke;
+}, initHooks = function() {
+    return {
+        finished:[],
+        downloading:[],
+        uploading:[],
+        gotStatus:[]
+    };
+};
