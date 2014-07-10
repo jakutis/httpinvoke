@@ -305,7 +305,7 @@ It takes these arguments:
 
 ```javascript
 // a new httpinvoke with a hook to fail on 4xx and 5xx statuses, just like jQuery
-httpinvoke = httpinvoke.hook('downloading', function(err, output, status, headers) {
+httpinvoke = httpinvoke.hook('finished', function(err, output, status, headers) {
     if(err) {
         return arguments;
     }
