@@ -395,6 +395,8 @@ Please note that a request can finish successfully, with an **err** set to `null
 
 ## Development
 
+After cloning the repo, and on each modification of `src` folder, you have to run `npm run compile`.
+
 To test for NodeJS functionality run `npm run test-node`.
 
 To test for web browser functionality run `npm run test-browser`, copy the URL link that is displayed in console and open it in any web browser.
