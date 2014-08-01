@@ -20,16 +20,16 @@ var zlib = require('zlib');
 }, nextTick = (global.process && global.process.nextTick) || global.setImmediate || global.setTimeout, mixInPromise = function(o) {
     var value, queue = [], state = progress;
     var makeState = function(newstate) {
-        o[newstate] = function(newvalue) {
+        o[newstate] = function() {
             var i, p;
             if(queue) {
-                value = newvalue;
+                value = [].slice.call(arguments);
                 state = newstate;
 
-                for(i = 0; i < queue.length; i++) {
+                for(i = 0; i < queue.length; i += 1) {
                     if(typeof queue[i][state] === 'function') {
                         try {
-                            p = queue[i][state].call(null, value);
+                            p = queue[i][state].apply(null, value);
                             if(state < progress) {
                                 chain(p, queue[i]._);
                             }
@@ -37,7 +37,7 @@ var zlib = require('zlib');
                             queue[i]._[reject](err);
                         }
                     } else if(state < progress) {
-                        queue[i]._[state](value);
+                        queue[i]._[state].apply(null, value);
                     }
                 }
                 if(state < progress) {
@@ -56,7 +56,7 @@ var zlib = require('zlib');
             queue.push(item);
         } else if(typeof item[state] === 'function') {
             nextTick(function() {
-                chain(item[state](value), item._);
+                chain(item[state].apply(null, value), item._);
             });
         }
         return item._;
@@ -91,7 +91,30 @@ var zlib = require('zlib');
     );
 }/* jshint undef:true */, supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,', pass = function(value) {
     return value;
-}, _undefined;
+}, _undefined, addHook = function(type, hook) {
+    'use strict';
+    if(typeof hook !== 'function') {
+        throw new Error('TODO error');
+    }
+    if(!this._hooks[type]) {
+        throw new Error('TODO error');
+    }
+    var httpinvoke = build();
+    for(var i in this._hooks) {
+        if(this._hooks.hasOwnProperty(i)) {
+            httpinvoke._hooks[i].push.apply(httpinvoke._hooks[i], this._hooks[i]);
+        }
+    }
+    httpinvoke._hooks[type].push(hook);
+    return httpinvoke;
+}, initHooks = function() {
+    return {
+        finished:[],
+        downloading:[],
+        uploading:[],
+        gotStatus:[]
+    };
+};
 ;
 /* jshint unused:false */
 
@@ -147,15 +170,24 @@ var utf8CharacterSizeFromHeaderByte = function(b) {
     return length;
 };
 
+var build = function() {
+'use strict';
+
 var httpinvoke = function(uri, method, options, cb) {
-    'use strict';
     /* jshint unused:true */
     ;/* global httpinvoke, url, method, options, cb */
 /* global nextTick, mixInPromise, pass, progress, reject, resolve, supportedMethods, isArray, isArrayBufferView, isFormData, isByteArray, _undefined */
 /* global setTimeout */
 /* global crossDomain */// this one is a hack, because when in nodejs this is not really defined, but it is never needed
 /* jshint -W020 */
-var promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+hook = function(type, args) {
+    var hooks = httpinvoke._hooks[type];
+    for(var i = 0; i < hooks.length; i += 1) {
+        args = hooks[i].apply(null, args);
+    }
+    return args;
+};
 /*************** COMMON initialize parameters **************/
 var downloadTimeout, uploadTimeout, timeout;
 if(!method) {
@@ -198,24 +230,36 @@ if(!method) {
     options.finished = cb;
 }
 var safeCallback = function(name, aspectBefore, aspectAfter) {
-    return function(a, b, c, d) {
-        var _cb;
-        aspectBefore(a, b, c, d);
+    return function() {
+        var args, _cb, failedOnHook = false, fail = function(err, args) {
+            _cb = cb;
+            cb = null;
+            nextTick(function() {
+                /* jshint expr:true */
+                _cb && _cb(err);
+                /* jshint expr:false */
+                promise();
+                if(!_cb && !failedOnHook) {
+                    throw err;
+                }
+            });
+            return name === 'finished' ? [err] : args;
+        };
+        aspectBefore.apply(null, args);
+        try {
+            args = hook(name, [].slice.call(arguments));
+        } catch(err) {
+            failedOnHook = true;
+            args = fail(err, args);
+        }
         if(options[name]) {
             try {
-                options[name](a, b, c, d);
+                options[name].apply(null, args);
             } catch(err) {
-                _cb = cb;
-                cb = null;
-                nextTick(function() {
-                    /* jshint expr:true */
-                    _cb && _cb(err);
-                    /* jshint expr:false */
-                    promise();
-                });
+                args = fail(err, args);
             }
         }
-        aspectAfter(a, b, c, d);
+        aspectAfter.apply(null, args);
     };
 };
 failWithoutRequest = function(cb, err) {
@@ -270,26 +314,16 @@ cb = safeCallback('finished', function() {
     cb = null;
     promise();
 }, function(err, body, statusCode, headers) {
-    if(err) {
-        return promise[reject](err);
-    }
-    promise[resolve]({
+    var res = {
         body: body,
         statusCode: statusCode,
         headers: headers
-    });
-});
-var fixPositiveOpt = function(opt) {
-    if(options[opt] === _undefined) {
-        options[opt] = 0;
-    } else if(typeof options[opt] === 'number') {
-        if(options[opt] < 0) {
-            return failWithoutRequest(cb, [1, opt]);
-        }
-    } else {
-        return failWithoutRequest(cb, [2, opt]);
+    };
+    if(err) {
+        return promise[reject](err, res);
     }
-};
+    promise[resolve](res);
+});
 var converters = options.converters || {};
 var inputConverter;
 inputHeaders = options.headers || {};
@@ -605,5 +639,10 @@ httpinvoke.requestTextOnly = false;
 httpinvoke.PATCH = true;
 httpinvoke.corsFineGrainedTimeouts = true;
 httpinvoke.anyMethod = true;
+httpinvoke._hooks = initHooks();
+httpinvoke.hook = addHook;
 
-module.exports = httpinvoke;
+return httpinvoke;
+};
+
+module.exports = build();
