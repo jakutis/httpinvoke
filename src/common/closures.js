@@ -137,14 +137,15 @@ cb = safeCallback('finished', function() {
     cb = null;
     promise();
 }, function(err, body, statusCode, headers) {
-    if(err) {
-        return promise[reject](err);
-    }
-    promise[resolve]({
+    var res = {
         body: body,
         statusCode: statusCode,
         headers: headers
-    });
+    };
+    if(err) {
+        return promise[reject](err, res);
+    }
+    promise[resolve](res);
 });
 var fixPositiveOpt = function(opt) {
     if(options[opt] === _undefined) {

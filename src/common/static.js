@@ -15,16 +15,16 @@ var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
 }, nextTick = (global.process && global.process.nextTick) || global.setImmediate || global.setTimeout, mixInPromise = function(o) {
     var value, queue = [], state = progress;
     var makeState = function(newstate) {
-        o[newstate] = function(newvalue) {
+        o[newstate] = function() {
             var i, p;
             if(queue) {
-                value = newvalue;
+                value = [].slice.call(arguments);
                 state = newstate;
 
                 for(i = 0; i < queue.length; i += 1) {
                     if(typeof queue[i][state] === 'function') {
                         try {
-                            p = queue[i][state].call(null, value);
+                            p = queue[i][state].apply(null, value);
                             if(state < progress) {
                                 chain(p, queue[i]._);
                             }
@@ -32,7 +32,7 @@ var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
                             queue[i]._[reject](err);
                         }
                     } else if(state < progress) {
-                        queue[i]._[state](value);
+                        queue[i]._[state].apply(null, value);
                     }
                 }
                 if(state < progress) {
@@ -51,7 +51,7 @@ var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
             queue.push(item);
         } else if(typeof item[state] === 'function') {
             nextTick(function() {
-                chain(item[state](value), item._);
+                chain(item[state].apply(null, value), item._);
             });
         }
         return item._;

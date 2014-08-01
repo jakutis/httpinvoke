@@ -71,6 +71,22 @@ describe('hook', function() {
         done();
     });
     cfg.eachBase(function(postfix, url) {
+        it('lets the finish hook reject promise and also pass the response object' + postfix, function(done) {
+            httpinvoke.hook('finished', function(err, output, statusCode, headers) {
+                if(err) {
+                    return arguments;
+                }
+                if(statusCode >= 400 && statusCode <= 599) {
+                    return [new Error('Server or client error - HTTP status ' + statusCode), output, statusCode, headers];
+                }
+                return arguments;
+            })(url + 'foobar').then(null, function(err, res) {
+                if(res.statusCode !== 404) {
+                    return done(new Error('response object status is not equal to 404'));
+                }
+                done();
+            });
+        });
         ['finished', 'downloading', 'uploading', 'gotStatus'].forEach(function(type) {
             it('lets the ' + type + ' hook modify arguments' + postfix, function(done) {
                 var hv = hookAndVerifier(done);

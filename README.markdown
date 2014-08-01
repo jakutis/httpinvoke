@@ -305,26 +305,26 @@ It takes these arguments:
 
 ```javascript
 // a new httpinvoke with a hook to fail on 4xx and 5xx statuses, just like jQuery
-httpinvoke = httpinvoke.hook('finished', function(err, output, status, headers) {
+httpinvoke = httpinvoke.hook('finished', function(err, output, statusCode, headers) {
     if(err) {
         return arguments;
     }
     if(status >= 400 && status <= 599) {
-        return [new Error('Server or client error - HTTP status ' + status), output, status, headers];
+        return [new Error('Server or client error - HTTP status ' + statusCode), output, statusCode, headers];
     }
     return arguments;
 });
 
 // err will be set; output, status, headers are unchanged
-httpinvoke('http://example.org/foobar', function(err, output, status, headers) {
-    console.log(err, output, status, headers);
+httpinvoke('http://example.org/foobar', function(err, output, statusCode, headers) {
+    console.log(err, output, statusCode, headers);
 });
 
-// will be rejected (prints 'Failure')
+// will be rejected (prints 'Failure with status=404')
 httpinvoke('http://example.org/foobar').then(function(res) {
     console.log('Success', res.body, res.statusCode, res.headers);
-}, function(err) {
-    console.log('Failure', err);
+}, function(err, res) {
+    console.log('Failure with status=', res.statusCode);
 });
 ```
 
