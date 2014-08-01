@@ -1,8 +1,5 @@
 # To do
 
-    Goal:  err on 4xx or 5xx.txt
-    To do: Tue Jul  1 19:34:29 UTC 2014
-
     Goal:  merge https://github.com/rse/thenable and promiseMixIn
     To do: Wed Jun 18 07:50:20 UTC 2014
 
@@ -23,9 +20,6 @@
 
     Goal:  try to use gulpjs
     To do: Mon Feb  3 07:16:26 UTC 2014
-
-    Goal:  remove unused fixpositiveopt
-    To do: Sat Feb  1 08:09:28 UTC 2014
 
     Goal:  write a dummyserver related test that ensures that Content-Length is sent when uploading
     To do: Thu Dec 26 18:34:18 EET 2013
@@ -103,3 +97,13 @@
     Log:   Tue Jun 17 14:54:10 UTC 2014 - Tue Jun 17 14:57:00 UTC 2014 - find the official tests https://github.com/promises-aplus/promises-tests
 
 # Done
+
+    Goal:  remove unused fixpositiveopt
+    To do: Sat Feb  1 08:09:28 UTC 2014
+    Doing: Fri Aug  1 09:29:16 UTC 2014
+    Done:  Fri Aug  1 09:29:18 UTC 2014
+
+    Goal:  err on 4xx or 5xx.txt
+    To do: Tue Jul  1 19:34:29 UTC 2014
+    Doing: Fri Aug  1 09:24:39 UTC 2014
+    Done:  Fri Aug  1 09:24:42 UTC 2014
