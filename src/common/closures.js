@@ -147,17 +147,6 @@ cb = safeCallback('finished', function() {
     }
     promise[resolve](res);
 });
-var fixPositiveOpt = function(opt) {
-    if(options[opt] === _undefined) {
-        options[opt] = 0;
-    } else if(typeof options[opt] === 'number') {
-        if(options[opt] < 0) {
-            return failWithoutRequest(cb, [1, opt]);
-        }
-    } else {
-        return failWithoutRequest(cb, [2, opt]);
-    }
-};
 var converters = options.converters || {};
 var inputConverter;
 inputHeaders = options.headers || {};
