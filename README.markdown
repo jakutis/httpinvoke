@@ -403,7 +403,8 @@ To test for web browser functionality run `npm run test-browser`, copy the URL l
 
 #### Checklist before releasing
 
-* tests pass on the versions of node and browser indicated in [overview](#overview).
+* `npm test`
+* tests pass on the browser versions indicated in [overview](#overview).
 * package.json, bower.json and component.json version number bumped
 * `npm run compile`
 * `release X.X.X` commit created and tagged as `X.X.X`
