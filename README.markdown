@@ -309,7 +309,10 @@ httpinvoke = httpinvoke.hook('finished', function(err, output, statusCode, heade
     if(err) {
         return arguments;
     }
-    if(status >= 400 && status <= 599) {
+    if(typeof statusCode === 'undefined') {
+        return [new Error('Server or client error - undefined HTTP status'), output, statusCode, headers];
+    }
+    if(statusCode >= 400 && statusCode <= 599) {
         return [new Error('Server or client error - HTTP status ' + statusCode), output, statusCode, headers];
     }
     return arguments;
