@@ -268,7 +268,7 @@ if(!method) {
 }
 var safeCallback = function(name, aspectBefore, aspectAfter) {
     return function() {
-        var args, _cb, failedOnHook = false, fail = function(err, args) {
+        var args = [], _cb, failedOnHook = false, fail = function(err, args) {
             _cb = cb;
             cb = null;
             nextTick(function() {
