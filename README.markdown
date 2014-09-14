@@ -2,9 +2,11 @@
 
 A no-dependencies HTTP client library for browsers and Node.js with a promise-based or Node.js-style callback-based API to progress events, text and binary file upload and download, partial response body, request and response headers, status code.
 
+- [Ask a question](https://news.ycombinator.com/item?id=6498905)
+- [See a basic demo](https://jakut.is/httpinvoke)
+
 [![Build Status](https://travis-ci.org/jakutis/httpinvoke.png?branch=master)](https://travis-ci.org/jakutis/httpinvoke)
 
-- [Ask a question](https://news.ycombinator.com/item?id=6498905)
 - [Overview](#overview)
 - [Installation](#installation)
 - [Examples](#examples)
