@@ -3,6 +3,9 @@
     Goal:  create httpinvoke-xsrf hook
     To do: Wed Oct 15 17:18:05 EEST 2014
 
+    Goal:  indicate awareness of window.fetch somewhere https://github.com/github/fetch
+    To do: Wed Oct 15 00:40:50 EEST 2014
+
     Goal:  merge https://github.com/rse/thenable and promiseMixIn
     To do: Wed Jun 18 07:50:20 UTC 2014
 
