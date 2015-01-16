@@ -1213,13 +1213,22 @@ if(timeout) {
         }
 
         /*************** bind XHR event listeners **************/
+        var abOrZero = function(object, propertyA, propertyB) {
+            if(typeof object[propertyA] !== 'undefined') {
+                return object[propertyA];
+            }
+            if(typeof object[propertyB] !== 'undefined') {
+                return object[propertyB];
+            }
+            return 0;
+        };
         var onuploadprogress = function(progressEvent) {
             if(cb && progressEvent.lengthComputable) {
                 if(inputLength === _undefined) {
-                    inputLength = progressEvent.total || progressEvent.totalSize || 0;
+                    inputLength = abOrZero(progressEvent, 'total', 'totalSize');
                     uploadProgress(0);
                 }
-                uploadProgress(progressEvent.loaded || progressEvent.position || 0);
+                uploadProgress(abOrZero(progressEvent, 'loaded', 'position'));
             }
         };
         if('upload' in xhr) {
@@ -1251,9 +1260,9 @@ if(timeout) {
             // console.log('total', progressEvent.total, 'totalSize', progressEvent.totalSize, 'loaded', progressEvent.loaded, 'position', progressEvent.position, 'lengthComputable', progressEvent.lengthComputable, 'status', status);
             // httpinvoke does not work around this bug, because Chrome 10 is practically not used at all, as Chrome agressively auto-updates itself to latest version
             try {
-                var current = progressEvent.loaded || progressEvent.position || 0;
+                var current = abOrZero(progressEvent, 'loaded', 'position');
                 if(progressEvent.lengthComputable) {
-                    outputLength = progressEvent.total || progressEvent.totalSize || 0;
+                    outputLength = abOrZero(progressEvent, 'total', 'totalSize');
                 }
 
                 // Opera 12 progress events has a bug - .loaded can be higher than .total
