@@ -1,5 +1,8 @@
 # To do
 
+    Goal:  maybe add metadata properties to err (type="finished", output, status, headers, etc..), like in https://github.com/pathwar/node-pathwar/blob/master/lib/index.js
+    To do: Wed Feb  4 13:31:33 EET 2015
+
     Goal:  create httpinvoke-xsrf hook
     To do: Wed Oct 15 17:18:05 EEST 2014
 
