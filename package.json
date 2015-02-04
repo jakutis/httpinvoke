@@ -5,6 +5,7 @@
   "license": "MIT",
   "keywords": [
     "http",
+    "client",
     "promise",
     "promises",
     "promises-a",
