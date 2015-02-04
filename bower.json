@@ -12,6 +12,7 @@
   "private": false,
   "keywords": [
     "http",
+    "client",
     "promise",
     "promises",
     "promises-a",
