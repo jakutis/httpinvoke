@@ -45,7 +45,7 @@
     "grunt": "0.4.x",
     "grunt-cli": "0.1.x",
     "grunt-contrib-concat": "0.5.x",
-    "grunt-contrib-jshint": "0.10.x",
+    "grunt-contrib-jshint": "0.11.x",
     "grunt-mocha-test": "0.12.x",
     "daemon": "1.1.x",
     "mocha": "2.1.x",
