@@ -68,7 +68,7 @@
   "author": "Vytautas Jakutis <vytautas@jakut.is> (https://jakut.is/)",
   "contributors": [],
   "engines": {
-    "node": "0.8 || 0.10 || 0.11"
+    "node": "0.8 || 0.10 || 0.11 || 0.12"
   },
   "engineStrict": false,
   "private": false,
