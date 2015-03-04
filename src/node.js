@@ -1,4 +1,5 @@
 var http = require('http');
+var https = require('https');
 var url = require('url');
 var zlib = require('zlib');
 
@@ -86,7 +87,15 @@ var httpinvoke = function(uri, method, options, cb) {
         res.on('end', pass);
     };
     uri = url.parse(uri);
-    var req = http.request({
+    var request = null;
+    if(uri.protocol === 'http:') {
+        request = http.request.bind(http);
+    } else if(uri.protocol === 'https:') {
+        request = https.request.bind(https);
+    } else {
+        return failWithoutRequest(cb, new Error('protocol ' + uri.protocol + ' is not among these supported protocols: http:, https:'));
+    }
+    var req = request({
         hostname: uri.hostname,
         port: Number(uri.port),
         path: uri.path,
