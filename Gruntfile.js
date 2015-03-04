@@ -113,14 +113,18 @@ module.exports = function(grunt) {
                         it: true,
                         describe: true,
                         global: true,
-                        require: true
+                        require: true,
+                        JSON: true
                     }
                 },
                 src: ['./test/*.js']
             },
             node: {
                 options: {
-                    node: true
+                    node: true,
+                    globals: {
+                        JSON: true
+                    }
                 },
                 src: ['./Gruntfile.js', './karma.conf.js', './dummyserver.js', './demo/index.js', './src/node.js', './src/commonjs.js']
             },
