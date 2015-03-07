@@ -243,7 +243,7 @@ var listen = function (req, res) {
         } else if(req.url === req.proxyPath + '/') {
             output(200, hello, false, 'text/plain; charset=UTF-8');
         } else if(req.url === req.proxyPath + '/immediateEnd') {
-            res.socket.destroy();
+            req.socket.destroy();
         } else if(req.url === req.proxyPath + '/endAfterHeaders') {
             headers = {
                 'Content-Length': '1024',
@@ -253,7 +253,7 @@ var listen = function (req, res) {
             corsHeaders(headers, req);
             res.writeHead(200, headers);
             res.write(new Buffer('test'));
-            res.socket.destroy();
+            req.socket.destroy();
         } else if(req.url === req.proxyPath + '/big') {
             bigHello(req, res, 10);
         } else if(req.url === req.proxyPath + '/bigslow') {
