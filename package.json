@@ -48,7 +48,7 @@
     "grunt-contrib-jshint": "0.11.x",
     "grunt-mocha-test": "0.12.x",
     "daemon": "1.1.x",
-    "mocha": "2.1.x",
+    "mocha": "2.2.x",
     "karma": "0.12.x",
     "karma-mocha": "0.1.x",
     "uglify-js": "2.4.x"
