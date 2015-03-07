@@ -252,7 +252,6 @@ var listen = function (req, res) {
             entityHeaders(headers);
             corsHeaders(headers, req);
             res.writeHead(200, headers);
-            res.write(new Buffer('test'));
             req.socket.destroy();
         } else if(req.url === req.proxyPath + '/big') {
             bigHello(req, res, 10);
