@@ -54,7 +54,8 @@ A no-dependencies HTTP client library for browsers and Node.js with a promise-ba
 * Tested on these Node versions:
   * 0.8;
   * 0.10;
-  * 0.11.
+  * 0.11;
+  * 0.12.
 
 ## Installation
 
