@@ -397,6 +397,7 @@ Please note that a request can finish successfully, with an **err** set to `null
 * **022** Unable to open uri %
 * **023** Unable to set input header %
 * **024** Unable to send
+* **025** "%" protocol is not among these supported protocols: http, https
 
 ## Development
 

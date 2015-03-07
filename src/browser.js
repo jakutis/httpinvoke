@@ -82,17 +82,17 @@
     };
 
     var urlPartitioningRegExp = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/;
-    var isCrossDomain = function(location, uri) {
-        uri = urlPartitioningRegExp.exec(uri.toLowerCase());
+    var isCrossDomain = function(location, url) {
+        url = urlPartitioningRegExp.exec(url.toLowerCase());
         location = urlPartitioningRegExp.exec(location.toLowerCase()) || [];
-        return !!(uri && (uri[1] !== location[1] || uri[2] !== location[2] || (uri[3] || (uri[1] === 'http:' ? '80' : '443')) !== (location[3] || (location[1] === 'http:' ? '80' : '443'))));
+        return !!(url && (url[1] !== location[1] || url[2] !== location[2] || (url[3] || (url[1] === 'http:' ? '80' : '443')) !== (location[3] || (location[1] === 'http:' ? '80' : '443'))));
     };
 
 var build = function() {
     var createXHR;
-    var httpinvoke = function(uri, method, options, cb) {
+    var httpinvoke = function(url, method, options, cb) {
         /* jshint unused:true */
-        var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode;
+        var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode, protocol;
         /* jshint unused:false */
         /*************** initialize helper variables **************/
         var xhr, i, j, currentLocation, crossDomain, output,
@@ -139,7 +139,7 @@ var build = function() {
             currentLocation.href = '';
             currentLocation = currentLocation.href;
         }
-        crossDomain = isCrossDomain(currentLocation, uri);
+        crossDomain = isCrossDomain(currentLocation, url);
         /*************** start XHR **************/
         if(typeof input === 'object' && !isFormData(input) && httpinvoke.requestTextOnly) {
             return failWithoutRequest(cb, [17]);
@@ -160,9 +160,9 @@ var build = function() {
         }
         xhr = createXHR(crossDomain);
         try {
-            xhr.open(method, uri, true);
+            xhr.open(method, url, true);
         } catch(e) {
-            return failWithoutRequest(cb, [22, uri]);
+            return failWithoutRequest(cb, [22, url]);
         }
         if(options.corsCredentials && httpinvoke.corsCredentials && typeof xhr.withCredentials === 'boolean') {
             xhr.withCredentials = true;
@@ -251,7 +251,7 @@ var build = function() {
         /*
         var inspect = function(name, obj) {
             return;
-            console.log('INSPECT ----- ', name, uri);
+            console.log('INSPECT ----- ', name, url);
             for(var i in obj) {
                 try {
                     console.log(name, 'PASS', i, typeof obj[i], typeof obj[i] === 'function' ? '[code]' : obj[i]);
@@ -261,7 +261,7 @@ var build = function() {
             }
         };
         var dbg = function(name) {
-            console.log('DBG ----- ', name, uri);
+            console.log('DBG ----- ', name, url);
             inspect('xhr', xhr);
             try {
                 console.log('PASS', 'headers', xhr.getAllResponseHeaders());

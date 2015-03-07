@@ -4,6 +4,11 @@ var httpinvoke = require('../httpinvoke-node');
 describe('calling', function() {
     'use strict';
     this.timeout(10000);
+    it('throws error #25 if protocol is neither http, nor https', function(done) {
+        httpinvoke('ftp://example.org', function(err) {
+            done(err && err.message === 'Error code #25,ftp. See https://github.com/jakutis/httpinvoke#error-codes' ? null : new Error('expected error #25'));
+        });
+    });
     cfg.eachBase(function(postfix, url) {
         it('accepts url, method, options and cb' + postfix, function(done) {
             httpinvoke(url, 'GET', {}, done);

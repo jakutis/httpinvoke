@@ -1,7 +1,9 @@
-var http = require('http');
-var https = require('https');
-var url = require('url');
+var parseURL = require('url').parse;
 var zlib = require('zlib');
+var protocolImplementations = {
+    http: require('http'),
+    https: require('https')
+};
 
 /* jshint unused:true */
 var addHook, initHooks, mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData;
@@ -62,9 +64,9 @@ var utf8CharacterSizeFromHeaderByte = function(b) {
 var build = function() {
 'use strict';
 
-var httpinvoke = function(uri, method, options, cb) {
+var httpinvoke = function(url, method, options, cb) {
     /* jshint unused:true */
-    var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode;
+    var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode, protocol;
     /* jshint unused:false */
     /*************** initialize helper variables **************/
     try {
@@ -86,19 +88,11 @@ var httpinvoke = function(uri, method, options, cb) {
         res.on('data', pass);
         res.on('end', pass);
     };
-    uri = url.parse(uri);
-    var request = null;
-    if(uri.protocol === 'http:') {
-        request = http.request.bind(http);
-    } else if(uri.protocol === 'https:') {
-        request = https.request.bind(https);
-    } else {
-        return failWithoutRequest(cb, new Error('protocol ' + uri.protocol + ' is not among these supported protocols: http:, https:'));
-    }
-    var req = request({
-        hostname: uri.hostname,
-        port: Number(uri.port),
-        path: uri.path,
+    url = parseURL(url);
+    var req = protocolImplementations[protocol].request({
+        hostname: url.hostname,
+        port: Number(url.port),
+        path: url.path,
         method: method,
         headers: inputHeaders
     }, function(res) {
