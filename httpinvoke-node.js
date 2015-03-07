@@ -1,7 +1,9 @@
-var http = require('http');
-var https = require('https');
-var url = require('url');
+var parseURL = require('url').parse;
 var zlib = require('zlib');
+var protocolImplementations = {
+    http: require('http'),
+    https: require('https')
+};
 
 /* jshint unused:true */
 ;;var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
@@ -174,14 +176,14 @@ var utf8CharacterSizeFromHeaderByte = function(b) {
 var build = function() {
 'use strict';
 
-var httpinvoke = function(uri, method, options, cb) {
+var httpinvoke = function(url, method, options, cb) {
     /* jshint unused:true */
     ;/* global httpinvoke, url, method, options, cb */
 /* global nextTick, mixInPromise, pass, progress, reject, resolve, supportedMethods, isArray, isArrayBufferView, isFormData, isByteArray, _undefined */
 /* global setTimeout */
 /* global crossDomain */// this one is a hack, because when in nodejs this is not really defined, but it is never needed
 /* jshint -W020 */
-var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter;
+var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, protocol;
 hook = function(type, args) {
     var hooks = httpinvoke._hooks[type];
     for(var i = 0; i < hooks.length; i += 1) {
@@ -332,6 +334,10 @@ outputHeaders = {};
 exposedHeaders = options.corsExposedHeaders || [];
 exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma', 'Content-Range', 'Content-Encoding']);
 /*************** COMMON convert and validate parameters **************/
+protocol = url.substr(0, url.indexOf(':'));
+if(protocol !== 'http' && protocol !== 'https') {
+    return failWithoutRequest(cb, [25, protocol]);
+}
 var partialOutputMode = options.partialOutputMode || 'disabled';
 if(partialOutputMode.indexOf(',') >= 0 || ',disabled,chunked,joined,'.indexOf(',' + partialOutputMode + ',') < 0) {
     return failWithoutRequest(cb, [3]);
@@ -458,19 +464,11 @@ if(timeout) {
         res.on('data', pass);
         res.on('end', pass);
     };
-    uri = url.parse(uri);
-    var request = null;
-    if(uri.protocol === 'http:') {
-        request = http.request.bind(http);
-    } else if(uri.protocol === 'https:') {
-        request = https.request.bind(https);
-    } else {
-        return failWithoutRequest(cb, new Error('protocol ' + uri.protocol + ' is not among these supported protocols: http:, https:'));
-    }
-    var req = request({
-        hostname: uri.hostname,
-        port: Number(uri.port),
-        path: uri.path,
+    url = parseURL(url);
+    var req = protocolImplementations[protocol].request({
+        hostname: url.hostname,
+        port: Number(url.port),
+        path: url.path,
         method: method,
         headers: inputHeaders
     }, function(res) {
