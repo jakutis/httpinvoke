@@ -94,7 +94,7 @@ var protocolImplementations = {
     );
 }/* jshint undef:true */, supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,', pass = function(value) {
     return value;
-}, _undefined, addHook = function(type, hook) {
+}, _undefined, absoluteURLRegExp = /^[a-z][a-z0-9.+-]*:/i, addHook = function(type, hook) {
     'use strict';
     if(typeof hook !== 'function') {
         throw new Error('TODO error');
@@ -179,7 +179,7 @@ var build = function() {
 var httpinvoke = function(url, method, options, cb) {
     /* jshint unused:true */
     ;/* global httpinvoke, url, method, options, cb */
-/* global nextTick, mixInPromise, pass, progress, reject, resolve, supportedMethods, isArray, isArrayBufferView, isFormData, isByteArray, _undefined */
+/* global nextTick, mixInPromise, pass, progress, reject, resolve, supportedMethods, isArray, isArrayBufferView, isFormData, isByteArray, _undefined, absoluteURLRegExp */
 /* global setTimeout */
 /* global crossDomain */// this one is a hack, because when in nodejs this is not really defined, but it is never needed
 /* jshint -W020 */
@@ -334,8 +334,11 @@ outputHeaders = {};
 exposedHeaders = options.corsExposedHeaders || [];
 exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma', 'Content-Range', 'Content-Encoding']);
 /*************** COMMON convert and validate parameters **************/
+if(!httpinvoke.relativeURLs && !absoluteURLRegExp.test(url)) {
+    return failWithoutRequest(cb, [26, url]);
+}
 protocol = url.substr(0, url.indexOf(':'));
-if(protocol !== 'http' && protocol !== 'https') {
+if(absoluteURLRegExp.test(url) && protocol !== 'http' && protocol !== 'https') {
     return failWithoutRequest(cb, [25, protocol]);
 }
 var partialOutputMode = options.partialOutputMode || 'disabled';
@@ -646,6 +649,7 @@ httpinvoke.requestTextOnly = false;
 httpinvoke.PATCH = true;
 httpinvoke.corsFineGrainedTimeouts = true;
 httpinvoke.anyMethod = true;
+httpinvoke.relativeURLs = false;
 httpinvoke._hooks = initHooks();
 httpinvoke.hook = addHook;
 
