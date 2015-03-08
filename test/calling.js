@@ -9,7 +9,7 @@ describe('calling', function() {
             httpinvoke('./', done);
         });
         it('does not throw if relativeURLs flag is false and url is protocol-relative', function(done) {
-            httpinvoke('//' + cfg.host + '/', done);
+            httpinvoke(cfg.url.substr(0, cfg.url.indexOf(':') + 1), done);
         });
     } else {
         it('throws error #26 if relativeURLs flag is false and url is relative', function(done) {
