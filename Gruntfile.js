@@ -13,7 +13,7 @@ var processCommon = function(globalVar) {
     'use strict';
     return function(contents) {
         return replace(contents, ';', [{
-            from: 'var addHook, initHooks, mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData;',
+            from: 'var addHook, initHooks, mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData, absoluteURLRegExp;',
             to: globalVar + ';' + fs.readFileSync('./src/common/static.js').toString()
         }, {
             from: 'var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode, protocol;',

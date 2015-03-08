@@ -8,7 +8,7 @@
     'use strict';
     var global;
     /* jshint unused:true */
-    var addHook, initHooks, mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData;
+    var addHook, initHooks, mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData, absoluteURLRegExp;
     /* jshint unused:false */
     // this could be a simple map, but with this "compression" we save about 100 bytes, if minified (50 bytes, if also gzipped)
     var statusTextToCode = (function() {
@@ -737,6 +737,7 @@ var build = function() {
     httpinvoke.corsFineGrainedTimeouts = true;
     httpinvoke.requestTextOnly = false;
     httpinvoke.anyMethod = false;
+    httpinvoke.relativeURLs = true;
     (function() {
         try {
             createXHR = function() {

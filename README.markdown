@@ -356,6 +356,7 @@ There are feature flags to be queried for platform-specific features.
 * **corsResponseTextOnly** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports only **outputType** `"text"`
 * **corsFineGrainedTimeouts** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports "upload timeout" and "download timeout" errors.
 * **anyMethod** - any standard or custom HTTP method can be used, as opposed to just GET, HEAD, PATCH, POST, PUT or DELETE
+* **relativeURLs** - relative URLs (e.g. `"/foo"`, `"./bar"`, `"foobar"`) and protocol-relative URLs (e.g. `"//example.org/foo"`) are supported
 
 #### Error Conditions
 
@@ -399,6 +400,7 @@ Please note that a request can finish successfully, with an **err** set to `null
 * **023** Unable to set input header %
 * **024** Unable to send
 * **025** "%" protocol is not among these supported protocols: http, https
+* **026** Given URL "%" is relative, but **relativeURLs** flag is false
 
 ## Development
 

@@ -86,7 +86,7 @@ var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
     );
 }/* jshint undef:true */, supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,', pass = function(value) {
     return value;
-}, _undefined, addHook = function(type, hook) {
+}, _undefined, absoluteURLRegExp = /^[a-z][a-z0-9.+-]*:/i, addHook = function(type, hook) {
     'use strict';
     if(typeof hook !== 'function') {
         throw new Error('TODO error');

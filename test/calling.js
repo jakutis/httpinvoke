@@ -4,7 +4,26 @@ var httpinvoke = require('../httpinvoke-node');
 describe('calling', function() {
     'use strict';
     this.timeout(10000);
-    it('throws error #25 if protocol is neither http, nor https', function(done) {
+    if(httpinvoke.relativeURLs) {
+        it('does not throw if relativeURLs flag is true and url is relative', function(done) {
+            httpinvoke('./', done);
+        });
+        it('does not throw if relativeURLs flag is false and url is protocol-relative', function(done) {
+            httpinvoke('//' + cfg.host + '/', done);
+        });
+    } else {
+        it('throws error #26 if relativeURLs flag is false and url is relative', function(done) {
+            httpinvoke('./foo', function(err) {
+                done(err && err.message === 'Error code #26,./foo. See https://github.com/jakutis/httpinvoke#error-codes' ? null : new Error('expected error #26'));
+            });
+        });
+        it('throws error #26 if relativeURLs flag is false and url is protocol-relative', function(done) {
+            httpinvoke('//example.org/foo', function(err) {
+                done(err && err.message === 'Error code #26,//example.org/foo. See https://github.com/jakutis/httpinvoke#error-codes' ? null : new Error('expected error #26'));
+            });
+        });
+    }
+    it('throws error #25 if given absolute URL protocol is neither http, nor https', function(done) {
         httpinvoke('ftp://example.org', function(err) {
             done(err && err.message === 'Error code #25,ftp. See https://github.com/jakutis/httpinvoke#error-codes' ? null : new Error('expected error #25'));
         });

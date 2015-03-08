@@ -6,7 +6,7 @@ var protocolImplementations = {
 };
 
 /* jshint unused:true */
-var addHook, initHooks, mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData;
+var addHook, initHooks, mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData, absoluteURLRegExp;
 /* jshint unused:false */
 
 // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
@@ -270,6 +270,7 @@ httpinvoke.requestTextOnly = false;
 httpinvoke.PATCH = true;
 httpinvoke.corsFineGrainedTimeouts = true;
 httpinvoke.anyMethod = true;
+httpinvoke.relativeURLs = false;
 httpinvoke._hooks = initHooks();
 httpinvoke.hook = addHook;
 
