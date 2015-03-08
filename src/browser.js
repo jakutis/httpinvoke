@@ -81,11 +81,15 @@
         return atLeastOne;
     };
 
-    var urlPartitioningRegExp = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/;
+    var urlPartitioningRegExp = /^(?:([a-z][a-z0-9.+-]*:)|)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/;
     var isCrossDomain = function(location, url) {
+        if(!absoluteURLRegExp.test(url) && url.substr(0, 2) !== '//') {
+            return false;
+        }
         url = urlPartitioningRegExp.exec(url.toLowerCase());
         location = urlPartitioningRegExp.exec(location.toLowerCase()) || [];
-        return !!(url && (url[1] !== location[1] || url[2] !== location[2] || (url[3] || (url[1] === 'http:' ? '80' : '443')) !== (location[3] || (location[1] === 'http:' ? '80' : '443'))));
+        var locationPort = location[3] || (location[1] === 'http:' ? '80' : '443');
+        return !!((url[1] && url[1] !== location[1]) || url[2] !== location[2] || (url[3] || (url[1] ? (url[1] === 'http:' ? '80' : '443') : locationPort)) !== locationPort);
     };
 
 var build = function() {

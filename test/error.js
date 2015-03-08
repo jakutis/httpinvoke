@@ -104,4 +104,11 @@ describe('"err" argument in "finished" callback', function() {
             });
         });
     });
+    if(httpinvoke.relativeURLs && !httpinvoke.cors) {
+        it('throws error #18 if given protocol-relative url with cross-domain hostname and cors flag is false', function(done) {
+            httpinvoke('//example.org/foo', function(err) {
+                done(err && err.message === 'Error code #18. See https://github.com/jakutis/httpinvoke#error-codes' ? null : new Error('expected error #18'));
+            });
+        });
+    }
 });
