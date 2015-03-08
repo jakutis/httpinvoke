@@ -39,7 +39,7 @@ A no-dependencies HTTP client library for browsers and Node.js with a promise-ba
   * Emits the HTTP response status code and headers as soon as they are available.
   * Gives you HTTP status code instead of an error, that is for example HTTP 404 would just return success, with status 404.
   * Throws an error only when the HTTP request did not actually completely finished.
-* Well tested - over 500 acceptance tests.
+* Well tested - over 600 acceptance tests.
 * Detects the presence of [CommonJS](http://www.commonjs.org/) and [AMD](https://www.google.com/search?q=advanced+module+definition) script loaders.
 * Supports [npm](https://npmjs.org/), [Bower](http://bower.io/) and [Component](http://component.io/) package managers.
 * Tested on these web browsers:
