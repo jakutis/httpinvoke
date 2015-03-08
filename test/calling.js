@@ -8,8 +8,8 @@ describe('calling', function() {
         it('does not throw if relativeURLs flag is true and url is relative', function(done) {
             httpinvoke('./', done);
         });
-        it('does not throw if relativeURLs flag is false and url is protocol-relative', function(done) {
-            httpinvoke(cfg.url.substr(0, cfg.url.indexOf(':') + 1), done);
+        it('does not throw if relativeURLs flag is true and url is protocol-relative', function(done) {
+            httpinvoke(cfg.url.substr(cfg.url.indexOf(':') + 1), done);
         });
     } else {
         it('throws error #26 if relativeURLs flag is false and url is relative', function(done) {
