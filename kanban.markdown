@@ -1,5 +1,17 @@
 # To do
 
+    Goal:  setup Sauce Labs continuous integration
+    To do: Sun Mar  8 21:40:44 EET 2015
+
+    Goal:  update /test/index.html and /dummyserver.js so that data about feature flags and test failures in browsers are collected
+    To do: Sun Mar  8 20:49:58 EET 2015
+
+    Goal:  thoroughly test error codes
+    To do: Sun Mar  8 20:41:26 EET 2015
+
+    Goal:  thoroughly test isCrossDomain function (cors false, error #18)
+    To do: Sun Mar  8 20:41:49 EET 2015
+
     Goal:  maybe add metadata properties to err (type="finished", output, status, headers, etc..), like in https://github.com/pathwar/node-pathwar/blob/master/lib/index.js
     To do: Wed Feb  4 13:31:33 EET 2015
 
@@ -8,9 +20,6 @@
 
     Goal:  indicate awareness of window.fetch somewhere https://github.com/github/fetch
     To do: Wed Oct 15 00:40:50 EEST 2014
-
-    Goal:  merge https://github.com/rse/thenable and promiseMixIn
-    To do: Wed Jun 18 07:50:20 UTC 2014
 
     Goal:  investigate why Kindle and Android-2.3.3 fails Content-Encoding=deflate tests
     To do: Mon Jun  2 18:07:09 UTC 2014
@@ -90,10 +99,19 @@
     Goal:  json request/response example
     To do: Sat Feb  1 11:23:57 UTC 2014
 
+# Doing
+
+    Goal:  merge https://github.com/rse/thenable and mixInPromise
+    To do: Wed Jun 18 07:50:20 UTC 2014
+    Doing: Sun Mar  8 21:32:03 EET 2015
+
     Goal:  return a promise only when global.Promise is available
     To do: Sat Feb  1 11:24:33 UTC 2014
+    Doing: Sun Mar  8 21:32:47 EET 2015
 
-# Doing
+    Goal:  use global.Promise and fallback to mixInPromise
+    To do: Sun Mar  8 21:33:26 EET 2015
+    Doing: Sun Mar  8 21:33:29 EET 2015
 
     Goal:  remove built-in Promise implementation, require one provided by browser or polyfilled, https://github.com/getify/native-promise-only or https://github.com/rse/thenable
     To do: Sat May 17 12:12:29 UTC 2014
