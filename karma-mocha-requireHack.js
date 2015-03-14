@@ -18,6 +18,12 @@ window._cfg = {
     dummyserverPort: 1337,
     dummyserverPortAlternative: 1338,
     host: location.hostname,
+    setCookie: function(cookie) {
+        'use strict';
+        if(global.document) {
+            global.document.cookie = cookie;
+        }
+    },
     port: Number(location.port) || (location.protocol === 'https:' ? 443 : 80),
     /* # Statuses from RFC 2616
      *

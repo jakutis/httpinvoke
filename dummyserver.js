@@ -6,6 +6,7 @@ var mime = require('mime');
 var zlib = require('zlib');
 var promptly = require('promptly');
 var sb = require('surfboard');
+var cookie = require('cookie');
 var open = sb.openUrl;
 
 var hello = new Buffer('Hello World\n', 'utf8');
@@ -242,6 +243,8 @@ var listen = function (req, res) {
             output(204, null, false);
         } else if(req.url === req.proxyPath + '/') {
             output(200, hello, false, 'text/plain; charset=UTF-8');
+        } else if(req.url === req.proxyPath + '/credentials') {
+            output(200, new Buffer('cookies=' + (cookie.parse(req.headers.cookie || '').httpinvokeAnonymousTest === '5' ? 'yes' : 'no')), false, 'text/plain; charset=UTF-8');
         } else if(req.url === req.proxyPath + '/immediateEnd') {
             req.socket.destroy();
         } else if(req.url === req.proxyPath + '/endAfterHeaders') {

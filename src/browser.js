@@ -96,7 +96,7 @@ var build = function() {
     var createXHR;
     var httpinvoke = function(url, method, options, cb) {
         /* jshint unused:true */
-        var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode, protocol;
+        var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode, protocol, anonymous;
         /* jshint unused:false */
         /*************** initialize helper variables **************/
         var xhr, i, j, currentLocation, crossDomain, output,
@@ -162,14 +162,18 @@ var build = function() {
         if(!createXHR) {
             return failWithoutRequest(cb, [21]);
         }
-        xhr = createXHR(crossDomain);
+        xhr = createXHR(crossDomain, {
+            mozAnon: anonymous
+        });
         try {
             xhr.open(method, url, true);
         } catch(e) {
             return failWithoutRequest(cb, [22, url]);
         }
-        if(options.corsCredentials && httpinvoke.corsCredentials && typeof xhr.withCredentials === 'boolean') {
-            xhr.withCredentials = true;
+        if(httpinvoke.corsCredentials) {
+            if((typeof options.anonymous !== 'undefined' && !anonymous) || (options.corsCredentials && typeof xhr.withCredentials === 'boolean')) {
+                xhr.withCredentials = true;
+            }
         }
         if(crossDomain && options.corsOriginHeader) {
             // on some Android devices CORS implementations are buggy
@@ -744,8 +748,8 @@ var build = function() {
     httpinvoke.relativeURLs = true;
     (function() {
         try {
-            createXHR = function() {
-                return new XMLHttpRequest();
+            createXHR = function(cors, xhrOptions) {
+                return new XMLHttpRequest(xhrOptions);
             };
             var tmpxhr = createXHR();
             httpinvoke.requestTextOnly = !global.Uint8Array && !tmpxhr.sendAsBinary;
@@ -764,13 +768,13 @@ var build = function() {
         }
         try {
             if(global.XDomainRequest === _undefined) {
-                createXHR = function() {
-                    return new XMLHttpRequest();
+                createXHR = function(cors, xhrOptions) {
+                    return new XMLHttpRequest(xhrOptions);
                 };
                 createXHR();
             } else {
-                createXHR = function(cors) {
-                    return cors ? new XDomainRequest() : new XMLHttpRequest();
+                createXHR = function(cors, xhrOptions) {
+                    return cors ? new XDomainRequest() : new XMLHttpRequest(xhrOptions);
                 };
                 createXHR(true);
                 httpinvoke.cors = true;
@@ -811,6 +815,17 @@ var build = function() {
     })();
     httpinvoke._hooks = initHooks();
     httpinvoke.hook = addHook;
+    httpinvoke.anonymousOption = (function() {
+        try {
+            return createXHR(true, {mozAnon: true}).mozAnon === true &&
+                   createXHR(true, {mozAnon: false}).mozAnon === false &&
+                   createXHR(false, {mozAnon: true}).mozAnon === true &&
+                   createXHR(false, {mozAnon: false}).mozAnon === false;
+        } catch(_) {
+            return false;
+        }
+    })();
+    httpinvoke.anonymousByDefault = false;
 
     return httpinvoke;
 };

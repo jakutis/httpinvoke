@@ -66,7 +66,7 @@ var build = function() {
 
 var httpinvoke = function(url, method, options, cb) {
     /* jshint unused:true */
-    var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode, protocol;
+    var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode, protocol, anonymous;
     /* jshint unused:false */
     /*************** initialize helper variables **************/
     try {
@@ -271,6 +271,8 @@ httpinvoke.PATCH = true;
 httpinvoke.corsFineGrainedTimeouts = true;
 httpinvoke.anyMethod = true;
 httpinvoke.relativeURLs = false;
+httpinvoke.anonymousOption = false;
+httpinvoke.anonymousByDefault = true;
 httpinvoke._hooks = initHooks();
 httpinvoke.hook = addHook;
 
