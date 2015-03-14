@@ -66,7 +66,7 @@ var build = function() {
 
 var httpinvoke = function(url, method, options, cb) {
     /* jshint unused:true */
-    var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode, protocol, anonymous;
+    var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode, protocol, anonymous, system;
     /* jshint unused:false */
     /*************** initialize helper variables **************/
     try {
@@ -273,6 +273,8 @@ httpinvoke.anyMethod = true;
 httpinvoke.relativeURLs = false;
 httpinvoke.anonymousOption = false;
 httpinvoke.anonymousByDefault = true;
+httpinvoke.systemOption = false;
+httpinvoke.systemByDefault = true;
 httpinvoke._hooks = initHooks();
 httpinvoke.hook = addHook;
 

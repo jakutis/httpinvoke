@@ -96,7 +96,7 @@ var build = function() {
     var createXHR;
     var httpinvoke = function(url, method, options, cb) {
         /* jshint unused:true */
-        var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode, protocol, anonymous;
+        var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode, protocol, anonymous, system;
         /* jshint unused:false */
         /*************** initialize helper variables **************/
         var xhr, i, j, currentLocation, crossDomain, output,
@@ -163,7 +163,8 @@ var build = function() {
             return failWithoutRequest(cb, [21]);
         }
         xhr = createXHR(crossDomain, {
-            mozAnon: anonymous
+            mozAnon: anonymous,
+            mozSystem: system
         });
         try {
             xhr.open(method, url, true);
@@ -826,6 +827,17 @@ var build = function() {
         }
     })();
     httpinvoke.anonymousByDefault = false;
+    httpinvoke.systemOption = (function() {
+        try {
+            return createXHR(true, {mozAnon: true, mozSystem: true}).mozSystem === true &&
+                   createXHR(true, {mozAnon: true, mozSystem: false}).mozSystem === false &&
+                   createXHR(false, {mozAnon: true, mozSystem: true}).mozSystem === true &&
+                   createXHR(false, {mozAnon: true, mozSystem: false}).mozSystem === false;
+        } catch(_) {
+            return false;
+        }
+    })();
+    httpinvoke.systemByDefault = false;
 
     return httpinvoke;
 };
