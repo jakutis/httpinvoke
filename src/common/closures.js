@@ -149,7 +149,15 @@ cb = safeCallback('finished', function() {
 });
 var converters = options.converters || {};
 var inputConverter;
-inputHeaders = options.headers || {};
+inputHeaders = (function(input) {
+    var output = {};
+    for(var i in input) {
+        if(input.hasOwnProperty(i)) {
+            output[i] = input[i];
+        }
+    }
+    return output;
+})(options.headers || {});
 outputHeaders = {};
 exposedHeaders = options.corsExposedHeaders || [];
 exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma', 'Content-Range', 'Content-Encoding']);
