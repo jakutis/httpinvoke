@@ -244,7 +244,7 @@ All options are optional.
 
 * **partialOutputMode** is a string for the type of the **partial** argument of the **downloading** option, one of `"disabled"` (default, **downloading** will not receive the **partial** argument), `"chunked"` (the received value will be the latest chunk), `"joined"` (the received value will be the entire partial body).
 * **anonymous** - is a boolean for requesting to not send [user credentials](http://www.w3.org/TR/XMLHttpRequest/#user-credentials). Applicable only when **anonymousOption** feature flag is `true`. Defaults to the value of **anonymousByDefault** feature flag. If specified, and `false`, then overrides **corsCredentials** (makes it `true`).
-* **system** - is a boolean for requesting to not enfore [same origin policy](http://www.w3.org/Security/wiki/Same_Origin_Policy). Applicable only when **anonymousOption** and **systemOption** feature flags are `true`. Defaults to the value of **systemByDefault** feature flag. If specified, and `true`, then overrides **anonymous** (makes it `true`).
+* **system** - is a boolean for requesting to not enforce [same origin policy](http://www.w3.org/Security/wiki/Same_Origin_Policy). Applicable only when **anonymousOption** and **systemOption** feature flags are `true`. Defaults to the value of **systemByDefault** feature flag. If specified, and `true`, then overrides **anonymous** (makes it `true`).
 * **timeout** must be either one of:
   * undefined (default), means that **finished** must never be called with any of the timeout errors,
   * a number (greater than 0 and less than 1073741824) for maximum duration in milliseconds between the httpinvoke call and **finished** call, if it timeouts - **finished** must be called with `"timeout"` error,
