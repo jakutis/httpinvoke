@@ -24,10 +24,10 @@ describe('anonymous', function() {
             }
             done();
         });
-        cfg.eachBase(function(postfix, url) {
+        cfg.eachBase(function(postfix, url, cors) {
             if(httpinvoke.anonymousByDefault) {
                 it('ensures, when being true, that credentials are not sent' + postfix, makeAnonymousTest(url, {}, true));
-            } else {
+            } else if(!cors || httpinvoke.corsCredentials) {
                 it('ensures, when being false, that credentials are sent' + postfix, makeAnonymousTest(url, {}, false));
             }
         });
