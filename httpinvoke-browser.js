@@ -201,11 +201,15 @@
         return atLeastOne;
     };
 
-    var urlPartitioningRegExp = /^([\w.+-]+:)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/;
+    var urlPartitioningRegExp = /^(?:([a-z][a-z0-9.+-]*:)|)(?:\/\/([^\/?#:]*)(?::(\d+)|)|)/;
     var isCrossDomain = function(location, url) {
+        if(!absoluteURLRegExp.test(url) && url.substr(0, 2) !== '//') {
+            return false;
+        }
         url = urlPartitioningRegExp.exec(url.toLowerCase());
         location = urlPartitioningRegExp.exec(location.toLowerCase()) || [];
-        return !!(url && (url[1] !== location[1] || url[2] !== location[2] || (url[3] || (url[1] === 'http:' ? '80' : '443')) !== (location[3] || (location[1] === 'http:' ? '80' : '443'))));
+        var locationPort = location[3] || (location[1] === 'http:' ? '80' : '443');
+        return !!((url[1] && url[1] !== location[1]) || url[2] !== location[2] || (url[3] || (url[1] ? (url[1] === 'http:' ? '80' : '443') : locationPort)) !== locationPort);
     };
 
 var build = function() {
@@ -217,7 +221,7 @@ var build = function() {
 /* global setTimeout */
 /* global crossDomain */// this one is a hack, because when in nodejs this is not really defined, but it is never needed
 /* jshint -W020 */
-var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, protocol;
+var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, protocol, anonymous, system;
 hook = function(type, args) {
     var hooks = httpinvoke._hooks[type];
     for(var i = 0; i < hooks.length; i += 1) {
@@ -363,17 +367,53 @@ cb = safeCallback('finished', function() {
 });
 var converters = options.converters || {};
 var inputConverter;
-inputHeaders = options.headers || {};
+inputHeaders = (function(input) {
+    var output = {};
+    for(var i in input) {
+        if(input.hasOwnProperty(i)) {
+            output[i] = input[i];
+        }
+    }
+    return output;
+})(options.headers || {});
 outputHeaders = {};
 exposedHeaders = options.corsExposedHeaders || [];
 exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma', 'Content-Range', 'Content-Encoding']);
 /*************** COMMON convert and validate parameters **************/
+var validateInputHeaders = function(headers) {
+    var noSec = httpinvoke.forbiddenInputHeaders.indexOf('sec-*') >= 0;
+    var noProxy = httpinvoke.forbiddenInputHeaders.indexOf('proxy-*') >= 0;
+    for(var header in headers) {
+        if(headers.hasOwnProperty(header)) {
+            var headerl = header.toLowerCase();
+            if(httpinvoke.forbiddenInputHeaders.indexOf(headerl) >= 0) {
+                throw [14, header];
+            }
+            if(noProxy && headerl.substr(0, 'proxy-'.length) === 'proxy-') {
+                throw [15, header];
+            }
+            if(noSec && headerl.substr(0, 'sec-'.length) === 'sec-') {
+                throw [16, header];
+            }
+        }
+    }
+};
+try {
+    validateInputHeaders(inputHeaders);
+} catch(err) {
+    return failWithoutRequest(cb, err);
+}
 if(!httpinvoke.relativeURLs && !absoluteURLRegExp.test(url)) {
     return failWithoutRequest(cb, [26, url]);
 }
 protocol = url.substr(0, url.indexOf(':'));
 if(absoluteURLRegExp.test(url) && protocol !== 'http' && protocol !== 'https') {
     return failWithoutRequest(cb, [25, protocol]);
+}
+anonymous = typeof options.anonymous === 'undefined' ? httpinvoke.anonymousByDefault : options.anonymous;
+system = typeof options.system === 'undefined' ? httpinvoke.systemByDefault : options.system;
+if(typeof options.system !== 'undefined' && system) {
+    anonymous = true;
 }
 var partialOutputMode = options.partialOutputMode || 'disabled';
 if(partialOutputMode.indexOf(',') >= 0 || ',disabled,chunked,joined,'.indexOf(',' + partialOutputMode + ',') < 0) {
@@ -545,14 +585,19 @@ if(timeout) {
         if(!createXHR) {
             return failWithoutRequest(cb, [21]);
         }
-        xhr = createXHR(crossDomain);
+        xhr = createXHR(crossDomain, {
+            mozAnon: anonymous,
+            mozSystem: system
+        });
         try {
             xhr.open(method, url, true);
         } catch(e) {
             return failWithoutRequest(cb, [22, url]);
         }
-        if(options.corsCredentials && httpinvoke.corsCredentials && typeof xhr.withCredentials === 'boolean') {
-            xhr.withCredentials = true;
+        if(httpinvoke.corsCredentials) {
+            if((typeof options.anonymous !== 'undefined' && !anonymous) || (options.corsCredentials && typeof xhr.withCredentials === 'boolean')) {
+                xhr.withCredentials = true;
+            }
         }
         if(crossDomain && options.corsOriginHeader) {
             // on some Android devices CORS implementations are buggy
@@ -1127,8 +1172,8 @@ if(timeout) {
     httpinvoke.relativeURLs = true;
     (function() {
         try {
-            createXHR = function() {
-                return new XMLHttpRequest();
+            createXHR = function(cors, xhrOptions) {
+                return new XMLHttpRequest(xhrOptions);
             };
             var tmpxhr = createXHR();
             httpinvoke.requestTextOnly = !global.Uint8Array && !tmpxhr.sendAsBinary;
@@ -1147,13 +1192,13 @@ if(timeout) {
         }
         try {
             if(global.XDomainRequest === _undefined) {
-                createXHR = function() {
-                    return new XMLHttpRequest();
+                createXHR = function(cors, xhrOptions) {
+                    return new XMLHttpRequest(xhrOptions);
                 };
                 createXHR();
             } else {
-                createXHR = function(cors) {
-                    return cors ? new XDomainRequest() : new XMLHttpRequest();
+                createXHR = function(cors, xhrOptions) {
+                    return cors ? new XDomainRequest() : new XMLHttpRequest(xhrOptions);
                 };
                 createXHR(true);
                 httpinvoke.cors = true;
@@ -1194,6 +1239,30 @@ if(timeout) {
     })();
     httpinvoke._hooks = initHooks();
     httpinvoke.hook = addHook;
+    httpinvoke.anonymousOption = (function() {
+        try {
+            return createXHR(true, {mozAnon: true}).mozAnon === true &&
+                   createXHR(true, {mozAnon: false}).mozAnon === false &&
+                   createXHR(false, {mozAnon: true}).mozAnon === true &&
+                   createXHR(false, {mozAnon: false}).mozAnon === false;
+        } catch(_) {
+            return false;
+        }
+    })();
+    httpinvoke.anonymousByDefault = false;
+    httpinvoke.systemOption = (function() {
+        try {
+            return createXHR(true, {mozAnon: true, mozSystem: true}).mozSystem === true &&
+                   createXHR(true, {mozAnon: true, mozSystem: false}).mozSystem === false &&
+                   createXHR(false, {mozAnon: true, mozSystem: true}).mozSystem === true &&
+                   createXHR(false, {mozAnon: true, mozSystem: false}).mozSystem === false;
+        } catch(_) {
+            return false;
+        }
+    })();
+    httpinvoke.systemByDefault = false;
+    // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
+    httpinvoke.forbiddenInputHeaders = ['proxy-*', 'sec-*', 'accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'content-transfer-encoding', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
 
     return httpinvoke;
 };
