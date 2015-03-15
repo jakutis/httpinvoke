@@ -6,7 +6,7 @@
     Goal:  add `httpinvoke.withOrigin` and change `httpinvoke.relativeURLs`
     To do: Sun Mar 15 23:35:16 EET 2015
 
-    Goal:  add `httpinvoke.hasFeature` and move feature flags
+    Goal:  move feature flags under one umbrella object `httpinvoke.feature`
     To do: Sun Mar 15 23:36:06 EET 2015
 
     Goal:  test on jsdom with node-XMLHttpRequest
