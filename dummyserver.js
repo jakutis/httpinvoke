@@ -125,7 +125,7 @@ var outputStatus = function(req, res) {
         code = _code;
         if(endsWith(req.url, '/status/' + code)) {
             for(i = 0; i < max; i += 1) {
-                if(req.url === req.proxyPath + '/' + i + '/status/' + code) {
+                if(req.url === '/' + i + '/status/' + code) {
                     break;
                 }
             }
@@ -138,7 +138,7 @@ var outputStatus = function(req, res) {
                 var headers = {};
                 corsHeaders(headers, req);
                 if(params.location) {
-                    headers.Location = 'http://' + req.headers.host + req.proxyPath + '/';
+                    headers.Location = 'http://' + req.headers.host + '/';
                     res.writeHead(Number(code), headers);
                     res.end();
                 } else if(params.responseEntity) {
@@ -173,7 +173,6 @@ var listen = function (req, res) {
     'use strict';
     var headers;
 
-    req.proxyPath = req.url.substr(0, cfg.proxyPath.length) === cfg.proxyPath ? cfg.proxyPath : '';
     res.useChunkedEncodingByDefault = false;
 
     var output = function(status, body, head, mimeType, headers) {
@@ -217,15 +216,15 @@ var listen = function (req, res) {
         return;
     }
     if(req.method === 'POST') {
-        if(req.url === req.proxyPath + '/noentity') {
+        if(req.url === '/noentity') {
             output(204, null, false);
-        } else if(req.url === req.proxyPath + '/headers/contentType') {
+        } else if(req.url === '/headers/contentType') {
             output(200, new Buffer(typeof req.headers['content-type'] === 'undefined' ? 'undefined' : req.headers['content-type'], 'utf8'), false, 'text/plain; charset=UTF-8');
-        } else if(req.url === req.proxyPath + '/bytearray') {
+        } else if(req.url === '/bytearray') {
             readEntityBody(req, false, cfg.makeByteArrayFinished(reportTest));
-        } else if(req.url === req.proxyPath + '/text/utf8') {
+        } else if(req.url === '/text/utf8') {
             readEntityBody(req, true, cfg.makeTextFinished(reportTest));
-        } else if(req.url === req.proxyPath + '/boolean') {
+        } else if(req.url === '/boolean') {
             readEntityBody(req, false, function(err, input) {
                 output(200, input, false, 'text/plain; charset=UTF-8');
             });
@@ -239,15 +238,15 @@ var listen = function (req, res) {
     } else if(req.method === 'DELETE') {
         output(200, hello, false, 'text/plain; charset=UTF-8');
     } else if(req.method === 'GET') {
-        if(req.url === req.proxyPath + '/noentity') {
+        if(req.url === '/noentity') {
             output(204, null, false);
-        } else if(req.url === req.proxyPath + '/') {
+        } else if(req.url === '/') {
             output(200, hello, false, 'text/plain; charset=UTF-8');
-        } else if(req.url === req.proxyPath + '/credentials') {
+        } else if(req.url === '/credentials') {
             output(200, new Buffer('cookies=' + (cookie.parse(req.headers.cookie || '').httpinvokeAnonymousTest === '5' ? 'yes' : 'no')), false, 'text/plain; charset=UTF-8');
-        } else if(req.url === req.proxyPath + '/immediateEnd') {
+        } else if(req.url === '/immediateEnd') {
             req.socket.destroy();
-        } else if(req.url === req.proxyPath + '/endAfterHeaders') {
+        } else if(req.url === '/endAfterHeaders') {
             headers = {
                 'Content-Length': '1024',
                 'Content-Type': 'text/plain'
@@ -256,25 +255,25 @@ var listen = function (req, res) {
             corsHeaders(headers, req);
             res.writeHead(200, headers);
             req.socket.destroy();
-        } else if(req.url === req.proxyPath + '/big') {
+        } else if(req.url === '/big') {
             bigHello(req, res, 10);
-        } else if(req.url === req.proxyPath + '/bigslow') {
+        } else if(req.url === '/bigslow') {
             bigHello(req, res, 1000);
-        } else if(beginsWith(req.url, req.proxyPath + '/contentEncoding/')) {
-            contentEncoding(req.url.substr((req.proxyPath + '/contentEncoding/').length));
-        } else if(req.url === req.proxyPath + '/text/utf8') {
+        } else if(beginsWith(req.url, '/contentEncoding/')) {
+            contentEncoding(req.url.substr(('/contentEncoding/').length));
+        } else if(req.url === '/text/utf8') {
             output(200, new Buffer(cfg.textTest(), 'utf8'), false, 'text/plain; charset=UTF-8');
-        } else if(req.url === req.proxyPath + '/text/utf8/empty') {
+        } else if(req.url === '/text/utf8/empty') {
             output(200, new Buffer('', 'utf8'), false, 'text/plain; charset=UTF-8');
-        } else if(req.url === req.proxyPath + '/json') {
+        } else if(req.url === '/json') {
             output(200, new Buffer(JSON.stringify(cfg.jsonTest()), 'utf8'), false, 'application/json');
-        } else if(req.url === req.proxyPath + '/json/null') {
+        } else if(req.url === '/json/null') {
             output(200, new Buffer('null', 'utf8'), false, 'application/json');
-        } else if(req.url === req.proxyPath + '/bytearray') {
+        } else if(req.url === '/bytearray') {
             output(200, new Buffer(cfg.bytearrayTest()), false, 'application/octet-stream');
-        } else if(req.url === req.proxyPath + '/bytearray/empty') {
+        } else if(req.url === '/bytearray/empty') {
             output(200, new Buffer([]), false, 'application/octet-stream');
-        } else if(req.url === req.proxyPath + '/twosecondDownload') {
+        } else if(req.url === '/twosecondDownload') {
             headers = {
                 'Content-Length': '10244',
                 'Content-Type': 'text/plain'
@@ -286,12 +285,12 @@ var listen = function (req, res) {
             setTimeout(function() {
                 res.end(new Buffer('test'));
             }, 2000);
-        } else if(req.url === req.proxyPath + '/twosecondUpload') {
+        } else if(req.url === '/twosecondUpload') {
             setTimeout(function() {
                 output(200, hello, false, 'text/plain; charset=UTF-8');
             }, 2000);
         } else {
-            var url = req.url.substr(req.proxyPath.length);
+            var url = req.url;
             if(url.lastIndexOf('?') >= 0) {
                 url = url.substr(0, url.lastIndexOf('?'));
             }

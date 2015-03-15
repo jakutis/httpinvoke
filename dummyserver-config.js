@@ -14,7 +14,6 @@ window._httpinvoke = window.httpinvoke;
 
 // basic
 window._cfg = {
-    proxyPath: '/dummyserver',
     dummyserverPort: 1337,
     dummyserverPortAlternative: 1338,
     crossOriginUrl: null,
