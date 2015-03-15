@@ -21,7 +21,7 @@ describe('"cors" feature flag', function() {
             done(new Error('A callback was called'));
             done = null;
         };
-        httpinvoke(cfg.corsURL, {
+        httpinvoke(cfg.corsUrl, {
             uploading: callback,
             gotStatus: callback,
             downloading: callback,

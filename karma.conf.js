@@ -17,7 +17,7 @@ module.exports = function(config) {
         // list of files / patterns to load in the browser
         files: [
             'httpinvoke-browser.js',
-            'karma-mocha-requireHack.js',
+            'dummyserver-config.js',
             'node_modules/es5-shim/es5-shim.js',
             'test/*.js'
         ],

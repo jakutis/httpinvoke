@@ -312,17 +312,17 @@ var listen = function (req, res) {
     }
 };
 
-var testURL = 'http://localhost:' + cfg.dummyserverPort + '/test/index.html';
+var testUrl = cfg.crossOriginUrl + 'test/index.html';
 
 var startListen = function() {
     'use strict';
-    console.log('HTML test runner available at ' + testURL);
+    console.log('HTML test runner available at ' + testUrl);
     if(process.argv.indexOf('nodaemon') < 0) {
         daemon();
     }
     fs.writeFileSync('./dummyserver.pid', String(process.pid));
-    http.createServer(listen).listen(cfg.dummyserverPort, cfg.host);
-    http.createServer(listen).listen(cfg.dummyserverPortAlternative, cfg.host);
+    http.createServer(listen).listen(cfg.dummyserverPort, cfg.hostname);
+    http.createServer(listen).listen(cfg.dummyserverPortAlternative, cfg.hostname);
 };
 
 if(fs.existsSync('./dummyserver.pid')) {
@@ -337,7 +337,7 @@ if(fs.existsSync('./dummyserver.pid')) {
             throw err;
         }
         if(openConfirmed) {
-            open(testURL);
+            open(testUrl);
         }
         startListen();
     });

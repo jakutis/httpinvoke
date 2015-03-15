@@ -13,10 +13,10 @@ var processCommon = function(globalVar) {
     'use strict';
     return function(contents) {
         return replace(contents, ';', [{
-            from: 'var addHook, initHooks, mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData, absoluteURLRegExp;',
+            from: 'var addHook, initHooks, mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData, urlPartitioningRegExp, getOrigin;',
             to: globalVar + ';' + fs.readFileSync('./src/common/static.js').toString()
         }, {
-            from: 'var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode, protocol, anonymous, system;',
+            from: 'var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode, origin, urlOrigin, useCORS, anonymous, system;',
             to: fs.readFileSync('./src/common/closures.js').toString()
         }]);
     };
@@ -133,7 +133,7 @@ module.exports = function(grunt) {
                     browser: true,
                     node: true
                 },
-                src: ['./karma-mocha-requireHack.js']
+                src: ['./dummyserver-config.js']
             },
             browser: {
                 options: {

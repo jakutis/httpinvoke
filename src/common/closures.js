@@ -1,9 +1,8 @@
 /* global httpinvoke, url, method, options, cb */
-/* global nextTick, mixInPromise, pass, progress, reject, resolve, supportedMethods, isArray, isArrayBufferView, isFormData, isByteArray, _undefined, absoluteURLRegExp */
+/* global nextTick, mixInPromise, pass, progress, reject, resolve, supportedMethods, isArray, isArrayBufferView, isFormData, isByteArray, _undefined, absoluteURLRegExp, getOrigin */
 /* global setTimeout */
-/* global crossDomain */// this one is a hack, because when in nodejs this is not really defined, but it is never needed
 /* jshint -W020 */
-var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, protocol, anonymous, system;
+var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, origin, urlOrigin, useCORS, anonymous, system;
 hook = function(type, args) {
     var hooks = httpinvoke._hooks[type];
     for(var i = 0; i < hooks.length; i += 1) {
@@ -12,6 +11,7 @@ hook = function(type, args) {
     return args;
 };
 /*************** COMMON initialize parameters **************/
+origin = httpinvoke.getOrigin();
 var downloadTimeout, uploadTimeout, timeout;
 if(!method) {
     // 1 argument
@@ -185,18 +185,16 @@ try {
 } catch(err) {
     return failWithoutRequest(cb, err);
 }
-if(!httpinvoke.relativeURLs && !absoluteURLRegExp.test(url)) {
+urlOrigin = getOrigin(url, origin && origin.substr(0, origin.indexOf(':'))) || origin;
+if(!urlOrigin) {
     return failWithoutRequest(cb, [26, url]);
-}
-protocol = url.substr(0, url.indexOf(':'));
-if(absoluteURLRegExp.test(url) && protocol !== 'http' && protocol !== 'https') {
-    return failWithoutRequest(cb, [25, protocol]);
 }
 anonymous = typeof options.anonymous === 'undefined' ? httpinvoke.anonymousByDefault : options.anonymous;
 system = typeof options.system === 'undefined' ? httpinvoke.systemByDefault : options.system;
-if(typeof options.system !== 'undefined' && system) {
+if(system) {
     anonymous = true;
 }
+useCORS = (!origin || origin !== urlOrigin) && !system;
 var partialOutputMode = options.partialOutputMode || 'disabled';
 if(partialOutputMode.indexOf(',') >= 0 || ',disabled,chunked,joined,'.indexOf(',' + partialOutputMode + ',') < 0) {
     return failWithoutRequest(cb, [3]);
@@ -274,7 +272,7 @@ if(optionsTimeout !== _undefined) {
     if(typeof optionsTimeout === 'number' && isValidTimeout(optionsTimeout)) {
         timeout = optionsTimeout;
     } else if(isArray(optionsTimeout) && optionsTimeout.length === 2 && isValidTimeout(optionsTimeout[0]) && isValidTimeout(optionsTimeout[1])) {
-        if(httpinvoke.corsFineGrainedTimeouts || !crossDomain) {
+        if(httpinvoke.corsFineGrainedTimeouts || !useCORS) {
             uploadTimeout = optionsTimeout[0];
             downloadTimeout = optionsTimeout[1];
         } else {

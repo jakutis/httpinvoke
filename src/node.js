@@ -6,7 +6,7 @@ var protocolImplementations = {
 };
 
 /* jshint unused:true */
-var addHook, initHooks, mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData, absoluteURLRegExp;
+var addHook, initHooks, mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData, urlPartitioningRegExp, getOrigin;
 /* jshint unused:false */
 
 var copy = function(from, to) {
@@ -46,7 +46,7 @@ var build = function() {
 
 var httpinvoke = function(url, method, options, cb) {
     /* jshint unused:true */
-    var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode, protocol, anonymous, system;
+    var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode, origin, urlOrigin, useCORS, anonymous, system;
     /* jshint unused:false */
     /*************** initialize helper variables **************/
     inputHeaders = copy(inputHeaders, {});
@@ -63,8 +63,13 @@ var httpinvoke = function(url, method, options, cb) {
         res.on('data', pass);
         res.on('end', pass);
     };
+    var protocol = urlOrigin.substr(0, urlOrigin.indexOf(':'));
+    var req = protocolImplementations[protocol];
+    if(!req) {
+        return failWithoutRequest(cb, [25, protocol, Object.keys(protocolImplementations).join(', ')]);
+    }
     url = parseURL(url);
-    var req = protocolImplementations[protocol].request({
+    req = req.request({
         hostname: url.hostname,
         port: Number(url.port),
         path: url.path,
@@ -253,6 +258,9 @@ httpinvoke.systemByDefault = true;
 httpinvoke.forbiddenInputHeaders = [];
 httpinvoke._hooks = initHooks();
 httpinvoke.hook = addHook;
+httpinvoke.getOrigin = function() {
+    return null;
+};
 
 return httpinvoke;
 };

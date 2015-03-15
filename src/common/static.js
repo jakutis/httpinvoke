@@ -86,7 +86,29 @@ var resolve = 0, reject = 1, progress = 2, chain = function(a, b) {
     );
 }/* jshint undef:true */, supportedMethods = ',GET,HEAD,PATCH,POST,PUT,DELETE,', pass = function(value) {
     return value;
-}, _undefined, absoluteURLRegExp = /^[a-z][a-z0-9.+-]*:/i, addHook = function(type, hook) {
+}, _undefined, urlPartitioningRegExp = /^(?:([a-z][a-z0-9.+-]*:)|)(?:\/\/([^\/?#:]*)(?:(:\d+)|)|)/, getOrigin = function(url, protocol) {
+    if(url && (url = urlPartitioningRegExp.exec(url.toLowerCase())) && url[2]) {
+        if(!url[1]) {
+            if(!protocol) {
+                return null;
+            }
+            url[1] = protocol;
+        }
+        if(url[3]) {
+            if(url[1] === 'http:') {
+                if(url[3] === ':80') {
+                    url[3] = '';
+                }
+            } else if(url[1] === 'https:') {
+                if(url[3] === ':443') {
+                    url[3] = '';
+                }
+            }
+        }
+        return url[1] + '//' + url[2] + url[3];
+    }
+    return null;
+}, addHook = function(type, hook) {
     'use strict';
     if(typeof hook !== 'function') {
         throw new Error('TODO error');

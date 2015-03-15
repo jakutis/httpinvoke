@@ -244,8 +244,8 @@ See the Examples section for all the options being used.
 All options are optional.
 
 * **partialOutputMode** is a string for the type of the **partial** argument of the **downloading** option, one of `"disabled"` (default, **downloading** will not receive the **partial** argument), `"chunked"` (the received value will be the latest chunk), `"joined"` (the received value will be the entire partial body).
-* **anonymous** - is a boolean for requesting to not send [user credentials](http://www.w3.org/TR/XMLHttpRequest/#user-credentials). Applicable only when **anonymousOption** feature flag is `true`. Defaults to the value of **anonymousByDefault** feature flag. If specified, and `false`, then overrides **corsCredentials** (makes it `true`).
-* **system** - is a boolean for requesting to not enforce [same origin policy](http://www.w3.org/Security/wiki/Same_Origin_Policy). Applicable only when **systemOption** feature flag is `true`. Defaults to the value of **systemByDefault** feature flag. If specified, and `true`, then overrides **anonymous** (makes it `true`).
+* **anonymous** - is a boolean - if `true`, then [user credentials](http://www.w3.org/TR/XMLHttpRequest/#user-credentials) are not sent, if `false` - sent. Applicable only when **anonymousOption** feature flag is `true`. Defaults to the value of **anonymousByDefault** feature flag. See **corsCredentials** feature flag, if you are making a cross-origin request with **system** option being `false`.
+* **system** - is a boolean - if `true`, then [same origin policy](http://www.w3.org/Security/wiki/Same_Origin_Policy) is not enforced, if `false` - enforced. Applicable only when **systemOption** feature flag is `true`. Defaults to the value of **systemByDefault** feature flag. If `true`, then overrides **anonymous** (makes it `true`).
 * **timeout** must be either one of:
   * undefined (default), means that **finished** must never be called with any of the timeout errors,
   * a number (greater than 0 and less than 1073741824) for maximum duration in milliseconds between the httpinvoke call and **finished** call, if it timeouts - **finished** must be called with `"timeout"` error,
@@ -285,7 +285,6 @@ All options are optional.
 * **headers** is an object for HTTP request headers. Keys are header names, values are strings.
 * **converters** is an object to convert custom **inputType** and **outputType** values to `"bytearray"` or `"text"`. Example: `{"json text": JSON.stringify, "text json": JSON.parse}`. If you use custom **inputType**, then there must be at least one converter from that type to `"text"` or `"bytearray"`, and the other way around for **outputType**.
 * **corsExposedHeaders** is an array of HTTP response headers to be extracted in **gotStatus** call. Default simple headers like "Content-Type" are always extracted. Applicable only for cross-origin requests.
-* **corsCredentials** is a boolean for requesting to send credentials. Applicable only for a cross-origin request. See Feature Flags section. Defaults to `false`.
 * **corsOriginHeader** is a string for the request header name for browsers with buggy CORS implementations (e.g. Android Browser 2.3.7) - which do not send the Origin request header in actual request. By default **corsOriginHeader** is not set, as it needs a proper `Access-Control-Allow-Headers` server-side header, see `dummyserver.js` for an example of server-side part of the workaround implementation.
 
 #### Callback Sequence
@@ -407,7 +406,7 @@ Please note that a request can finish successfully, with an **err** set to `null
 * **022** Unable to open uri %
 * **023** Unable to set input header %
 * **024** Unable to send
-* **025** "%" protocol is not among these supported protocols: http, https
+* **025** "%" protocol is not among these supported protocols: %
 * **026** Given URL "%" is relative, but **relativeURLs** flag is false
 
 ## Development
