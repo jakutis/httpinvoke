@@ -66,7 +66,7 @@ var httpinvoke = function(url, method, options, cb) {
     var protocol = urlOrigin.substr(0, urlOrigin.indexOf(':'));
     var req = protocolImplementations[protocol];
     if(!req) {
-        return failWithoutRequest(cb, [25, protocol, Object.keys(protocolImplementations).join(', ')]);
+        return failWithoutRequest(cb, [25, protocol, httpinvoke.protocols.join(', ')]);
     }
     url = parseURL(url);
     req = req.request({
@@ -258,6 +258,7 @@ httpinvoke.systemByDefault = true;
 httpinvoke.forbiddenInputHeaders = [];
 httpinvoke._hooks = initHooks();
 httpinvoke.hook = addHook;
+httpinvoke.protocols = Object.keys(protocolImplementations);
 httpinvoke.getOrigin = function() {
     return null;
 };
