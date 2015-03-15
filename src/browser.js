@@ -838,6 +838,8 @@ var build = function() {
         }
     })();
     httpinvoke.systemByDefault = false;
+    // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
+    httpinvoke.forbiddenInputHeaders = ['proxy-*', 'sec-*', 'accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'content-transfer-encoding', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
 
     return httpinvoke;
 };

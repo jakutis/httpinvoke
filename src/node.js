@@ -9,26 +9,6 @@ var protocolImplementations = {
 var addHook, initHooks, mixInPromise, pass, isArray, isArrayBufferView, _undefined, nextTick, isFormData, absoluteURLRegExp;
 /* jshint unused:false */
 
-// http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
-var forbiddenInputHeaders = ['accept-charset', 'accept-encoding', 'access-control-request-headers', 'access-control-request-method', 'connection', 'content-length', 'content-transfer-encoding', 'cookie', 'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent', 'via'];
-var validateInputHeaders = function(headers) {
-    'use strict';
-    for(var header in headers) {
-        if(headers.hasOwnProperty(header)) {
-            var headerl = header.toLowerCase();
-            if(forbiddenInputHeaders.indexOf(headerl) >= 0) {
-                throw [14, header];
-            }
-            if(headerl.substr(0, 'proxy-'.length) === 'proxy-') {
-                throw [15, header];
-            }
-            if(headerl.substr(0, 'sec-'.length) === 'sec-') {
-                throw [16, header];
-            }
-        }
-    }
-};
-
 var copy = function(from, to) {
     'use strict';
     Object.keys(from).forEach(function(key) {
@@ -69,11 +49,6 @@ var httpinvoke = function(url, method, options, cb) {
     var hook, promise, failWithoutRequest, uploadProgressCb, downloadProgressCb, inputLength, inputHeaders, statusCb, outputHeaders, exposedHeaders, status, outputBinary, input, outputLength, outputConverter, partialOutputMode, protocol, anonymous, system;
     /* jshint unused:false */
     /*************** initialize helper variables **************/
-    try {
-        validateInputHeaders(inputHeaders);
-    } catch(err) {
-        return failWithoutRequest(cb, err);
-    }
     inputHeaders = copy(inputHeaders, {});
     if(typeof input !== 'undefined') {
         input = new Buffer(input);
@@ -275,6 +250,7 @@ httpinvoke.anonymousOption = false;
 httpinvoke.anonymousByDefault = true;
 httpinvoke.systemOption = false;
 httpinvoke.systemByDefault = true;
+httpinvoke.forbiddenInputHeaders = [];
 httpinvoke._hooks = initHooks();
 httpinvoke.hook = addHook;
 

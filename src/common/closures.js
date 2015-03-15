@@ -162,6 +162,29 @@ outputHeaders = {};
 exposedHeaders = options.corsExposedHeaders || [];
 exposedHeaders.push.apply(exposedHeaders, ['Cache-Control', 'Content-Language', 'Content-Type', 'Content-Length', 'Expires', 'Last-Modified', 'Pragma', 'Content-Range', 'Content-Encoding']);
 /*************** COMMON convert and validate parameters **************/
+var validateInputHeaders = function(headers) {
+    var noSec = httpinvoke.forbiddenInputHeaders.indexOf('sec-*') >= 0;
+    var noProxy = httpinvoke.forbiddenInputHeaders.indexOf('proxy-*') >= 0;
+    for(var header in headers) {
+        if(headers.hasOwnProperty(header)) {
+            var headerl = header.toLowerCase();
+            if(httpinvoke.forbiddenInputHeaders.indexOf(headerl) >= 0) {
+                throw [14, header];
+            }
+            if(noProxy && headerl.substr(0, 'proxy-'.length) === 'proxy-') {
+                throw [15, header];
+            }
+            if(noSec && headerl.substr(0, 'sec-'.length) === 'sec-') {
+                throw [16, header];
+            }
+        }
+    }
+};
+try {
+    validateInputHeaders(inputHeaders);
+} catch(err) {
+    return failWithoutRequest(cb, err);
+}
 if(!httpinvoke.relativeURLs && !absoluteURLRegExp.test(url)) {
     return failWithoutRequest(cb, [26, url]);
 }

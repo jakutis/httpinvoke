@@ -358,6 +358,7 @@ There are feature flags to be queried for platform-specific features.
 * **corsResponseTextOnly** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports only **outputType** `"text"`
 * **corsFineGrainedTimeouts** - [cross-origin resource sharing](http://en.wikipedia.org/wiki/Cross-origin_resource_sharing) supports "upload timeout" and "download timeout" errors.
 * **anyMethod** - any standard or custom HTTP method can be used, as opposed to just GET, HEAD, PATCH, POST, PUT or DELETE
+* **forbiddenInputHeaders** - array of lower-cased names of request headers that will result in finish with error if any one is found in **headers** option
 * **relativeURLs** - relative URLs (e.g. `"/foo"`, `"./bar"`, `"foobar"`) and protocol-relative URLs (e.g. `"//example.org/foo"`) are supported
 * **anonymousByDefault** - [user credentials](http://www.w3.org/TR/XMLHttpRequest/#user-credentials) are sent by default
 * **anonymousOption** - controlling (e.g. via [mozAnon](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#Parameters_(non-standard))) whether [user credentials](http://www.w3.org/TR/XMLHttpRequest/#user-credentials) are sent is supported (i.e. whether specifying the option **anonymous** has any effect)
