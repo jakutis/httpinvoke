@@ -402,12 +402,10 @@ window._cfg = {
     }
 };
 if(location.protocol === 'http:' || location.protocol === 'https:') {
-    window._cfg.hostname = location.hostname;
-    window._cfg.sameOriginUrl = location.protocol + '//' + window._cfg.hostname + ':' + window._cfg.dummyserverPort + '/';
-    window._cfg.crossOriginUrl = location.protocol + '//' + window._cfg.hostname + ':' + window._cfg.dummyserverPortAlternative + '/';
+    window._cfg.sameOriginUrl = location.protocol + '//' + location.hostname + ':' + window._cfg.dummyserverPort + '/';
+    window._cfg.crossOriginUrl = location.protocol + '//' + location.hostname + ':' + window._cfg.dummyserverPortAlternative + '/';
 } else {
-    window._cfg.hostname = '0.0.0.0';
-    window._cfg.crossOriginUrl = 'http://' + window._cfg.hostname + ':' + window._cfg.dummyserverPort + '/';
+    window._cfg.crossOriginUrl = 'http://127.0.0.1:' + window._cfg.dummyserverPort + '/';
 }
 
 window.require = function(module) {

@@ -320,8 +320,8 @@ var startListen = function() {
         daemon();
     }
     fs.writeFileSync('./dummyserver.pid', String(process.pid));
-    http.createServer(listen).listen(cfg.dummyserverPort, cfg.hostname);
-    http.createServer(listen).listen(cfg.dummyserverPortAlternative, cfg.hostname);
+    http.createServer(listen).listen(cfg.dummyserverPort);
+    http.createServer(listen).listen(cfg.dummyserverPortAlternative);
 };
 
 if(fs.existsSync('./dummyserver.pid')) {
