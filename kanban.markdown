@@ -1,5 +1,20 @@
 # To do
 
+    Goal:  rename `.hook` to `.withHook`
+    To do: Sun Mar 15 23:34:55 EET 2015
+
+    Goal:  add `httpinvoke.withOrigin` and change `httpinvoke.relativeURLs`
+    To do: Sun Mar 15 23:35:16 EET 2015
+
+    Goal:  add `httpinvoke.hasFeature` and move feature flags
+    To do: Sun Mar 15 23:36:06 EET 2015
+
+    Goal:  test on jsdom with node-XMLHttpRequest
+    To do: Sun Mar 15 23:38:39 EET 2015
+
+    Goal:  fail on URLs with credentials (suggest adding `Authorization` request header)
+    To do: Sun Mar 15 23:39:04 EET 2015
+
     Goal:  setup Sauce Labs continuous integration
     To do: Sun Mar  8 21:40:44 EET 2015
 
@@ -109,7 +124,7 @@
     To do: Sat Feb  1 11:24:33 UTC 2014
     Doing: Sun Mar  8 21:32:47 EET 2015
 
-    Goal:  use global.Promise and fallback to mixInPromise
+    Goal:  use global.Promise and fallback to mixInPromise, and add .abort on the promise
     To do: Sun Mar  8 21:33:26 EET 2015
     Doing: Sun Mar  8 21:33:29 EET 2015
 
