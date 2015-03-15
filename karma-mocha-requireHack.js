@@ -401,6 +401,10 @@ window._cfg = {
         return bytes;
     }
 };
+if(location.protocol === 'app:') {
+    window._cfg.host = 'localhost';
+    window._cfg.port = window._cfg.dummyserverPort;
+}
 // generated
 window._cfg.corsURL = 'http://' + window._cfg.host + ':' + (window._cfg.port === window._cfg.dummyserverPort ? window._cfg.dummyserverPortAlternative : window._cfg.dummyserverPort) + '/';
 window._cfg.url = 'http://' + window._cfg.host + ':' + window._cfg.port + (window._cfg.port === window._cfg.dummyserverPort ? '' : window._cfg.proxyPath) + '/';

@@ -49,6 +49,7 @@ A no-dependencies HTTP client library for browsers and Node.js with a promise-ba
   * Safari 4.0 and later;
   * Opera 10.60 and later;
   * Android 2.3.3 and later;
+  * Firefox OS 1.3 and later;
   * Kindle 3.0 (Version/4.0);
   * Samsung Smart-TV 4.5 (Webkit/537.42 Chromium/25.0).
 * Tested on these Node versions:

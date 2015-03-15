@@ -1,0 +1,17 @@
+{
+  "name": "httpinvoke",
+  "description": "httpinvoke testing app",
+  "launch_path": "/test/index.html",
+  "icons": {},
+  "developer": {
+    "name": "Vytautas Jakutis",
+    "url": "https://jakut.is/"
+  },
+  "default_locale": "en",
+  "type": "privileged",
+  "permissions": {
+    "systemXHR": {
+      "description": "Allows loading remote content"
+    }
+  }
+}
