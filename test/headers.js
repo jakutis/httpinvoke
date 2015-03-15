@@ -31,7 +31,7 @@ describe('"headers" option', function() {
         it('immediately finishes with error, when a "' + header + '" header is tried to be set', function(done) {
             var headers = {};
             headers[header] = '';
-            httpinvoke(cfg.url, {
+            httpinvoke(cfg.sameOriginUrl, {
                 headers: headers,
                 finished: function(err) {
                     if(err) {

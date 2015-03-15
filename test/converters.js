@@ -5,7 +5,7 @@ describe('"converters" option', function() {
     'use strict';
     this.timeout(10000);
     it('basically works', function(done) {
-        httpinvoke(cfg.url + 'boolean', 'POST', {
+        httpinvoke(cfg.sameOriginUrl + 'boolean', 'POST', {
             input: true,
             inputType: 'boolean',
             outputType: 'boolean',
