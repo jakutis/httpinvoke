@@ -26,7 +26,7 @@ describe('calling', function() {
     if(httpinvoke.protocols.length > 0) {
         it('throws error #25 if given absolute URL protocol is not among these: ' + httpinvoke.protocols, function(done) {
             httpinvoke('ftp://example.org', function(err) {
-                done(err && err.message === 'Error code #25,ftp. See https://github.com/jakutis/httpinvoke#error-codes' ? null : new Error('expected error #25'));
+                done(err && err.message === 'Error code #25,ftp,' + httpinvoke.protocols.join(', ') + '. See https://github.com/jakutis/httpinvoke#error-codes' ? null : new Error('expected error #25'));
             });
         });
     }
