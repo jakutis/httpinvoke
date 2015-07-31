@@ -1,5 +1,11 @@
 # To do
 
+    Goal:  implement node support using require('got')
+    To do: Sat Aug  1 02:08:40 EEST 2015
+
+    Goal:  implement streams on browser using https://streams.spec.whatwg.org/
+    To do: Sat Aug  1 02:09:35 EEST 2015
+
     Goal:  rename `.hook` to `.withHook`
     To do: Sun Mar 15 23:34:55 EET 2015
 
