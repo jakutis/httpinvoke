@@ -1,3 +1,5 @@
+WARNING: instead of this project, you should use <https://github.com/bitinn/node-fetch> or <https://github.com/github/fetch>
+
 # httpinvoke
 
 A no-dependencies HTTP client library for browsers and Node.js with a promise-based or Node.js-style callback-based API to progress events, text and binary file upload and download, partial response body, request and response headers, status code.
